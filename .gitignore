@@ -50,3 +50,7 @@ app.*.map.json
 
 /supabase/.branches
 /supabase/.temp
+
+CLAUDE.md
+.claude/
+.agents/
