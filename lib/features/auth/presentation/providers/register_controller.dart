@@ -1,13 +1,13 @@
 import 'package:flutter/widgets.dart';
 
 import '../../../../core/errors/app_exception.dart';
-import '../../domain/usecases/register_owner_usecase.dart';
+import '../../domain/usecases/register_account_usecase.dart';
 import 'form_submission_status.dart';
 
-class RegisterController extends ChangeNotifier {
-  RegisterController(this._registerOwner);
+abstract class RegisterController extends ChangeNotifier {
+  RegisterController(this._registerAccount);
 
-  final RegisterOwnerUseCase _registerOwner;
+  final RegisterAccountUseCase _registerAccount;
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -99,7 +99,7 @@ class RegisterController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _registerOwner(
+      await _registerAccount(
         name: nameController.text,
         email: emailController.text,
         whatsappNumber: whatsappController.text,

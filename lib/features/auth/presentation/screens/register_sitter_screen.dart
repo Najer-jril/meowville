@@ -5,22 +5,22 @@ import 'package:provider/provider.dart';
 import '../../../../core/navigation/legal_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../providers/auth_notifier.dart';
-import '../providers/register_owner_controller.dart';
+import '../providers/register_sitter_controller.dart';
 import '../widgets/auth_footer_prompt.dart';
 import '../widgets/auth_layout.dart';
 import '../widgets/register_account_form.dart';
 
-class RegisterOwnerScreen extends StatefulWidget {
-  const RegisterOwnerScreen({super.key});
+class RegisterSitterScreen extends StatefulWidget {
+  const RegisterSitterScreen({super.key});
 
   @override
-  State<RegisterOwnerScreen> createState() => _RegisterOwnerScreenState();
+  State<RegisterSitterScreen> createState() => _RegisterSitterScreenState();
 }
 
-class _RegisterOwnerScreenState extends State<RegisterOwnerScreen> {
+class _RegisterSitterScreenState extends State<RegisterSitterScreen> {
   Future<void> _submit() async {
-    final RegisterOwnerController controller = context
-        .read<RegisterOwnerController>();
+    final RegisterSitterController controller = context
+        .read<RegisterSitterController>();
     FocusScope.of(context).unfocus();
 
     final bool registered = await controller.submit();
@@ -37,7 +37,8 @@ class _RegisterOwnerScreenState extends State<RegisterOwnerScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-          'Akun dibuat. Buka tautan verifikasi di email Anda, lalu masuk.',
+          'Akun penjaga dibuat. Buka tautan verifikasi di email Anda, '
+          'lalu masuk.',
         ),
         duration: Duration(seconds: 6),
       ),
@@ -51,20 +52,20 @@ class _RegisterOwnerScreenState extends State<RegisterOwnerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final RegisterOwnerController controller = context
-        .watch<RegisterOwnerController>();
+    final RegisterSitterController controller = context
+        .watch<RegisterSitterController>();
 
     return AuthLayout(
-      eyebrow: 'Akun pemilik baru',
-      title: 'Daftar Akun Meowville',
+      eyebrow: 'Akun penjaga baru',
+      title: 'Daftar Jadi Penjaga',
       subtitle:
-          'Bergabunglah dengan Meowville untuk memesan kamar & '
-          'memantau anabul Anda.',
-      panelStatement: 'Satu akun untuk semua kunjungan anabul Anda.',
+          'Buat akun penjaga untuk menerima jadwal titipan dan mengirim '
+          'kabar harian ke pemilik.',
+      panelStatement: 'Tangan yang telaten menjaga kamar tetap hangat.',
       form: RegisterAccountForm(
         controller: controller,
-        identityStepLabel: 'Data pemilik',
-        submitLabel: 'Buat Akun Meowville',
+        identityStepLabel: 'Data penjaga',
+        submitLabel: 'Buat Akun Penjaga',
         onSubmitted: _submit,
         onOpenTerms: _openTerms,
         onOpenPrivacy: _openPrivacy,
@@ -78,9 +79,9 @@ class _RegisterOwnerScreenState extends State<RegisterOwnerScreen> {
           ),
           const SizedBox(height: AppSpacing.space8),
           AuthFooterPrompt(
-            question: 'Melamar sebagai penjaga kucing?',
-            actionLabel: 'Daftar akun penjaga',
-            onAction: () => context.go('/register-penjaga'),
+            question: 'Menitipkan kucing, bukan menjaga?',
+            actionLabel: 'Daftar akun pemilik',
+            onAction: () => context.go('/register'),
           ),
         ],
       ),
