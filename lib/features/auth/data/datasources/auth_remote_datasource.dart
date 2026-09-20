@@ -60,11 +60,12 @@ class AuthRemoteDataSource {
     }
   }
 
-  Future<AuthUserDto> registerOwner({
+  Future<AuthUserDto> registerAccount({
     required String name,
     required String email,
     required String whatsappNumber,
     required String password,
+    required String role,
   }) async {
     try {
       final AuthResponse response = await _client.auth.signUp(
@@ -73,6 +74,7 @@ class AuthRemoteDataSource {
         data: <String, dynamic>{
           'name': name,
           'whatsapp_number': whatsappNumber,
+          'role': role,
         },
       );
 
@@ -88,7 +90,7 @@ class AuthRemoteDataSource {
         name: name,
         email: email,
         whatsappNumber: whatsappNumber,
-        role: 'pet_owner',
+        role: role,
         createdAt: DateTime.now(),
       );
 

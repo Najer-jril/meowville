@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' show AuthState;
 import '../../../../core/errors/app_exception.dart';
 import '../../domain/entities/auth_user.dart';
 import '../../domain/entities/login_credentials.dart';
-import '../../domain/entities/register_owner_params.dart';
+import '../../domain/entities/register_account_params.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../models/auth_user_dto.dart';
@@ -61,12 +61,13 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<AuthUser> registerOwner(RegisterOwnerParams params) async {
-    final AuthUserDto dto = await _dataSource.registerOwner(
+  Future<AuthUser> registerAccount(RegisterAccountParams params) async {
+    final AuthUserDto dto = await _dataSource.registerAccount(
       name: params.name,
       email: params.email,
       whatsappNumber: params.whatsappNumber,
       password: params.password,
+      role: params.role.wireValue,
     );
     return dto.toEntity();
   }
