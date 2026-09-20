@@ -1,6 +1,6 @@
 import '../entities/auth_user.dart';
 import '../entities/login_credentials.dart';
-import '../entities/register_owner_params.dart';
+import '../entities/register_account_params.dart';
 
 abstract interface class AuthRepository {
   Stream<AuthUser?> get authStateChanges;
@@ -9,7 +9,7 @@ abstract interface class AuthRepository {
 
   Future<AuthUser> signIn(LoginCredentials credentials);
 
-  Future<AuthUser> registerOwner(RegisterOwnerParams params);
+  Future<AuthUser> registerAccount(RegisterAccountParams params);
 
   Future<void> signOut();
 }
