@@ -10,12 +10,13 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
-import 'features/auth/domain/usecases/register_owner_usecase.dart';
+import 'features/auth/domain/usecases/register_account_usecase.dart';
 import 'features/auth/domain/usecases/sign_in_usecase.dart';
 import 'features/auth/domain/usecases/sign_out_usecase.dart';
 import 'features/auth/presentation/providers/auth_notifier.dart';
 import 'features/auth/presentation/providers/login_controller.dart';
-import 'features/auth/presentation/providers/register_controller.dart';
+import 'features/auth/presentation/providers/register_owner_controller.dart';
+import 'features/auth/presentation/providers/register_sitter_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,9 +49,13 @@ class MeowvilleApp extends StatelessWidget {
         ChangeNotifierProvider<LoginController>(
           create: (_) => LoginController(SignInUseCase(authRepository)),
         ),
-        ChangeNotifierProvider<RegisterController>(
+        ChangeNotifierProvider<RegisterOwnerController>(
           create: (_) =>
-              RegisterController(RegisterOwnerUseCase(authRepository)),
+              RegisterOwnerController(RegisterOwnerUseCase(authRepository)),
+        ),
+        ChangeNotifierProvider<RegisterSitterController>(
+          create: (_) =>
+              RegisterSitterController(RegisterSitterUseCase(authRepository)),
         ),
       ],
       child: Builder(
