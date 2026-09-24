@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/errors/app_exception.dart';
+import '../../../../core/errors/data_error_mapper.dart';
 import '../models/auth_user_dto.dart';
 
 class AuthRemoteDataSource {
@@ -85,7 +86,10 @@ class AuthRemoteDataSource {
         );
       }
 
-      final AuthUserDto dto = AuthUserDto(
+      if (response.session != null) {
+        return await fetchProfile(user.id);
+      }
+      return AuthUserDto(
         id: user.id,
         name: name,
         email: email,
@@ -93,20 +97,64 @@ class AuthRemoteDataSource {
         role: role,
         createdAt: DateTime.now(),
       );
-
-      final Map<String, dynamic> inserted = await _client
-          .from(_usersTable)
-          .insert(dto.toInsertJson())
-          .select()
-          .single();
-
-      return AuthUserDto.fromJson(inserted);
     } on AuthException catch (error) {
       throw _mapAuthError(error);
     } on PostgrestException catch (error) {
       throw _mapPostgrestError(error);
     } on SocketException catch (error) {
       throw NetworkException(_networkMessage, cause: error);
+    }
+  }
+
+  Future<void> requestPasswordReset(String email) async {
+    try {
+      await _client.auth.resetPasswordForEmail(email);
+    } on AuthException catch (error) {
+      throw _mapAuthError(error);
+    } on SocketException catch (error) {
+      throw NetworkException(_networkMessage, cause: error);
+    }
+  }
+
+  Future<AuthUserDto> confirmPasswordReset({
+    required String email,
+    required String token,
+    required String newPassword,
+  }) async {
+    try {
+      final AuthResponse verified = await _client.auth.verifyOTP(
+        type: OtpType.recovery,
+        email: email,
+        token: token,
+      );
+      final User? user = verified.user;
+      if (user == null) {
+        throw const UnexpectedException(
+          'Kode belum bisa diperiksa. Coba ulangi beberapa saat lagi.',
+        );
+      }
+
+      try {
+        await _client.auth.updateUser(UserAttributes(password: newPassword));
+      } on AuthException catch (error) {
+        await _discardRecoverySession();
+        throw _mapAuthError(error, afterCodeUsed: true);
+      }
+      return await fetchProfile(user.id);
+    } on AuthException catch (error) {
+      throw _mapAuthError(error);
+    } on PostgrestException catch (error) {
+      throw _mapPostgrestError(error);
+    } on SocketException catch (error) {
+      throw NetworkException(_networkMessage, cause: error);
+    }
+  }
+
+  Future<void> _discardRecoverySession() async {
+    try {
+      await _client.auth.signOut();
+    } on Object {
+      //noname
     }
   }
 
@@ -141,12 +189,53 @@ class AuthRemoteDataSource {
     }
   }
 
-  static const String _networkMessage =
-      'Perangkat tidak dapat menghubungi server. Periksa koneksi, lalu coba lagi.';
+  static const String _networkMessage = networkErrorMessage;
 
-  AppException _mapAuthError(AuthException error) {
+  AppException _mapAuthError(
+    AuthException error, {
+    bool afterCodeUsed = false,
+  }) {
     final String code = error.statusCode ?? '';
+    final String reason = error.code ?? '';
     final String message = error.message.toLowerCase();
+
+    if (error is AuthRetryableFetchException) {
+      return NetworkException(_networkMessage, cause: error);
+    }
+    if (reason == 'otp_expired' ||
+        message.contains('token has expired') ||
+        message.contains('token is invalid')) {
+      return UnauthorizedException(
+        'Kode itu tidak cocok atau sudah lewat satu jam. Minta kode baru.',
+        cause: error,
+      );
+    }
+    if (code == '429' ||
+        reason == 'over_email_send_rate_limit' ||
+        reason == 'over_request_rate_limit' ||
+        message.contains('rate limit') ||
+        message.contains('you can only request this after')) {
+      return UnauthorizedException(
+        'Terlalu banyak percobaan. Tunggu beberapa menit.',
+        cause: error,
+      );
+    }
+    if (error is AuthWeakPasswordException || reason == 'weak_password') {
+      return ValidationException(
+        afterCodeUsed
+            ? 'Kata sandi terlalu lemah. Minta kode baru, lalu pilih yang lebih panjang.'
+            : 'Kata sandi terlalu lemah.',
+        cause: error,
+      );
+    }
+    if (reason == 'same_password') {
+      return ValidationException(
+        afterCodeUsed
+            ? 'Kata sandi baru harus berbeda dari yang lama. Minta kode baru untuk mencoba lagi.'
+            : 'Kata sandi baru harus berbeda dari yang lama.',
+        cause: error,
+      );
+    }
 
     if (message.contains('invalid login credentials')) {
       return UnauthorizedException(

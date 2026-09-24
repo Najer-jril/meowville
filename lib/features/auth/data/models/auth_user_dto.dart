@@ -29,16 +29,6 @@ class AuthUserDto {
   final String role;
   final DateTime createdAt;
 
-  Map<String, dynamic> toInsertJson() {
-    return <String, dynamic>{
-      'id': id,
-      'name': name,
-      'email': email,
-      'whatsapp_number': whatsappNumber,
-      'role': role,
-    };
-  }
-
   AuthUser toEntity() {
     return AuthUser(
       id: id,

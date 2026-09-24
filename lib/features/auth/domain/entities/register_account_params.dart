@@ -1,4 +1,5 @@
 import '../../../../core/errors/app_exception.dart';
+import 'new_password.dart';
 import 'user_role.dart';
 import 'whatsapp_number.dart';
 
@@ -10,8 +11,6 @@ class RegisterAccountParams {
     required this.password,
     required this.role,
   });
-
-  static const int minPasswordLength = 8;
 
   factory RegisterAccountParams.create({
     required String name,
@@ -42,16 +41,10 @@ class RegisterAccountParams {
     if (trimmedEmail.length > 150) {
       throw const ValidationException('Alamat email maksimal 150 karakter.');
     }
-    if (password.length < minPasswordLength) {
-      throw const ValidationException(
-        'Kata sandi minimal $minPasswordLength karakter.',
-      );
-    }
-    if (password != confirmPassword) {
-      throw const ValidationException(
-        'Konfirmasi kata sandi belum sama dengan kata sandi.',
-      );
-    }
+    final NewPassword newPassword = NewPassword.create(
+      password: password,
+      confirmation: confirmPassword,
+    );
     if (!termsAccepted) {
       throw const ValidationException(
         'Centang persetujuan ketentuan layanan untuk melanjutkan.',
@@ -64,7 +57,7 @@ class RegisterAccountParams {
       name: trimmedName,
       email: trimmedEmail,
       whatsappNumber: number.value,
-      password: password,
+      password: newPassword.value,
       role: role,
     );
   }

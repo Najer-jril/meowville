@@ -11,5 +11,13 @@ abstract interface class AuthRepository {
 
   Future<AuthUser> registerAccount(RegisterAccountParams params);
 
+  Future<void> requestPasswordReset(String email);
+
+  Future<AuthUser> confirmPasswordReset({
+    required String email,
+    required String token,
+    required String newPassword,
+  });
+
   Future<void> signOut();
 }
