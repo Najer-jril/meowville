@@ -89,11 +89,14 @@ abstract final class AppColors {
   static const Color onError = Color(0xFFFFFFFF);
   static const Color errorContainer = Color(0xFFF1DEDA);
   static const Color onErrorContainer = Color(0xFF98483D);
+  static const Color errorPressed = onErrorContainer;
+  // Edge tone for the danger button's pressed ledge, darkened from `error`
+  // at the same ratio as the terracotta chain (brandTerracotta -> Edge).
+  static const Color errorEdge = Color(0xFF5F2F28);
 
   static const Color badgeStayingSurface = Color(0xFFF0DDD6);
   static const Color badgeStayingText = brandTerracottaPressed;
   static const Color badgeDoneSurface = Color(0xFFE7E3DC);
   static const Color badgeDoneText = Color(0xFF665E58);
-  static const Color badgeCancelledSurface = Color(0xFFECE9E4);
   static const Color badgeCancelledText = Color(0xFF6A6058);
 }

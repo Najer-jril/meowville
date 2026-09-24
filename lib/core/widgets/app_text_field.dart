@@ -28,6 +28,8 @@ class AppTextField extends StatefulWidget {
     this.semanticLabel,
     this.onSubmitted,
     this.onChanged,
+    this.maxLines = 1,
+    this.maxLength,
   });
 
   final TextEditingController controller;
@@ -47,6 +49,11 @@ class AppTextField extends StatefulWidget {
   final String? semanticLabel;
   final ValueChanged<String>? onSubmitted;
   final ValueChanged<String>? onChanged;
+
+  final int maxLines;
+  final int? maxLength;
+
+  bool get _multiline => maxLines > 1;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -117,7 +124,13 @@ class _AppTextFieldState extends State<AppTextField> {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Container(
-          height: AppSpacing.controlHeight,
+          height: widget._multiline ? null : AppSpacing.controlHeight,
+          constraints: widget._multiline
+              ? const BoxConstraints(minHeight: AppSpacing.controlHeight * 2)
+              : null,
+          padding: widget._multiline
+              ? const EdgeInsets.symmetric(vertical: AppSpacing.space12)
+              : null,
           decoration: BoxDecoration(
             color: fillColor,
             borderRadius: AppRadius.controlAll,
@@ -168,6 +181,10 @@ class _AppTextFieldState extends State<AppTextField> {
                       autofillHints: widget.autofillHints,
                       onSubmitted: widget.onSubmitted,
                       onChanged: widget.onChanged,
+                      minLines: widget._multiline ? 3 : null,
+                      maxLines: widget.maxLines,
+                      maxLength: widget.maxLength,
+                      maxLengthEnforcement: MaxLengthEnforcement.enforced,
                       cursorColor: AppColors.primary,
                       style: AppTypography.bodyMd,
                       decoration: InputDecoration(
@@ -179,6 +196,7 @@ class _AppTextFieldState extends State<AppTextField> {
                         focusedBorder: InputBorder.none,
                         disabledBorder: InputBorder.none,
                         hintText: widget.hintText,
+                        counterText: '',
                         hintStyle: AppTypography.bodyMd.copyWith(
                           color: AppColors.onSurfacePlaceholder,
                         ),

@@ -19,9 +19,15 @@ extension AppStatusToneX on AppStatusTone {
     AppStatusTone.menunggu => AppColors.pendingSurface,
     AppStatusTone.disetujui => AppColors.successSurface,
     AppStatusTone.ditolak => AppColors.errorContainer,
+    // Kucing sedang menginap: pakai token terracotta yang memang dibuat
+    // untuk status ini, bukan biru info (biru dipakai untuk status
+    // informasional netral seperti pembayaran diproses).
     AppStatusTone.menginap => AppColors.badgeStayingSurface,
     AppStatusTone.selesai => AppColors.badgeDoneSurface,
-    AppStatusTone.dibatalkan => AppColors.badgeCancelledSurface,
+    // Diisi (bukan transparan) agar sejajar dengan lima status lain yang
+    // semuanya pil berisi; outline-only bikin status ini terlihat beda
+    // sendiri di antara badge lain.
+    AppStatusTone.dibatalkan => AppColors.surfaceContainer,
   };
 
   Color get foreground => switch (this) {

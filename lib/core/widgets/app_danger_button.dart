@@ -7,31 +7,25 @@ import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
-class AppPrimaryButton extends StatefulWidget {
-  const AppPrimaryButton({
+class AppDangerButton extends StatefulWidget {
+  const AppDangerButton({
     super.key,
     required this.label,
     required this.onPressed,
     this.leadingIcon,
-    this.trailingIcon,
     this.isLoading = false,
-    this.shadows = AppElevation.buttonRaised,
-    this.foregroundColor = AppColors.onPrimary,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final IconData? leadingIcon;
-  final IconData? trailingIcon;
   final bool isLoading;
-  final List<BoxShadow> shadows;
-  final Color foregroundColor;
 
   @override
-  State<AppPrimaryButton> createState() => _AppPrimaryButtonState();
+  State<AppDangerButton> createState() => _AppDangerButtonState();
 }
 
-class _AppPrimaryButtonState extends State<AppPrimaryButton> {
+class _AppDangerButtonState extends State<AppDangerButton> {
   bool _pressed = false;
   bool _focused = false;
 
@@ -40,9 +34,9 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton> {
     final bool enabled = widget.onPressed != null && !widget.isLoading;
     final Color background = !enabled
         ? AppColors.surfaceRecessed
-        : (_pressed ? AppColors.primaryPressed : AppColors.primaryStrong);
+        : (_pressed ? AppColors.errorPressed : AppColors.error);
     final Color foreground = enabled
-        ? widget.foregroundColor
+        ? AppColors.onError
         : AppColors.onSurfacePlaceholder;
 
     return Semantics(
@@ -51,7 +45,6 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton> {
       label: widget.label,
       child: ExcludeSemantics(
         child: Padding(
-          // Ruang untuk tebal tombol agar tata letak tidak bergeser.
           padding: const EdgeInsets.only(bottom: 3),
           child: AnimatedSlide(
             offset: _pressed ? const Offset(0, 0.042) : Offset.zero,
@@ -62,14 +55,14 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton> {
                 color: background,
                 borderRadius: AppRadius.controlAll,
                 border: Border.all(
-                  color: _focused
-                      ? AppColors.brandTerracottaEdge
-                      : Colors.transparent,
+                  color: _focused ? AppColors.errorEdge : Colors.transparent,
                   width: 2,
                 ),
                 boxShadow: !enabled
                     ? const <BoxShadow>[]
-                    : (_pressed ? AppElevation.buttonPressed : widget.shadows),
+                    : (_pressed
+                          ? AppElevation.buttonDangerPressed
+                          : AppElevation.buttonDangerRaised),
               ),
               clipBehavior: Clip.antiAlias,
               child: Material(
@@ -80,7 +73,7 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton> {
                       setState(() => _pressed = pressed),
                   onFocusChange: (bool focused) =>
                       setState(() => _focused = focused),
-                  hoverColor: AppColors.brandTerracottaPressed,
+                  hoverColor: AppColors.errorPressed,
                   child: Center(
                     child: widget.isLoading
                         ? SizedBox(
@@ -88,7 +81,7 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton> {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: widget.foregroundColor,
+                              color: foreground,
                             ),
                           )
                         : Row(
@@ -113,14 +106,6 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton> {
                                   ),
                                 ),
                               ),
-                              if (widget.trailingIcon != null) ...<Widget>[
-                                const SizedBox(width: AppSpacing.space8),
-                                Icon(
-                                  widget.trailingIcon,
-                                  size: 18,
-                                  color: foreground,
-                                ),
-                              ],
                             ],
                           ),
                   ),

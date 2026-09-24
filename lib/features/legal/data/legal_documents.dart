@@ -3,8 +3,7 @@ import '../domain/legal_document.dart';
 abstract final class LegalDocuments {
   static const LegalDocumentStatus _draftStatus = LegalDocumentStatus(
     label: 'data dummy, belum final',
-    detail:
-        'masih dummy ya dul, belum final, data juga diambil dari internet',
+    detail: 'masih dummy ya dul, belum final, data juga diambil dari internet',
   );
 
   static const LegalDocument ketentuanLayananPenitipan = LegalDocument(

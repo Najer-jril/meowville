@@ -28,6 +28,15 @@ abstract final class AppElevation {
     BoxShadow(color: Color(0x0F292725), offset: Offset(0, 2), blurRadius: 6),
   ];
 
+  static const List<BoxShadow> buttonDangerRaised = <BoxShadow>[
+    BoxShadow(color: AppColors.errorPressed, offset: Offset(0, 3)),
+    BoxShadow(color: Color(0x1A292725), offset: Offset(0, 5), blurRadius: 10),
+  ];
+
+  static const List<BoxShadow> buttonDangerPressed = <BoxShadow>[
+    BoxShadow(color: AppColors.errorEdge, offset: Offset(0, 1)),
+  ];
+
   static const List<BoxShadow> topBar = <BoxShadow>[
     BoxShadow(color: Color(0x0D292725), offset: Offset(0, 2), blurRadius: 8),
   ];
