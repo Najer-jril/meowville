@@ -175,7 +175,6 @@ class _RegisterAccountFormState extends State<RegisterAccountForm> {
   }
 }
 
-/// Penanda kelompok isian: nomor terracotta, label, lalu garis tulang.
 class _FormStep extends StatelessWidget {
   const _FormStep({required this.number, required this.label});
 

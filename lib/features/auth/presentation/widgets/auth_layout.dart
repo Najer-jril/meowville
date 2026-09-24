@@ -168,7 +168,7 @@ class _BrandRow extends StatelessWidget {
       children: <Widget>[
         const MeowvilleLogoBadge(diameter: 44),
         const SizedBox(width: AppSpacing.space12),
-        Text('Meowville', style: AppTypography.headlineMd),
+        Flexible(child: Text('Meowville', style: AppTypography.headlineMd)),
       ],
     );
   }

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/navigation/auth_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_field_label.dart';
 import '../../../../core/widgets/app_password_field.dart';
 import '../../../../core/widgets/app_primary_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
-import '../../../../core/widgets/pending_feature_sheet.dart';
 import '../providers/form_submission_status.dart';
 import '../providers/login_controller.dart';
 import '../widgets/auth_footer_prompt.dart';
@@ -42,15 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
     context.go('/');
   }
 
-  Future<void> _openForgotPassword() {
-    return showPendingFeatureSheet(
-      context,
-      title: 'Pemulihan kata sandi belum tersedia',
-      description:
-          'Reset mandiri belum aktif. Hubungi admin Meowville untuk '
-          'membuka kembali akun Anda.',
-    );
-  }
+  void _openForgotPassword() => context.push(AuthRoutes.forgotPassword);
 
   @override
   Widget build(BuildContext context) {
