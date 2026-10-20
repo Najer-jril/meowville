@@ -26,15 +26,19 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+  // void _submit() {
+  //   if (!_formKey.currentState!.validate()) return;
 
-    final email = _email.text.trim().toLowerCase();
-    final route = email.contains('admin')
-        ? AppRoutes.adminHome
-        : email.contains('sitter')
-        ? AppRoutes.sitterHome
-        : AppRoutes.ownerHome;
+  //   final email = _email.text.trim().toLowerCase();
+  //   final route = email.contains('admin')
+  //       ? AppRoutes.adminHome
+  //       : email.contains('sitter')
+  //       ? AppRoutes.sitterHome
+  //       : AppRoutes.ownerHome;
+  //   Navigator.pushReplacementNamed(context, route);
+  // }
+
+  void _buttonUts(String route) {
     Navigator.pushReplacementNamed(context, route);
   }
 
@@ -181,13 +185,13 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: AppSpacing.xl),
             FilledButton(
-              onPressed: _submit,
+              onPressed: () => _buttonUts(AppRoutes.adminHome),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Flexible(
                     child: Text(
-                      'Masuk ke akun',
+                      'Masuk admin',
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -196,6 +200,40 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: AppSpacing.sm),
+            OutlinedButton(
+              onPressed: () => _buttonUts(AppRoutes.sitterHome),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
+                      'Masuk penjaga',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: AppSpacing.sm),
+                  Icon(Icons.arrow_forward, size: 20),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            OutlinedButton(
+              onPressed: () => _buttonUts(AppRoutes.ownerHome),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
+                      'Masuk owner',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: AppSpacing.sm),
+                  Icon(Icons.arrow_forward, size: 20),
+                ],
+              ),
+            )
           ],
         ),
       ),
