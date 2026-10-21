@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#C76543</color>
+    <!-- Sama dengan AppColors.bg supaya transisi ke SplashScreen Flutter mulus -->
+    <color name="splash_bg">#FAF8F4</color>
 </resources>
