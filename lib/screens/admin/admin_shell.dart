@@ -15,11 +15,13 @@ class AdminShell extends StatefulWidget {
 class _AdminShellState extends State<AdminShell> {
   int _index = 0;
 
-  static const _pages = [
-    AdminDashboardScreen(),
-    ReservationListScreen(),
-    RoomScreen(),
-    MoreScreen(),
+  late final _pages = [
+    AdminDashboardScreen(
+      onSeeAllReservations: () => setState(() => _index = 1),
+    ),
+    const ReservationListScreen(),
+    const RoomScreen(),
+    const MoreScreen(),
   ];
 
   @override
@@ -45,10 +47,7 @@ class _AdminShellState extends State<AdminShell> {
             selectedIcon: Icon(Icons.bed),
             label: 'Kamar',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.more_horiz),
-            label: 'Lainnya',
-          ),
+          NavigationDestination(icon: Icon(Icons.more_horiz), label: 'Lainnya'),
         ],
       ),
     );

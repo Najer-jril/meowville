@@ -35,23 +35,18 @@ class AppUser {
 
 class Cat {
   Cat({
-    required this.id,
     required this.owner,
     required this.name,
     required this.weightKg,
     this.breed = '',
     this.photo,
-    this.birthDate,
   });
 
-  final String id;
   final AppUser owner;
   String name;
-
   String breed;
   double weightKg;
   String? photo;
-  DateTime? birthDate;
 
   bool deleted = false;
 
@@ -59,22 +54,10 @@ class Cat {
 
   String get weightLabel =>
       '${weightKg.toString().replaceAll('.', ',').replaceAll(RegExp(r',0$'), '')} kg';
-
-  String? ageLabel(DateTime today) {
-    final b = birthDate;
-    if (b == null) return null;
-    var months = (today.year - b.year) * 12 + today.month - b.month;
-    if (today.day < b.day) months--;
-    if (months < 1) return 'Kurang dari 1 bulan';
-    final y = months ~/ 12;
-    final m = months % 12;
-    return [if (y > 0) '$y tahun', if (m > 0) '$m bulan'].join(' ');
-  }
 }
 
 class RoomType {
   RoomType({
-    required this.id,
     required this.name,
     required this.prefix,
     required this.description,
@@ -86,7 +69,6 @@ class RoomType {
     this.active = true,
   });
 
-  final String id;
   String name;
   final String prefix;
   String description;
@@ -102,14 +84,12 @@ class RoomType {
 
 class Addon {
   Addon({
-    required this.id,
     required this.name,
     required this.description,
     required this.price,
     this.active = true,
   });
 
-  final String id;
   String name;
   String description;
   int price;
@@ -191,7 +171,6 @@ class Reservation {
 
 class UnitBlock {
   UnitBlock({
-    required this.id,
     required this.roomType,
     required this.unit,
     required this.start,
@@ -199,11 +178,9 @@ class UnitBlock {
     required this.reason,
   });
 
-  final String id;
   final RoomType roomType;
   final String unit;
   final DateTime start;
-
   final DateTime end;
   final String reason;
 
@@ -231,7 +208,6 @@ class DayAvailability {
 
 class DailyReport {
   DailyReport({
-    required this.id,
     required this.reservation,
     required this.reporter,
     required this.time,
@@ -246,7 +222,6 @@ class DailyReport {
   static const drinkOptions = ['Normal', 'Sedikit', 'Banyak'];
   static const moodOptions = ['Aktif', 'Kalem', 'Agresif', 'Sakit'];
 
-  final String id;
   final Reservation reservation;
   final AppUser reporter;
   final DateTime time;

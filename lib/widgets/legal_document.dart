@@ -35,7 +35,11 @@ class LegalDocument extends StatelessWidget {
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
-              AppSpacing.page, AppSpacing.page, AppSpacing.page, AppSpacing.xl),
+            AppSpacing.page,
+            AppSpacing.page,
+            AppSpacing.page,
+            AppSpacing.xl,
+          ),
           children: [
             _Header(title: appBarTitle),
             const SizedBox(height: 20),
@@ -72,14 +76,14 @@ class _Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          boxShadow: AppShadows.soft,
-        ),
-        child: child,
-      );
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      boxShadow: AppShadows.soft,
+    ),
+    child: child,
+  );
 }
 
 class _Header extends StatelessWidget {
@@ -88,35 +92,42 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        children: [
-          Material(
-            color: AppColors.surface,
-            shape: const CircleBorder(),
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: AppShadows.soft,
-                ),
-                child: const Icon(Icons.arrow_back,
-                    size: 20, color: AppColors.text, semanticLabel: 'Kembali'),
-              ),
+    children: [
+      Material(
+        color: AppColors.surface,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: AppShadows.soft,
+            ),
+            child: const Icon(
+              Icons.arrow_back,
+              size: 20,
+              color: AppColors.text,
+              semanticLabel: 'Kembali',
             ),
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Text(title,
-                style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.text)),
+        ),
+      ),
+      const SizedBox(width: AppSpacing.md),
+      Expanded(
+        child: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppColors.text,
           ),
-        ],
-      );
+        ),
+      ),
+    ],
+  );
 }
 
 class _IntroCard extends StatelessWidget {
@@ -133,48 +144,62 @@ class _IntroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _Card(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(overline,
-                      style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.96, // 0.08em × 12
-                          color: AppColors.primary)),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(title,
-                      style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          height: 1.25,
-                          color: AppColors.text)),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(subtitle,
-                      style: const TextStyle(
-                          fontSize: 15, height: 1.375, color: AppColors.muted)),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(updatedAt,
-                      style:
-                          const TextStyle(fontSize: 13, color: AppColors.muted)),
-                ],
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                overline,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.96,
+                  color: AppColors.primary,
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Container(
-              width: 40,
-              height: 40,
-              decoration: const BoxDecoration(
-                  color: AppColors.primarySoft, shape: BoxShape.circle),
-              child: Icon(icon, size: 20, color: AppColors.primary),
-            ),
-          ],
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  height: 1.25,
+                  color: AppColors.text,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 15,
+                  height: 1.375,
+                  color: AppColors.muted,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                updatedAt,
+                style: const TextStyle(fontSize: 13, color: AppColors.muted),
+              ),
+            ],
+          ),
         ),
-      );
+        const SizedBox(width: AppSpacing.sm),
+        Container(
+          width: 40,
+          height: 40,
+          decoration: const BoxDecoration(
+            color: AppColors.primarySoft,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 20, color: AppColors.primary),
+        ),
+      ],
+    ),
+  );
 }
 
 class _Pasal extends StatelessWidget {
@@ -190,21 +215,30 @@ class _Pasal extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(number.toString().padLeft(2, '0'),
-                style: head.copyWith(color: AppColors.primary)),
+            Text(
+              number.toString().padLeft(2, '0'),
+              style: head.copyWith(color: AppColors.primary),
+            ),
             const SizedBox(width: AppSpacing.sm),
             Flexible(
-              child: Text(section.title,
-                  style: head.copyWith(color: AppColors.text)),
+              child: Text(
+                section.title,
+                style: head.copyWith(color: AppColors.text),
+              ),
             ),
             const SizedBox(width: AppSpacing.sm),
             const Expanded(child: Divider(height: 1, color: AppColors.border)),
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        Text(section.body,
-            style: const TextStyle(
-                fontSize: 15, height: 24 / 15, color: AppColors.text)),
+        Text(
+          section.body,
+          style: const TextStyle(
+            fontSize: 15,
+            height: 24 / 15,
+            color: AppColors.text,
+          ),
+        ),
       ],
     );
   }
@@ -216,24 +250,29 @@ class _BottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.page, vertical: AppSpacing.lg),
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          boxShadow: [
-            BoxShadow(
-                color: Color(0x0F0F766E), offset: Offset(0, -4), blurRadius: 16),
-          ],
+    padding: const EdgeInsets.symmetric(
+      horizontal: AppSpacing.page,
+      vertical: AppSpacing.lg,
+    ),
+    decoration: const BoxDecoration(
+      color: AppColors.surface,
+      boxShadow: [
+        BoxShadow(
+          color: Color(0x0F0F766E),
+          offset: Offset(0, -4),
+          blurRadius: 16,
         ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 52,
-            child: FilledButton(
-              onPressed: onPressed,
-              child: const Text('Saya mengerti'),
-            ),
-          ),
+      ],
+    ),
+    child: SafeArea(
+      top: false,
+      child: SizedBox(
+        height: 52,
+        child: FilledButton(
+          onPressed: onPressed,
+          child: const Text('Saya mengerti'),
         ),
-      );
+      ),
+    ),
+  );
 }

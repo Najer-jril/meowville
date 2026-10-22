@@ -26,18 +26,6 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // void _submit() {
-  //   if (!_formKey.currentState!.validate()) return;
-
-  //   final email = _email.text.trim().toLowerCase();
-  //   final route = email.contains('admin')
-  //       ? AppRoutes.adminHome
-  //       : email.contains('sitter')
-  //       ? AppRoutes.sitterHome
-  //       : AppRoutes.ownerHome;
-  //   Navigator.pushReplacementNamed(context, route);
-  // }
-
   void _buttonUts(String route) {
     Navigator.pushReplacementNamed(context, route);
   }
@@ -63,16 +51,14 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: AppSpacing.xl),
-                  Text('Masuk', style: AppText.overline),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 16),
                   Text(
                     'Selamat datang di Meowville',
                     style: text.headlineLarge,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    'Masuk untuk memantau kenyamanan dan reservasi anabul tersayang Anda.',
+                    'Masuk ke akun anda jika sudah memiliki akun, atau daftar jika belum memiliki akun',
                     style: muted,
                   ),
                   const SizedBox(height: AppSpacing.lg),
@@ -139,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AuthTextField(
-              label: 'Alamat email',
+              label: 'email',
               hint: 'nama@email.com',
               icon: Icons.mail_outline,
               controller: _email,
@@ -149,8 +135,8 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: AppSpacing.lg),
             AuthTextField(
-              label: 'Kata sandi',
-              hint: 'Masukkan kata sandi',
+              label: 'Password',
+              hint: 'Masukkan password',
               icon: Icons.lock_outline,
               controller: _password,
               obscure: true,
@@ -184,19 +170,15 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
             const SizedBox(height: AppSpacing.xl),
-            FilledButton(
+            OutlinedButton(
               onPressed: () => _buttonUts(AppRoutes.adminHome),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Flexible(
-                    child: Text(
-                      'Masuk admin',
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    child: Text('Masuk admin', overflow: TextOverflow.ellipsis),
                   ),
                   SizedBox(width: AppSpacing.sm),
-                  Icon(Icons.arrow_forward, size: 20),
                 ],
               ),
             ),
@@ -213,7 +195,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   SizedBox(width: AppSpacing.sm),
-                  Icon(Icons.arrow_forward, size: 20),
                 ],
               ),
             ),
@@ -224,16 +205,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Flexible(
-                    child: Text(
-                      'Masuk owner',
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    child: Text('Masuk owner', overflow: TextOverflow.ellipsis),
                   ),
                   SizedBox(width: AppSpacing.sm),
-                  Icon(Icons.arrow_forward, size: 20),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),

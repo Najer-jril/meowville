@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Token warna. Ubah `primary` jika hex asli dari mockup Stitch berbeda.
 class AppColors {
   AppColors._();
 
@@ -30,7 +29,6 @@ class AppColors {
 
   static const adminRole = Color(0xFFB45309);
 
-  // Warna tambahan untuk ilustrasi SVG di layar auth.
   static const primaryMuted = Color(0xFF80D5CB);
   static const primaryDeep = Color(0xFF00504A);
   static const catBrown = Color(0xFF904C20);
@@ -39,7 +37,6 @@ class AppColors {
   static const keyGold = Color(0xFFFFDF9F);
   static const whisker = Color(0xFFBDC9C6);
 
-  /// Hex `#RRGGBB` untuk disisipkan ke string SVG.
   static String svg(Color c) =>
       '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
 }
@@ -68,17 +65,11 @@ class AppSpacing {
 class AppShadows {
   AppShadows._();
 
-  /// 0 4 16 rgba(15,118,110,0.08)
   static const soft = [
-    BoxShadow(
-      color: Color(0x140F766E),
-      offset: Offset(0, 4),
-      blurRadius: 16,
-    ),
+    BoxShadow(color: Color(0x140F766E), offset: Offset(0, 4), blurRadius: 16),
   ];
 }
 
-/// Pasangan warna teks + latar untuk badge.
 class BadgeStyle {
   final Color fg;
   final Color bg;
@@ -88,7 +79,6 @@ class BadgeStyle {
 class AppBadges {
   AppBadges._();
 
-  /// status: pending | confirmed | checked_in | completed | rejected | cancelled
   static BadgeStyle booking(String status) {
     switch (status) {
       case 'pending':
@@ -114,7 +104,7 @@ class AppBadges {
       case 'confirmed':
         return 'Dikonfirmasi';
       case 'checked_in':
-        return 'Sedang Menginap';
+        return 'Lagi Nginap';
       case 'completed':
         return 'Selesai';
       case 'rejected':
@@ -126,7 +116,6 @@ class AppBadges {
     }
   }
 
-  /// role: owner | admin | sitter
   static BadgeStyle role(String role) {
     switch (role) {
       case 'admin':
@@ -149,16 +138,15 @@ class AppBadges {
     }
   }
 
-  /// mood: Ceria | Tenang | Lesu | Gelisah
   static BadgeStyle mood(String mood) {
     switch (mood) {
-      case 'Ceria':
+      case 'Aktif':
         return const BadgeStyle(AppColors.success, AppColors.successSoft);
-      case 'Tenang':
+      case 'Kalem':
         return const BadgeStyle(AppColors.info, AppColors.infoSoft);
-      case 'Lesu':
+      case 'Agresif':
         return const BadgeStyle(AppColors.warning, AppColors.warningSoft);
-      case 'Gelisah':
+      case 'Sakit':
         return const BadgeStyle(AppColors.danger, AppColors.dangerSoft);
       default:
         return const BadgeStyle(AppColors.muted, AppColors.surfaceAlt);
@@ -166,19 +154,17 @@ class AppBadges {
   }
 }
 
-/// Gaya teks tambahan di luar TextTheme.
 class AppText {
   AppText._();
 
-  /// Overline: 13 semibold, sentence case (bukan huruf kapital semua).
-  static TextStyle get overline => GoogleFonts.nunitoSans(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: AppColors.primary,
-      );
+  static TextStyle get overline => GoogleFonts.plusJakartaSans(
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
+    color: AppColors.primary,
+  );
 
-  /// Font display untuk judul besar, dipasangkan dengan Nunito Sans di body.
-  static TextStyle display({required double size}) => GoogleFonts.fraunces(
+  static TextStyle display({required double size}) =>
+      GoogleFonts.plusJakartaSans(
         fontSize: size,
         fontWeight: FontWeight.w600,
         height: 1.15,
@@ -211,33 +197,43 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.bg,
     );
 
-    // google_fonts 9 memakai TextTheme dari material_ui, jadi pasang font lewat apply.
     final textTheme = base.textTheme
-        .apply(fontFamily: GoogleFonts.nunitoSans().fontFamily)
+        .apply(fontFamily: GoogleFonts.plusJakartaSans().fontFamily)
         .copyWith(
-      // H1 30 Fraunces SemiBold
-      headlineLarge: AppText.display(size: 30),
-      // H2 23 Fraunces SemiBold
-      headlineMedium: AppText.display(size: 23),
-      // H3 18 SemiBold
-      titleLarge: GoogleFonts.nunitoSans(
-          fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.text),
-      // Body 16
-      bodyLarge: GoogleFonts.nunitoSans(
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-          height: 1.45,
-          color: AppColors.text),
-      bodyMedium: GoogleFonts.nunitoSans(
-          fontSize: 16, fontWeight: FontWeight.w400, color: AppColors.text),
-      // Caption 13
-      bodySmall: GoogleFonts.nunitoSans(
-          fontSize: 13, fontWeight: FontWeight.w400, color: AppColors.muted),
-      labelLarge: GoogleFonts.nunitoSans(
-          fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.text),
-      labelSmall: GoogleFonts.nunitoSans(
-          fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.muted),
-    );
+          headlineLarge: AppText.display(size: 30),
+          headlineMedium: AppText.display(size: 23),
+          titleLarge: GoogleFonts.plusJakartaSans(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppColors.text,
+          ),
+          bodyLarge: GoogleFonts.plusJakartaSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            height: 1.45,
+            color: AppColors.text,
+          ),
+          bodyMedium: GoogleFonts.plusJakartaSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: AppColors.text,
+          ),
+          bodySmall: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            fontWeight: FontWeight.w400,
+            color: AppColors.muted,
+          ),
+          labelLarge: GoogleFonts.plusJakartaSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: AppColors.text,
+          ),
+          labelSmall: GoogleFonts.plusJakartaSans(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: AppColors.muted,
+          ),
+        );
 
     return base.copyWith(
       textTheme: textTheme,
@@ -274,8 +270,10 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.button),
           ),
-          textStyle:
-              GoogleFonts.nunitoSans(fontSize: 16, fontWeight: FontWeight.w700),
+          textStyle: GoogleFonts.plusJakartaSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -290,8 +288,10 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.button),
           ),
-          textStyle:
-              GoogleFonts.nunitoSans(fontSize: 16, fontWeight: FontWeight.w700),
+          textStyle: GoogleFonts.plusJakartaSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -302,27 +302,32 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.button),
           ),
-          textStyle:
-              GoogleFonts.nunitoSans(fontSize: 16, fontWeight: FontWeight.w700),
+          textStyle: GoogleFonts.plusJakartaSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           minimumSize: const Size(48, 48),
-          textStyle:
-              GoogleFonts.nunitoSans(fontSize: 14, fontWeight: FontWeight.w700),
+          textStyle: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceAlt,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         hintStyle: textTheme.bodyLarge?.copyWith(color: AppColors.muted),
         labelStyle: textTheme.bodySmall,
-        errorStyle:
-            textTheme.bodySmall?.copyWith(color: AppColors.danger),
+        errorStyle: textTheme.bodySmall?.copyWith(color: AppColors.danger),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
           borderSide: BorderSide.none,
@@ -351,12 +356,16 @@ class AppTheme {
         side: BorderSide.none,
         shape: const StadiumBorder(),
         showCheckmark: false,
-        labelStyle: GoogleFonts.nunitoSans(
-            fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.text),
-        secondaryLabelStyle: GoogleFonts.nunitoSans(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: AppColors.primary),
+        labelStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.text,
+        ),
+        secondaryLabelStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: AppColors.primary,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       ),
       navigationBarTheme: NavigationBarThemeData(
@@ -375,7 +384,7 @@ class AppTheme {
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
-          return GoogleFonts.nunitoSans(
+          return GoogleFonts.plusJakartaSans(
             fontSize: 12,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
             color: selected ? AppColors.primary : AppColors.muted,
@@ -402,25 +411,30 @@ class AppTheme {
         contentTextStyle: textTheme.bodyMedium,
       ),
       checkboxTheme: CheckboxThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.checkbox)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.checkbox),
+        ),
         side: const BorderSide(color: AppColors.border, width: 1.5),
-        fillColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected)
-                ? AppColors.primary
-                : Colors.transparent),
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? AppColors.primary
+              : Colors.transparent,
+        ),
       ),
       radioTheme: RadioThemeData(
-        fillColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected)
-                ? AppColors.primary
-                : AppColors.muted),
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? AppColors.primary
+              : AppColors.muted,
+        ),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.all(Colors.white),
-        trackColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected)
-                ? AppColors.primary
-                : AppColors.border),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? AppColors.primary
+              : AppColors.border,
+        ),
         trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
@@ -430,8 +444,10 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.text,
-        contentTextStyle:
-            GoogleFonts.nunitoSans(fontSize: 14, color: Colors.white),
+        contentTextStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 14,
+          color: Colors.white,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
         ),

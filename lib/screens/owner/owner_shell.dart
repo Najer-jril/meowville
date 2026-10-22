@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../routes/app_routes.dart';
-import '../../theme/app_theme.dart';
+import 'booking_history_screen.dart';
+import 'owner_account_screen.dart';
+import 'owner_home_screen.dart';
+import 'pet_list_screen.dart';
 
 class OwnerShell extends StatefulWidget {
   const OwnerShell({super.key});
@@ -13,11 +15,11 @@ class OwnerShell extends StatefulWidget {
 class _OwnerShellState extends State<OwnerShell> {
   int _index = 0;
 
-  static const _pages = [
-    _EmptyPage(title: 'Beranda'),
-    _EmptyPage(title: 'Booking'),
-    _EmptyPage(title: 'Kucing'),
-    _EmptyPage(title: 'Akun', showLogout: true),
+  late final _pages = [
+    OwnerHomeScreen(onSeeBookings: () => setState(() => _index = 1)),
+    const BookingHistoryScreen(),
+    const PetListScreen(),
+    const OwnerAccountScreen(),
   ];
 
   @override
@@ -29,13 +31,13 @@ class _OwnerShellState extends State<OwnerShell> {
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
             label: 'Beranda',
           ),
           NavigationDestination(
-            icon: Icon(Icons.calendar_today_outlined),
-            selectedIcon: Icon(Icons.calendar_today),
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
             label: 'Booking',
           ),
           NavigationDestination(
@@ -49,38 +51,6 @@ class _OwnerShellState extends State<OwnerShell> {
             label: 'Akun',
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _EmptyPage extends StatelessWidget {
-  const _EmptyPage({required this.title, this.showLogout = false});
-
-  final String title;
-  final bool showLogout;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.page),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.headlineLarge),
-            const Spacer(),
-            if (showLogout)
-              FilledButton(
-                onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  AppRoutes.login,
-                  (_) => false,
-                ),
-                child: const Text('Keluar'),
-              ),
-          ],
-        ),
       ),
     );
   }

@@ -229,16 +229,13 @@ class AdminStore extends ChangeNotifier {
     required String name,
     required String breed,
     required double weightKg,
-    DateTime? birthDate,
     String? photo,
   }) {
     final cat = Cat(
-      id: _nextId('c'),
       owner: owner,
       name: name,
       breed: breed,
       weightKg: weightKg,
-      birthDate: birthDate,
       photo: photo,
     );
     cats.add(cat);
@@ -251,14 +248,12 @@ class AdminStore extends ChangeNotifier {
     required String name,
     required String breed,
     required double weightKg,
-    DateTime? birthDate,
     String? photo,
   }) {
     cat
       ..name = name
       ..breed = breed
       ..weightKg = weightKg
-      ..birthDate = birthDate
       ..photo = photo;
     notifyListeners();
   }
@@ -300,8 +295,6 @@ class AdminStore extends ChangeNotifier {
       ..sort((a, b) => b.bookings.compareTo(a.bookings));
     final count = list.length;
     return ReportData(
-      start: start,
-      end: end,
       rows: sorted,
       bookings: count,
       revenue: sorted.fold(0, (sum, r) => sum + r.revenue),
@@ -349,7 +342,6 @@ class AdminStore extends ChangeNotifier {
   }) {
     reports.add(
       DailyReport(
-        id: _nextId('dr'),
         reservation: reservation,
         reporter: reporter,
         time: now,
@@ -385,7 +377,6 @@ class AdminStore extends ChangeNotifier {
     }
     blocks.add(
       UnitBlock(
-        id: _nextId('b'),
         roomType: type,
         unit: unit,
         start: start,
@@ -430,7 +421,6 @@ class AdminStore extends ChangeNotifier {
     } else {
       roomTypes.add(
         RoomType(
-          id: _nextId('rt'),
           name: name,
           prefix: prefix,
           description: description,
@@ -466,14 +456,7 @@ class AdminStore extends ChangeNotifier {
         ..description = description
         ..price = price;
     } else {
-      addons.add(
-        Addon(
-          id: _nextId('a'),
-          name: name,
-          description: description,
-          price: price,
-        ),
-      );
+      addons.add(Addon(name: name, description: description, price: price));
     }
     notifyListeners();
   }
@@ -594,7 +577,6 @@ class AdminStore extends ChangeNotifier {
     ]);
 
     final standard = RoomType(
-      id: 'rt-standard',
       name: 'Standard',
       prefix: 'S',
       description:
@@ -607,7 +589,6 @@ class AdminStore extends ChangeNotifier {
       photo: AppImages.roomStandard,
     );
     final deluxe = RoomType(
-      id: 'rt-deluxe',
       name: 'Deluxe',
       prefix: 'D',
       description:
@@ -620,7 +601,6 @@ class AdminStore extends ChangeNotifier {
       photo: AppImages.roomDeluxe,
     );
     final suite = RoomType(
-      id: 'rt-suite',
       name: 'Suite',
       prefix: 'ST',
       description:
@@ -633,7 +613,6 @@ class AdminStore extends ChangeNotifier {
       photo: AppImages.roomSuite,
     );
     final presidential = RoomType(
-      id: 'rt-presidential',
       name: 'Presidential',
       prefix: 'P',
       description:
@@ -649,37 +628,31 @@ class AdminStore extends ChangeNotifier {
     roomTypes.addAll([standard, deluxe, suite, presidential]);
 
     final grooming = Addon(
-      id: 'a-grooming',
       name: 'Grooming Lengkap',
       description: 'Mandi, sisir, potongin kuku, bersihin telinga',
       price: 80000,
     );
     final jamur = Addon(
-      id: 'a-jamur',
       name: 'Mandi Jamur',
       description: 'Perawatan khusus untuk masalah jamur kulit',
       price: 45000,
     );
     final kuku = Addon(
-      id: 'a-kuku',
       name: 'Potong Kuku',
       description: 'Potong dan rapikan kuku',
       price: 25000,
     );
     final antar = Addon(
-      id: 'a-antar',
       name: 'Antar Jemput',
       description: 'Jemput dan antar kucing ke rumah',
       price: 60000,
     );
     final sisir = Addon(
-      id: 'a-sisir',
       name: 'Sisir Bulu',
       description: 'Sisir dan rapikan bulu',
       price: 20000,
     );
     final catnip = Addon(
-      id: 'a-catnip',
       name: 'Catnip Aromaterapi',
       description: 'Pijat dan aromaterapi untuk relaksasi',
       price: 90000,
@@ -688,76 +661,60 @@ class AdminStore extends ChangeNotifier {
     addons.addAll([grooming, jamur, kuku, antar, sisir, catnip]);
 
     final rayquaza = Cat(
-      id: 'c-rayquaza',
       owner: nazril,
       name: 'Rayquaza',
       breed: 'Persia',
       weightKg: 4.2,
       photo: AppImages.catRayquaza,
-      birthDate: DateTime(2022, 5, 9),
     );
     final arceus = Cat(
-      id: 'c-arceus',
       owner: ilham,
       name: 'Arceus',
       breed: 'British Shorthair',
       weightKg: 5.1,
       photo: AppImages.catArceus,
-      birthDate: DateTime(2021, 11, 2),
     );
     final zekrom = Cat(
-      id: 'c-zekrom',
       owner: ilham,
       name: 'Zekrom',
       breed: 'British Shorthair',
       weightKg: 4.7,
       photo: AppImages.catZekrom,
-      birthDate: DateTime(2023, 1, 20),
     );
     final dialga = Cat(
-      id: 'c-dialga',
       owner: najer,
       name: 'Dialga',
       breed: 'Domestic',
       weightKg: 3.6,
       photo: AppImages.catDialga,
-      birthDate: DateTime(2023, 3, 12),
     );
     final reshiram = Cat(
-      id: 'c-reshiram',
       owner: najer,
       name: 'Reshiram',
       breed: 'Domestic',
       weightKg: 4.4,
       photo: AppImages.catReshiram,
-      birthDate: DateTime(2024, 7, 1),
     );
     final palkia = Cat(
-      id: 'c-palkia',
       owner: iqbal,
       name: 'Palkia',
       breed: 'Scottish Fold',
       weightKg: 4.0,
       photo: AppImages.catPalkia,
-      birthDate: DateTime(2022, 8, 15),
     );
     final giratina = Cat(
-      id: 'c-giratina',
       owner: shadiq,
       name: 'Giratina',
       breed: 'Anggora',
       weightKg: 3.4,
       photo: AppImages.catGiratina,
-      birthDate: DateTime(2024, 2, 28),
     );
     final kyurem = Cat(
-      id: 'c-kyurem',
       owner: irfan,
       name: 'Kyurem',
       breed: 'Maine Coon',
       weightKg: 6.8,
       photo: AppImages.catKyurem,
-      birthDate: DateTime(2020, 10, 5),
     );
     cats.addAll([
       rayquaza,
@@ -976,7 +933,6 @@ class AdminStore extends ChangeNotifier {
     final dialgaStay = byId('r-dialga');
     final palkiaStay = byId('r-palkia');
     final giratinaStay = byId('r-giratina-2');
-    var reportSeq = 1;
     DailyReport report(
       Reservation r,
       AppUser who,
@@ -986,7 +942,6 @@ class AdminStore extends ChangeNotifier {
       String mood,
       String note,
     ) => DailyReport(
-      id: 'dr-${reportSeq++}',
       reservation: r,
       reporter: who,
       time: time,
@@ -1001,9 +956,9 @@ class AdminStore extends ChangeNotifier {
         palkiaStay,
         mahar,
         _d(10, 13, 17, 30),
-        'Sebagian',
+        'Sedikit',
         'Normal',
-        'Gelisah',
+        'Kalem',
         'Masih adaptasi, banyak bersembunyi di cat tree.',
       ),
       report(
@@ -1012,16 +967,16 @@ class AdminStore extends ChangeNotifier {
         _d(10, 14, 9, 5),
         'Habis',
         'Normal',
-        'Tenang',
+        'Kalem',
         'Sudah mulai nyaman, tidur di dekat jendela.',
       ),
       report(
         dialgaStay,
         mahar,
         _d(10, 14, 16, 20),
-        'Sebagian',
         'Sedikit',
-        'Lesu',
+        'Sedikit',
+        'Kalem',
         'Hari pertama, makan separuh porsi.',
       ),
       report(
@@ -1030,7 +985,7 @@ class AdminStore extends ChangeNotifier {
         _d(10, 15, 17, 5),
         'Habis',
         'Normal',
-        'Tenang',
+        'Kalem',
         'Grooming lengkap selesai, bulu rapi.',
       ),
       report(
@@ -1039,16 +994,16 @@ class AdminStore extends ChangeNotifier {
         _d(10, 15, 16, 50),
         'Habis',
         'Normal',
-        'Ceria',
+        'Aktif',
         'Main bola bulu hampir satu jam.',
       ),
       report(
         giratinaStay,
         mahar,
         _d(10, 15, 19, 10),
-        'Sebagian',
+        'Sedikit',
         'Normal',
-        'Tenang',
+        'Kalem',
         'Baru tiba sore, sudah mau makan.',
       ),
       report(
@@ -1057,7 +1012,7 @@ class AdminStore extends ChangeNotifier {
         _d(10, 16, 9, 12),
         'Habis',
         'Normal',
-        'Ceria',
+        'Aktif',
         'Makan lahap, aktif bermain.',
       ),
       report(
@@ -1066,14 +1021,13 @@ class AdminStore extends ChangeNotifier {
         _d(10, 16, 8, 40),
         'Habis',
         'Banyak',
-        'Tenang',
+        'Kalem',
         'Siap dijemput, kondisi sehat.',
       ),
     ]);
 
     blocks.addAll([
       UnitBlock(
-        id: 'b-1',
         roomType: deluxe,
         unit: 'D3',
         start: _d(10, 15),
@@ -1081,7 +1035,6 @@ class AdminStore extends ChangeNotifier {
         reason: 'AC rusak',
       ),
       UnitBlock(
-        id: 'b-2',
         roomType: standard,
         unit: 'S3',
         start: _d(10, 20),
@@ -1089,7 +1042,6 @@ class AdminStore extends ChangeNotifier {
         reason: 'AC rusak',
       ),
       UnitBlock(
-        id: 'b-3',
         roomType: standard,
         unit: 'S4',
         start: _d(10, 28),
@@ -1110,16 +1062,12 @@ class ReportRow {
 
 class ReportData {
   const ReportData({
-    required this.start,
-    required this.end,
     required this.rows,
     required this.bookings,
     required this.revenue,
     required this.avgNights,
   });
 
-  final DateTime start;
-  final DateTime end;
   final List<ReportRow> rows;
   final int bookings;
   final int revenue;

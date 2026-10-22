@@ -251,7 +251,7 @@ class _LoadingDots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const delays = [0.0, 0.2, 0.4]; // 0 / 0.18 / 0.36 dtk dari siklus 0.9 dtk
+    const delays = [0.0, 0.2, 0.4];
     return Semantics(
       label: 'Memuat aplikasi',
       child: AnimatedBuilder(

@@ -385,7 +385,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           children: [
             Text('Butuh bantuan?', style: caption),
             TextButton(
-              // TODO(api): arahkan ke kanal bantuan Meowville Care
               onPressed: () {},
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),

@@ -150,7 +150,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               const SizedBox(height: AppSpacing.lg),
               AuthTextField(
                 label: 'Nama lengkap',
-                hint: 'cth. Nama sesuai KTP',
+                hint: 'misal, Nama sesuai KTP',
                 icon: Icons.person_outline,
                 controller: _name,
                 keyboardType: TextInputType.name,
@@ -160,7 +160,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               const SizedBox(height: AppSpacing.lg),
               AuthTextField(
                 label: 'Nomor WhatsApp',
-                hint: 'cth. 0812-3456-7890',
+                hint: 'misal, 0812-3456-7890',
                 icon: Icons.chat_bubble_outline,
                 controller: _phone,
                 keyboardType: TextInputType.phone,

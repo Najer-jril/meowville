@@ -15,8 +15,6 @@ String? validateEmail(String? value) {
       : 'Format email tidak valid';
 }
 
-/// Field form auth: label di atas, container 52 dengan ikon kiri,
-/// dan toggle mata jika [obscure] bernilai true.
 class AuthTextField extends StatefulWidget {
   const AuthTextField({
     super.key,
