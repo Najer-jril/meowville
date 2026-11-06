@@ -27,6 +27,7 @@ class AuthTextField extends StatefulWidget {
     this.validator,
     this.helperText,
     this.textInputAction,
+    this.onFieldSubmitted,
   });
 
   final String label;
@@ -38,6 +39,7 @@ class AuthTextField extends StatefulWidget {
   final FormFieldValidator<String>? validator;
   final String? helperText;
   final TextInputAction? textInputAction;
+  final ValueChanged<String>? onFieldSubmitted;
 
   @override
   State<AuthTextField> createState() => _AuthTextFieldState();
@@ -79,6 +81,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
           focusNode: _focusNode,
           keyboardType: widget.keyboardType,
           textInputAction: widget.textInputAction,
+          onFieldSubmitted: widget.onFieldSubmitted,
           obscureText: _hidden,
           validator: widget.validator,
           style: text.bodyLarge,

@@ -1,9 +1,10 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
+import '../controllers/auth_controller.dart';
 import '../routes/app_routes.dart';
 import '../theme/app_theme.dart';
 import '../theme/app_assets.dart';
@@ -29,19 +30,28 @@ class _SplashScreenState extends State<SplashScreen>
     vsync: this,
     duration: const Duration(seconds: 7),
   )..repeat();
-  Timer? _timer;
-
   @override
   void initState() {
     super.initState();
-    _timer = Timer(const Duration(milliseconds: 2500), () {
-      if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.login);
-    });
+    _openNext();
+  }
+
+  /// Shows the splash for at least 2.5 s while checking for a saved session.
+  /// A valid one skips the login screen.
+  Future<void> _openNext() async {
+    final restoring = context.read<AuthController>().restore();
+    await Future<void>.delayed(const Duration(milliseconds: 2500));
+    final user = await restoring;
+    if (!mounted) return;
+    if (user == null) {
+      Navigator.pushReplacementNamed(context, AppRoutes.login);
+    } else {
+      AppRoutes.enterHome(context, user);
+    }
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
     _intro.dispose();
     _dots.dispose();
     _pulse.dispose();

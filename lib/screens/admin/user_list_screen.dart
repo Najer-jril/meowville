@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/data.dart';
+import '../../controllers/user_controller.dart';
 import '../../data/models.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
@@ -24,7 +24,6 @@ class _UserListScreenState extends State<UserListScreen> {
     ('Pet Sitter', UserRole.sitter),
   ];
 
-  AdminStore get _store => context.read<AdminStore>();
   final _search = TextEditingController();
   int _filter = 0;
 
@@ -32,6 +31,7 @@ class _UserListScreenState extends State<UserListScreen> {
   void initState() {
     super.initState();
     _search.addListener(() => setState(() {}));
+    context.read<UserController>().load();
   }
 
   @override
@@ -40,10 +40,10 @@ class _UserListScreenState extends State<UserListScreen> {
     super.dispose();
   }
 
-  List<AppUser> _visible() {
+  List<AppUser> _visible(List<AppUser> all) {
     final role = _filters[_filter].$2;
     final q = _search.text.trim().toLowerCase();
-    return _store.users.where((u) {
+    return all.where((u) {
       if (role != null && u.role != role) return false;
       if (q.isEmpty) return true;
       return u.name.toLowerCase().contains(q) ||
@@ -53,108 +53,135 @@ class _UserListScreenState extends State<UserListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<AdminStore>();
+    final controller = context.watch<UserController>();
     final text = Theme.of(context).textTheme;
 
-    final users = _visible();
+    final users = _visible(controller.users);
 
     return Scaffold(
       appBar: const SubPageAppBar(title: 'Pengaturan Akun'),
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.page,
-              AppSpacing.sm,
-              AppSpacing.page,
-              0,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: TextField(
-                controller: _search,
-                textInputAction: TextInputAction.search,
-                decoration: InputDecoration(
-                  hintText: 'Cari nama atau email',
-                  prefixIcon: const Icon(Icons.search, color: AppColors.muted),
-                  suffixIcon: _search.text.isEmpty
-                      ? null
-                      : IconButton(
-                          tooltip: 'Hapus',
-                          onPressed: _search.clear,
-                          icon: const Icon(Icons.close),
-                        ),
-                ),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.md),
-              child: FilterChipRow(
-                labels: [for (final f in _filters) f.$1],
-                selected: _filter,
-                onSelected: (i) => setState(() => _filter = i),
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.page,
-              AppSpacing.md,
-              AppSpacing.page,
-              0,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${users.length} akun',
-                      style: text.bodySmall!.copyWith(fontSize: 15),
-                    ),
-                  ),
-                  FilledButton.icon(
-                    onPressed: () =>
-                        Navigator.pushNamed(context, AppRoutes.adminAddOnForm),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 48),
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                    ),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Tambah'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (users.isEmpty)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: EmptyState(
-                icon: Icons.person_search_outlined,
-                title: 'Akun tidak ditemukan',
-                message: _search.text.isEmpty
-                    ? 'Belum ada akun dengan peran ini.'
-                    : 'Tidak ada akun yang cocok dengan '
-                          '"${_search.text.trim()}".',
-              ),
-            )
-          else
+      body: RefreshIndicator(
+        onRefresh: controller.load,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.page,
-                AppSpacing.lg,
+                AppSpacing.sm,
                 AppSpacing.page,
-                AppSpacing.xl,
+                0,
               ),
-              sliver: SliverList.separated(
-                itemCount: users.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(height: AppSpacing.lg),
-                itemBuilder: (_, i) => _UserCard(user: users[i]),
+              sliver: SliverToBoxAdapter(
+                child: TextField(
+                  controller: _search,
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    hintText: 'Cari nama atau email',
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: AppColors.muted,
+                    ),
+                    suffixIcon: _search.text.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: 'Hapus',
+                            onPressed: _search.clear,
+                            icon: const Icon(Icons.close),
+                          ),
+                  ),
+                ),
               ),
             ),
-        ],
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.md),
+                child: FilterChipRow(
+                  labels: [for (final f in _filters) f.$1],
+                  selected: _filter,
+                  onSelected: (i) => setState(() => _filter = i),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.page,
+                AppSpacing.md,
+                AppSpacing.page,
+                0,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${users.length} akun',
+                        style: text.bodySmall!.copyWith(fontSize: 15),
+                      ),
+                    ),
+                    FilledButton.icon(
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.adminUserCreate,
+                      ),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(0, 48),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                      ),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Tambah'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (controller.loading && controller.users.isEmpty)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (controller.error != null)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: EmptyState(
+                  icon: Icons.cloud_off_outlined,
+                  title: 'Gagal memuat akun',
+                  message: controller.error!,
+                  action: FilledButton(
+                    onPressed: controller.load,
+                    child: const Text('Coba lagi'),
+                  ),
+                ),
+              )
+            else if (users.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: EmptyState(
+                  icon: Icons.person_search_outlined,
+                  title: 'Akun tidak ditemukan',
+                  message: _search.text.isEmpty
+                      ? 'Belum ada akun dengan peran ini.'
+                      : 'Tidak ada akun yang cocok dengan '
+                            '"${_search.text.trim()}".',
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.page,
+                  AppSpacing.lg,
+                  AppSpacing.page,
+                  AppSpacing.xl,
+                ),
+                sliver: SliverList.separated(
+                  itemCount: users.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: AppSpacing.lg),
+                  itemBuilder: (_, i) => _UserCard(user: users[i]),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

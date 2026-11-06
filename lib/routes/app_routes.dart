@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../data/data.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
 
@@ -72,6 +74,22 @@ class AppRoutes {
   static const ownerProfileForm = '/owner/profile-form';
 
   static const photoPreview = '/photo';
+
+  static String homeFor(UserRole role) => switch (role) {
+    UserRole.admin => adminHome,
+    UserRole.sitter => sitterHome,
+    UserRole.owner => ownerHome,
+  };
+
+  /// Opens the logged-in user's home and clears the auth screens behind it.
+  static void enterHome(BuildContext context, AppUser user) {
+    context.read<AdminStore>().bindAccount(user.email);
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      homeFor(user.role),
+      (_) => false,
+    );
+  }
 
   static Route<dynamic> generate(RouteSettings settings) {
     final args = settings.arguments;

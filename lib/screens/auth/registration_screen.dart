@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/gestures.dart';
+import 'package:provider/provider.dart';
 
+import '../../controllers/user_controller.dart';
+import '../../core/api_client.dart';
+import '../../data/models.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/app_assets.dart';
 import '../../widgets/auth_text_field.dart';
 import '../../widgets/auth_header.dart';
+import '../../widgets/common.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -23,6 +28,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _password = TextEditingController();
   final _confirm = TextEditingController();
   bool _agreed = false;
+  bool _loading = false;
 
   @override
   void initState() {
@@ -56,14 +62,30 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
-    final messenger = ScaffoldMessenger.of(context);
-    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
-    messenger.showSnackBar(
-      const SnackBar(content: Text('Akun berhasil dibuat. Silakan masuk.')),
-    );
+    setState(() => _loading = true);
+    try {
+      await context.read<UserController>().create(
+        name: _name.text.trim(),
+        phone: _phone.text.trim(),
+        email: _email.text.trim(),
+        password: _password.text,
+        role: UserRole.owner,
+      );
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Akun berhasil dibuat. Silakan masuk.')),
+      );
+    } on ApiException catch (e) {
+      if (mounted) showSnack(context, e.message);
+    } on Object {
+      if (mounted) showSnack(context, 'Tidak dapat terhubung ke server');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -216,7 +238,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
               const SizedBox(height: AppSpacing.xl),
               FilledButton(
-                onPressed: _agreed ? _submit : null,
+                onPressed: _agreed && !_loading ? _submit : null,
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

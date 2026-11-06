@@ -29,7 +29,19 @@ class AdminStore extends ChangeNotifier {
   final List<DailyReport> reports = [];
   final List<Cat> cats = [];
 
-  AppUser get currentSitter => users.firstWhere((u) => u.id == 'u-mahar');
+  String? _accountEmail;
+
+  void bindAccount(String email) {
+    _accountEmail = email.toLowerCase();
+    notifyListeners();
+  }
+
+  AppUser _account(String fallbackId) => users.firstWhere(
+    (u) => u.email.toLowerCase() == _accountEmail,
+    orElse: () => users.firstWhere((u) => u.id == fallbackId),
+  );
+
+  AppUser get currentSitter => _account('u-mahar');
 
   int _seq = 100;
   String _nextId(String prefix) => '$prefix-${_seq++}';
@@ -152,7 +164,7 @@ class AdminStore extends ChangeNotifier {
   List<DailyReport> get reportHistory =>
       [...reports]..sort((a, b) => b.time.compareTo(a.time));
 
-  AppUser get currentOwner => users.firstWhere((u) => u.id == 'u-najer');
+  AppUser get currentOwner => _account('u-najer');
 
   List<Cat> catsOf(AppUser owner) =>
       cats.where((c) => c.owner == owner && !c.deleted).toList();

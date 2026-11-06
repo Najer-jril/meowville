@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../controllers/auth_controller.dart';
 import '../../data/data.dart';
 import '../../data/models.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
+import '../../widgets/session_info_card.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -14,7 +16,9 @@ class MoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final admin = context.watch<AdminStore>().currentAdmin;
+    final admin =
+        context.watch<AuthController>().user ??
+        context.read<AdminStore>().currentAdmin;
 
     void push(String route, [Object? args]) =>
         Navigator.pushNamed(context, route, arguments: args);
@@ -92,9 +96,11 @@ class MoreScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             const _SitterTaskCard(),
             const SizedBox(height: AppSpacing.lg),
+            const SessionInfoCard(),
+            const SizedBox(height: AppSpacing.lg),
             AppCard(
               padding: EdgeInsets.zero,
-              onTap: () => _confirmLogout(context),
+              onTap: () => confirmLogout(context),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.page,
@@ -119,20 +125,6 @@ class MoreScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _confirmLogout(BuildContext context) async {
-    final ok = await showConfirmDialog(
-      context,
-      title: 'Keluar dari akun?',
-      message: 'Anda perlu masuk lagi untuk mengakses Meowville.',
-      confirmLabel: 'Keluar',
-      destructive: true,
-      icon: Icons.logout,
-    );
-    if (ok && context.mounted) {
-      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
-    }
   }
 }
 

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
-import '../../data/data.dart';
+import '../../controllers/user_controller.dart';
+import '../../core/api_client.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/auth_text_field.dart';
@@ -27,7 +28,7 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
     (UserRole.sitter, 'Pet Sitter', 'Check-in/out dan laporan kondisi harian'),
   ];
 
-  AdminStore get _store => context.read<AdminStore>();
+  UserController get _users => context.read<UserController>();
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
   final _phone = TextEditingController();
@@ -35,6 +36,7 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
   final _password = TextEditingController();
   UserRole? _role;
   bool _submitted = false;
+  bool _loading = false;
 
   @override
   void initState() {
@@ -59,17 +61,28 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
       _password.text.isNotEmpty &&
       _role != null;
 
-  void _submit() {
+  Future<void> _submit() async {
     setState(() => _submitted = true);
     if (!_formKey.currentState!.validate() || _role == null) return;
-    _store.addUser(
-      name: _name.text.trim(),
-      phone: _phone.text.trim(),
-      email: _email.text.trim(),
-      role: _role!,
-    );
-    Navigator.pop(context);
-    showSnack(context, 'Akun ${_name.text.trim()} berhasil dibuat');
+    setState(() => _loading = true);
+    try {
+      await _users.create(
+        name: _name.text.trim(),
+        phone: _phone.text.trim(),
+        email: _email.text.trim(),
+        password: _password.text,
+        role: _role!,
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+      showSnack(context, 'Akun ${_name.text.trim()} berhasil dibuat');
+    } on ApiException catch (e) {
+      if (mounted) showSnack(context, e.message);
+    } on Object {
+      if (mounted) showSnack(context, 'Tidak dapat terhubung ke server');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -155,7 +168,7 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
                     validator: (v) {
                       final e = validateEmail(v);
                       if (e != null) return e;
-                      return _store.emailTaken(v!.trim())
+                      return _users.emailTaken(v!.trim())
                           ? 'Email sudah terdaftar'
                           : null;
                     },
@@ -214,7 +227,7 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
       ),
       bottomNavigationBar: BottomActionBar(
         child: FilledButton(
-          onPressed: _filled ? _submit : null,
+          onPressed: _filled && !_loading ? _submit : null,
           child: const Text('Buat Akun'),
         ),
       ),

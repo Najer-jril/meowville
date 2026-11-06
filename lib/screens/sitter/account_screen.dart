@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../controllers/auth_controller.dart';
 import '../../data/data.dart';
 import '../../data/models.dart';
-import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
+import '../../widgets/session_info_card.dart';
 
 class SitterAccountScreen extends StatelessWidget {
   const SitterAccountScreen({super.key, required this.user});
@@ -17,6 +18,7 @@ class SitterAccountScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = context.watch<AdminStore>();
     final text = Theme.of(context).textTheme;
+    final account = context.watch<AuthController>().user ?? user;
 
     final watching = store.staying.length;
     final myReports = store.reports
@@ -46,8 +48,8 @@ class SitterAccountScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   UserAvatar(
-                    initial: user.initial,
-                    photo: user.photo,
+                    initial: account.initial,
+                    photo: account.photo,
                     size: 64,
                   ),
                   const SizedBox(width: AppSpacing.lg),
@@ -56,11 +58,11 @@ class SitterAccountScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user.name,
+                          account.name,
                           style: text.titleLarge!.copyWith(fontSize: 20),
                         ),
                         Text(
-                          user.email,
+                          account.email,
                           style: text.bodySmall!.copyWith(fontSize: 15),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -75,7 +77,7 @@ class SitterAccountScreen extends StatelessWidget {
                             const SizedBox(width: 6),
                             Flexible(
                               child: Text(
-                                user.phone,
+                                account.phone,
                                 style: text.bodySmall!.copyWith(fontSize: 15),
                               ),
                             ),
@@ -84,7 +86,7 @@ class SitterAccountScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  StatusBadge.role(user.role.key),
+                  StatusBadge.role(account.role.key),
                 ],
               ),
             ),
@@ -126,9 +128,11 @@ class SitterAccountScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
+            const SessionInfoCard(),
+            const SizedBox(height: AppSpacing.lg),
             AppCard(
               padding: const EdgeInsets.all(AppSpacing.page),
-              onTap: () => _confirmLogout(context),
+              onTap: () => confirmLogout(context),
               child: Row(
                 children: [
                   const Icon(Icons.logout, color: AppColors.danger),
@@ -150,19 +154,5 @@ class SitterAccountScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _confirmLogout(BuildContext context) async {
-    final ok = await showConfirmDialog(
-      context,
-      title: 'Keluar dari akun?',
-      message: 'Anda perlu masuk lagi untuk mengakses Meowville.',
-      confirmLabel: 'Keluar',
-      destructive: true,
-      icon: Icons.logout,
-    );
-    if (ok && context.mounted) {
-      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
-    }
   }
 }

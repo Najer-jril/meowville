@@ -21,6 +21,17 @@ class AppUser {
     this.photo,
   });
 
+  /// A row of public.profiles.
+  factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    email: json['email'] as String,
+    phone: json['phone'] as String? ?? '',
+    role: UserRole.values.byName(json['role'] as String),
+    joinedAt: DateTime.parse(json['joined_at'] as String).toLocal(),
+    photo: json['photo'] as String?,
+  );
+
   final String id;
   String name;
   final String email;

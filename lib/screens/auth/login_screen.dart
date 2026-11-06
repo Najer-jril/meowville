@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
+import '../../controllers/auth_controller.dart';
+import '../../core/api_client.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/app_assets.dart';
 import '../../widgets/auth_text_field.dart';
+import '../../widgets/common.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _remember = true;
+  bool _loading = false;
 
   @override
   void dispose() {
@@ -26,9 +31,28 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _buttonUts(String route) {
-    Navigator.pushReplacementNamed(context, route);
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _loading = true);
+    try {
+      final user = await context.read<AuthController>().signIn(
+        _email.text.trim(),
+        _password.text,
+        remember: _remember,
+      );
+      if (mounted) AppRoutes.enterHome(context, user);
+    } on ApiException catch (e) {
+      if (mounted) showSnack(context, _loginError(e));
+    } on Object {
+      if (mounted) showSnack(context, 'Tidak dapat terhubung ke server');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
+
+  String _loginError(ApiException e) => e.message == 'Invalid login credentials'
+      ? 'Email atau kata sandi salah'
+      : e.message;
 
   @override
   Widget build(BuildContext context) {
@@ -142,6 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
               obscure: true,
               textInputAction: TextInputAction.done,
               validator: validateRequired,
+              onFieldSubmitted: (_) => _submit(),
             ),
             const SizedBox(height: AppSpacing.lg),
             Row(
@@ -170,46 +195,18 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
             const SizedBox(height: AppSpacing.xl),
-            OutlinedButton(
-              onPressed: () => _buttonUts(AppRoutes.adminHome),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: Text('Masuk admin', overflow: TextOverflow.ellipsis),
-                  ),
-                  SizedBox(width: AppSpacing.sm),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            OutlinedButton(
-              onPressed: () => _buttonUts(AppRoutes.sitterHome),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: Text(
-                      'Masuk penjaga',
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  SizedBox(width: AppSpacing.sm),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            OutlinedButton(
-              onPressed: () => _buttonUts(AppRoutes.ownerHome),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: Text('Masuk owner', overflow: TextOverflow.ellipsis),
-                  ),
-                  SizedBox(width: AppSpacing.sm),
-                ],
-              ),
+            FilledButton(
+              onPressed: _loading ? null : _submit,
+              child: _loading
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: AppColors.surface,
+                      ),
+                    )
+                  : const Text('Masuk'),
             ),
           ],
         ),
