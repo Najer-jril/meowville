@@ -14,9 +14,6 @@ class ApiException implements Exception {
   String toString() => message;
 }
 
-/// Thin wrapper over package:http for Supabase's REST endpoints.
-/// Every request carries the publishable key; once logged in it also carries
-/// the user's access token, so Postgres RLS sees the request as that user.
 class ApiClient {
   String? accessToken;
 
@@ -63,7 +60,6 @@ class ApiClient {
     return body;
   }
 
-  // Auth errors use "msg" or "error_description"; PostgREST uses "message".
   String _errorMessage(dynamic body, http.Response res) {
     if (body is Map) {
       for (final key in ['msg', 'error_description', 'message', 'error']) {
