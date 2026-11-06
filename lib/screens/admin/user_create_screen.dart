@@ -136,7 +136,7 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
                 children: [
                   AuthTextField(
                     label: 'Nama lengkap',
-                    hint: 'misal, Mahar Uzumaki',
+                    hint: 'misal, Faisal Gaming',
                     icon: Icons.person_outline,
                     controller: _name,
                     textInputAction: TextInputAction.next,

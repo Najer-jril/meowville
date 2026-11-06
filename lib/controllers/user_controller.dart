@@ -4,7 +4,6 @@ import '../data/models.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
 
-/// Account list for the admin, loaded from GET /rest/v1/profiles.
 class UserController extends ChangeNotifier {
   UserController(this._profiles, this._auth);
 

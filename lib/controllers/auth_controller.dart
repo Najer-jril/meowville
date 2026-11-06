@@ -9,8 +9,6 @@ import '../data/models.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
 
-/// Owns the login session: who is signed in, their tokens, and keeping the
-/// access token fresh. Other services read the token through [ApiClient].
 class AuthController extends ChangeNotifier {
   AuthController(this._api, this._auth, this._profiles, this._storage);
 
@@ -28,8 +26,6 @@ class AuthController extends ChangeNotifier {
   AppUser? get user => _user;
   bool get remembered => _remembered;
 
-  /// Called by the splash screen. Restores a saved session, refreshing the
-  /// access token first when it has expired.
   Future<AppUser?> restore() async {
     final saved = await _storage.load();
     if (saved == null) return null;
@@ -62,7 +58,7 @@ class AuthController extends ChangeNotifier {
     try {
       await _auth.signOut();
     } on Object {
-      // The local session is dropped even if the server call fails.
+      //
     }
     await _clear();
   }
@@ -104,7 +100,6 @@ class AuthController extends ChangeNotifier {
       _scheduleRefresh();
       notifyListeners();
     } on Object {
-      // Retry shortly; a dead refresh token surfaces as a 401 on next request.
       _refreshTimer = Timer(const Duration(seconds: 30), _refresh);
     }
   }
