@@ -34,35 +34,44 @@ class PetReportScreen extends StatelessWidget {
           AppSpacing.xl,
         ),
         children: [
-          AppCard(
-            child: Row(
-              children: [
-                AppPhoto(r.cat.photo, size: 56, radius: 14),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(r.cat.name, style: text.titleLarge),
-                      Text(
-                        [?r.unit, Fmt.range(r.checkIn, r.checkOut)].join(' - '),
-                        style: text.bodySmall!.copyWith(fontSize: 14),
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+            child: AppCard(
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: AppSpacing.md),
+                    child: AppPhoto(r.cat.photo, size: 56, radius: 14),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(r.cat.name, style: text.titleLarge),
+                          Text(
+                            [
+                              ?r.unit,
+                              Fmt.range(r.checkIn, r.checkOut),
+                            ].join(' - '),
+                            style: text.bodySmall!.copyWith(fontSize: 14),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Flexible(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerRight,
-                    child: ownerStatusBadge(r),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: ownerStatusBadge(r),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
           if (reports.isEmpty)
             AppCard(
               child: EmptyState(
@@ -96,19 +105,24 @@ class _TimelineItem extends StatelessWidget {
     final d = report;
     return IntrinsicHeight(
       child: Row(
+        spacing: AppSpacing.sm,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SizedBox(
-            width: 20,
+          ConstrainedBox(
+            constraints: const BoxConstraints.tightFor(
+              width: AppSizes.timelineCol,
+            ),
             child: Column(
               children: [
-                const SizedBox(height: 22),
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.xl),
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
                 if (!last)
@@ -118,7 +132,6 @@ class _TimelineItem extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -155,11 +168,13 @@ class _TimelineItem extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      'Makan ${d.food.toLowerCase()} dan '
-                      'Minum ${d.drink.toLowerCase()}',
-                      style: text.bodyMedium!.copyWith(fontSize: 15),
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.xs),
+                      child: Text(
+                        'Makan ${d.food.toLowerCase()} dan '
+                        'Minum ${d.drink.toLowerCase()}',
+                        style: text.bodyMedium!.copyWith(fontSize: 15),
+                      ),
                     ),
                     if (d.note.isNotEmpty)
                       Text(
@@ -169,17 +184,22 @@ class _TimelineItem extends StatelessWidget {
                           color: AppColors.muted,
                         ),
                       ),
-                    if (d.photo != null) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      GestureDetector(
-                        onTap: () => showPhotoViewer(
-                          context,
-                          d.photo!,
-                          title: 'Foto ${d.reservation.cat.name}',
+                    if (d.photo != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.sm),
+                        child: GestureDetector(
+                          onTap: () => showPhotoViewer(
+                            context,
+                            d.photo!,
+                            title: 'Foto ${d.reservation.cat.name}',
+                          ),
+                          child: AppPhoto(
+                            d.photo,
+                            size: AppSizes.artLg,
+                            radius: 12,
+                          ),
                         ),
-                        child: AppPhoto(d.photo, size: 64, radius: 12),
                       ),
-                    ],
                   ],
                 ),
               ),

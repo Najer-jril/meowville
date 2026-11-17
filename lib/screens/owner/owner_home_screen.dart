@@ -41,68 +41,83 @@ class OwnerHomeScreen extends StatelessWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
             AppSpacing.xl,
             AppSpacing.page,
             AppSpacing.xl,
           ),
-          children: [
-            Text('Halo, ${owner.firstName}', style: text.headlineLarge),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              Fmt.dateLong(store.today),
-              style: text.bodySmall!.copyWith(fontSize: 15),
-            ),
-            if (staying.isEmpty && nearest == null) ...[
-              const SizedBox(height: AppSpacing.xl),
-              const AppCard(
-                child: EmptyState(
-                  icon: Icons.pets,
-                  title: 'Belum ada reservasi',
-                  message: 'Pesan kamar untuk kucing kesayanganmu.',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Column(
+                spacing: AppSpacing.xs,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Halo, ${owner.firstName}', style: text.headlineLarge),
+                  Text(
+                    Fmt.dateLong(store.today),
+                    style: text.bodySmall!.copyWith(fontSize: 15),
+                  ),
+                ],
+              ),
+              if (staying.isEmpty && nearest == null)
+                const Padding(
+                  padding: EdgeInsets.only(top: AppSpacing.xl),
+                  child: AppCard(
+                    child: EmptyState(
+                      icon: Icons.pets,
+                      title: 'Belum ada reservasi',
+                      message: 'Pesan kamar untuk kucing kesayanganmu.',
+                    ),
+                  ),
+                ),
+              if (staying.isNotEmpty) ...[
+                const _SectionTitle('Lagi Nginap'),
+                for (final r in staying)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: _StayingCard(
+                      reservation: r,
+                      onTap: () => push(AppRoutes.ownerBookingDetail, r),
+                      onReport: () => push(AppRoutes.ownerPetReport, r),
+                    ),
+                  ),
+              ],
+              if (nearest != null) ...[
+                _SectionTitle(
+                  'Booking terdekat',
+                  action: upcoming.length > 1 ? 'Lihat semua' : null,
+                  onAction: onSeeBookings,
+                ),
+                OwnerBookingCard(
+                  reservation: nearest,
+                  onTap: () => push(AppRoutes.ownerBookingDetail, nearest),
+                ),
+                if (nearest.status == ReservationStatus.pending &&
+                    nearest.paymentProof == null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.md),
+                    child: ProofDeadlineNotice(nearest),
+                  ),
+              ],
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: AppSpacing.xl,
+                  bottom: AppSpacing.xs,
+                ),
+                child: FilledButton.icon(
+                  onPressed: () => push(AppRoutes.ownerReservationFlow),
+                  label: const Text('Pesan Kamar'),
                 ),
               ),
-            ],
-            if (staying.isNotEmpty) ...[
-              const _SectionTitle('Lagi Nginap'),
-              for (final r in staying) ...[
-                _StayingCard(
-                  reservation: r,
-                  onTap: () => push(AppRoutes.ownerBookingDetail, r),
-                  onReport: () => push(AppRoutes.ownerPetReport, r),
-                ),
-                const SizedBox(height: AppSpacing.md),
-              ],
-            ],
-            if (nearest != null) ...[
-              _SectionTitle(
-                'Booking terdekat',
-                action: upcoming.length > 1 ? 'Lihat semua' : null,
-                onAction: onSeeBookings,
+              OutlinedButton(
+                onPressed: () => push(AppRoutes.ownerRoomCatalog),
+                child: const Text('Lihat tipe kamar'),
               ),
-              OwnerBookingCard(
-                reservation: nearest,
-                onTap: () => push(AppRoutes.ownerBookingDetail, nearest),
-              ),
-              if (nearest.status == ReservationStatus.pending &&
-                  nearest.paymentProof == null) ...[
-                const SizedBox(height: AppSpacing.md),
-                ProofDeadlineNotice(nearest),
-              ],
             ],
-            const SizedBox(height: AppSpacing.xl),
-            FilledButton.icon(
-              onPressed: () => push(AppRoutes.ownerReservationFlow),
-              label: const Text('Pesan Kamar'),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            OutlinedButton(
-              onPressed: () => push(AppRoutes.ownerRoomCatalog),
-              child: const Text('Lihat tipe kamar'),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -154,10 +169,10 @@ class _StayingCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final report = store.reportToday(reservation);
     return Column(
+      spacing: AppSpacing.sm,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         OwnerBookingCard(reservation: reservation, onTap: onTap),
-        const SizedBox(height: AppSpacing.sm),
         Material(
           color: AppColors.primarySoft,
           borderRadius: BorderRadius.circular(AppRadius.input),
@@ -171,11 +186,13 @@ class _StayingCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.assignment_outlined,
-                    color: AppColors.primaryDeep,
+                  const Padding(
+                    padding: EdgeInsets.only(right: AppSpacing.md),
+                    child: Icon(
+                      Icons.assignment_outlined,
+                      color: AppColors.primaryDeep,
+                    ),
                   ),
-                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Text(
                       report == null

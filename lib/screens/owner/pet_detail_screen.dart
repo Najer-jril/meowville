@@ -51,8 +51,10 @@ class PetDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppColors.primary),
-          const SizedBox(width: AppSpacing.md),
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.md),
+            child: Icon(icon, size: 20, color: AppColors.primary),
+          ),
           Expanded(
             child: Text(
               label,
@@ -66,46 +68,55 @@ class PetDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: const SubPageAppBar(title: 'Detail Kucing'),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.page,
           AppSpacing.sm,
           AppSpacing.page,
           AppSpacing.xl,
         ),
-        children: [
-          AppCard(
-            padding: const EdgeInsets.all(AppSpacing.page),
-            child: Column(
-              children: [
-                AppPhoto(cat.photo, size: 120),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  cat.name,
-                  style: text.headlineMedium!.copyWith(fontSize: 26),
-                ),
-                if (badge != null) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  badge,
+        child: Column(
+          spacing: AppSpacing.xl,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppCard(
+              padding: const EdgeInsets.all(AppSpacing.page),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: AppPhoto(cat.photo, size: 120),
+                  ),
+                  Text(
+                    cat.name,
+                    style: text.headlineMedium!.copyWith(fontSize: 26),
+                  ),
+                  if (badge != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: badge,
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.md),
+                    child: row(Icons.category_outlined, 'Ras', cat.breedLabel),
+                  ),
+                  const Divider(),
+                  row(Icons.monitor_weight_outlined, 'Berat', cat.weightLabel),
                 ],
-                const SizedBox(height: AppSpacing.md),
-                row(Icons.category_outlined, 'Ras', cat.breedLabel),
-                const Divider(),
-                row(Icons.monitor_weight_outlined, 'Berat', cat.weightLabel),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          OutlinedButton.icon(
-            onPressed: () => _delete(context),
-            style: dangerOutlinedStyle(),
-            icon: const Icon(Icons.delete_outline),
-            label: const Text('Hapus Kucing'),
-          ),
-        ],
+            OutlinedButton.icon(
+              onPressed: () => _delete(context),
+              style: dangerOutlinedStyle(),
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('Hapus Kucing'),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: BottomActionBar(
         child: Row(
+          spacing: AppSpacing.md,
           children: [
             Expanded(
               child: OutlinedButton.icon(
@@ -118,7 +129,6 @@ class PetDetailScreen extends StatelessWidget {
                 label: const Text('Edit'),
               ),
             ),
-            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: FilledButton.icon(
                 onPressed: () => Navigator.pushNamed(

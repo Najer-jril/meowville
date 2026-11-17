@@ -56,6 +56,7 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
             AppCard(
               padding: const EdgeInsets.all(AppSpacing.page),
               child: Column(
+                spacing: AppSpacing.lg,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   AuthTextField(
@@ -66,7 +67,6 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
                     textInputAction: TextInputAction.next,
                     validator: validateRequired,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
                   AuthTextField(
                     label: 'Nomor WhatsApp',
                     hint: 'misal, 0812-3456-7890',

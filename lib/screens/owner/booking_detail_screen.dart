@@ -54,41 +54,38 @@ class OwnerBookingDetailScreen extends StatelessWidget {
         title: 'Detail Reservasi',
         trailing: ownerStatusBadge(r),
       ),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.page,
           AppSpacing.sm,
           AppSpacing.page,
           AppSpacing.xl,
         ),
-        children: [
-          ..._notices(context, r),
-          _CatCard(r.cat),
-          const SizedBox(height: AppSpacing.lg),
-          _StayCard(r),
-          const SizedBox(height: AppSpacing.lg),
-          CostBreakdownCard(
-            type: r.roomType,
-            nights: r.nights,
-            addons: r.addons,
-          ),
-          if (pending) ...[
-            const SizedBox(height: AppSpacing.lg),
-            BankInfoCard(amount: r.total),
+        child: Column(
+          spacing: AppSpacing.lg,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ..._notices(context, r),
+            _CatCard(r.cat),
+            _StayCard(r),
+            CostBreakdownCard(
+              type: r.roomType,
+              nights: r.nights,
+              addons: r.addons,
+            ),
+            if (pending) BankInfoCard(amount: r.total),
+            PaymentProofCard.forReservation(
+              r,
+              onUpload: pending ? () => _upload(context) : null,
+            ),
           ],
-          const SizedBox(height: AppSpacing.lg),
-          PaymentProofCard.forReservation(
-            r,
-            onUpload: pending ? () => _upload(context) : null,
-          ),
-        ],
+        ),
       ),
       bottomNavigationBar: _actions(context, r),
     );
   }
 
   List<Widget> _notices(BuildContext context, Reservation r) {
-    final gap = const SizedBox(height: AppSpacing.lg);
     switch (r.status) {
       case ReservationStatus.pending:
         return [
@@ -102,22 +99,25 @@ class OwnerBookingDetailScreen extends StatelessWidget {
                       'Admin sedang memeriksa bukti bayar. Kamu akan '
                       'melihat status Dikonfirmasi setelah disetujui.',
                 ),
-          gap,
         ];
       case ReservationStatus.rejected:
         return [
-          NoticeBox.danger(
-            icon: Icons.feedback_outlined,
-            title: 'Catatan admin',
-            message: r.adminNote ?? 'Reservasi ditolak admin.',
+          Column(
+            spacing: AppSpacing.md,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              NoticeBox.danger(
+                icon: Icons.feedback_outlined,
+                title: 'Catatan admin',
+                message: r.adminNote ?? 'Reservasi ditolak admin.',
+              ),
+              if (r.paymentProof != null)
+                const NoticeBox(
+                  message:
+                      'Sudah transfer? Hubungi admin untuk pengembalian dana.',
+                ),
+            ],
           ),
-          if (r.paymentProof != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            const NoticeBox(
-              message: 'Sudah transfer? Hubungi admin untuk pengembalian dana.',
-            ),
-          ],
-          gap,
         ];
       default:
         return const [];
@@ -137,9 +137,9 @@ class OwnerBookingDetailScreen extends StatelessWidget {
           child: r.paymentProof != null
               ? cancel
               : Row(
+                  spacing: AppSpacing.md,
                   children: [
                     Expanded(child: cancel),
-                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: FilledButton.icon(
                         onPressed: () => _upload(context),
@@ -153,13 +153,13 @@ class OwnerBookingDetailScreen extends StatelessWidget {
       case ReservationStatus.confirmed:
         return BottomActionBar(
           child: Column(
+            spacing: AppSpacing.sm,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Untuk mengubah atau membatalkan, hubungi admin.',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-              const SizedBox(height: AppSpacing.sm),
               OutlinedButton.icon(
                 onPressed: () => _contactAdmin(context),
                 icon: const Icon(Icons.chat_outlined),
@@ -205,9 +205,9 @@ class _CatCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return AppCard(
       child: Row(
+        spacing: AppSpacing.lg,
         children: [
           AppPhoto(cat.photo, size: 72),
-          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,17 +242,19 @@ class _StayCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.hotel_outlined, color: AppColors.primary),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Detail menginap',
-                style: text.titleLarge!.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: Row(
+              spacing: AppSpacing.sm,
+              children: [
+                const Icon(Icons.hotel_outlined, color: AppColors.primary),
+                Text(
+                  'Detail menginap',
+                  style: text.titleLarge!.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
           InfoRow('Tipe kamar', r.roomType.name),
           if (r.unit != null)
             InfoRow('Unit', r.unit!)
