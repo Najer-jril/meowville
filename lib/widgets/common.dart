@@ -291,6 +291,26 @@ class EmptyState extends StatelessWidget {
   }
 }
 
+/// Tampil saat list gagal dimuat dan tidak ada data cache.
+class ErrorState extends StatelessWidget {
+  const ErrorState({super.key, required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => EmptyState(
+    icon: Icons.cloud_off_outlined,
+    title: 'Gagal memuat data',
+    message: message,
+    action: OutlinedButton.icon(
+      onPressed: onRetry,
+      icon: const Icon(Icons.refresh),
+      label: const Text('Coba lagi'),
+    ),
+  );
+}
+
 class FieldLabel extends StatelessWidget {
   const FieldLabel(
     this.label, {
@@ -332,8 +352,8 @@ class FieldLabel extends StatelessWidget {
   }
 }
 
-/// Wraps a [FieldLabel] and its input control as a single column block so form
-/// columns can use uniform `spacing:` without inflating label-to-field gaps.
+/// Membungkus [FieldLabel] dan input-nya dalam satu kolom, supaya form
+/// bisa pakai `spacing:` yang seragam tanpa memperlebar jarak label ke field.
 class LabeledField extends StatelessWidget {
   const LabeledField({
     super.key,

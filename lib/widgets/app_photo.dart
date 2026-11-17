@@ -1,7 +1,27 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../routes/app_routes.dart';
+
+/// Foto yang dipilih di perangkat ini dan belum di-upload.
+bool isLocalPhoto(String? p) => p != null && p.startsWith('/');
+
+/// Path objek di bucket privat payment-proofs. Perlu signed URL
+/// dulu sebelum bisa ditampilkan.
+bool isPrivatePhoto(String? p) =>
+    p != null &&
+    !p.startsWith('http') &&
+    !p.startsWith('/') &&
+    !p.startsWith('assets/');
+
+/// Menentukan jenis string foto: URL, file lokal, atau asset bawaan.
+ImageProvider photoProvider(String path) {
+  if (path.startsWith('http')) return NetworkImage(path);
+  if (path.startsWith('/')) return FileImage(File(path));
+  return AssetImage(path);
+}
 
 class AppPhoto extends StatelessWidget {
   const AppPhoto(
@@ -39,8 +59,8 @@ class AppPhoto extends StatelessWidget {
       borderRadius: BorderRadius.circular(radius),
       child: path == null
           ? placeholder
-          : Image.asset(
-              path!,
+          : Image(
+              image: photoProvider(path!),
               width: size,
               height: h,
               fit: BoxFit.cover,
@@ -84,8 +104,8 @@ class UserAvatar extends StatelessWidget {
     if (photo == null) return letter;
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
-      child: Image.asset(
-        photo!,
+      child: Image(
+        image: photoProvider(photo!),
         width: size,
         height: size,
         fit: BoxFit.cover,
@@ -128,8 +148,8 @@ class PhotoViewerScreen extends StatelessWidget {
       body: Center(
         child: InteractiveViewer(
           maxScale: 4,
-          child: Image.asset(
-            path,
+          child: Image(
+            image: photoProvider(path),
             fit: BoxFit.contain,
             errorBuilder: (_, _, _) => const Column(
               spacing: AppSpacing.md,

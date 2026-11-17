@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../data/models.dart';
+import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import 'app_photo.dart';
 import 'common.dart';
@@ -67,8 +69,18 @@ class PaymentProofCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
     final p = proof;
+    if (!isPrivatePhoto(p)) return _card(context, p, hasProof: p != null);
+    return _SignedProof(
+      path: p!,
+      builder: (url) => _card(context, url, hasProof: true),
+    );
+  }
+
+  /// [p] adalah foto yang bisa ditampilkan, null selama signed URL
+  /// masih dimuat.
+  Widget _card(BuildContext context, String? p, {required bool hasProof}) {
+    final text = Theme.of(context).textTheme;
     void open() => showPhotoViewer(context, p!);
 
     return AppCard(
@@ -115,12 +127,15 @@ class PaymentProofCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (p != null)
-                TextButton(onPressed: open, child: const Text('Lihat Bukti')),
+              if (hasProof)
+                TextButton(
+                  onPressed: p == null ? null : open,
+                  child: const Text('Lihat Bukti'),
+                ),
             ],
           ),
           if (onUpload != null)
-            p == null
+            !hasProof
                 ? FilledButton.icon(
                     onPressed: onUpload,
                     icon: const Icon(Icons.upload_file),
@@ -138,4 +153,34 @@ class PaymentProofCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Mengambil signed URL untuk bukti bayar privat, sekali per path.
+class _SignedProof extends StatefulWidget {
+  const _SignedProof({required this.path, required this.builder});
+
+  final String path;
+  final Widget Function(String? url) builder;
+
+  @override
+  State<_SignedProof> createState() => _SignedProofState();
+}
+
+class _SignedProofState extends State<_SignedProof> {
+  late Future<String> _url = _fetch();
+
+  Future<String> _fetch() =>
+      context.read<StorageService>().proofUrl(widget.path);
+
+  @override
+  void didUpdateWidget(_SignedProof old) {
+    super.didUpdateWidget(old);
+    if (old.path != widget.path) _url = _fetch();
+  }
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<String>(
+    future: _url,
+    builder: (_, snap) => widget.builder(snap.data),
+  );
 }
