@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../routes/app_routes.dart';
 
-import '../../data/data.dart';
+import '../../controllers/reservation_controller.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common.dart';
@@ -27,7 +27,6 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
     ('Dibatalkan', ReservationStatus.cancelled),
   ];
 
-  AdminStore get _store => context.read<AdminStore>();
   final _search = TextEditingController();
   int _filter = 0;
 
@@ -46,7 +45,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
   List<Reservation> _visible() {
     final status = _filters[_filter].$2;
     final q = _search.text.trim().toLowerCase();
-    return _store.latest.where((r) {
+    return context.read<ReservationController>().latest.where((r) {
       if (status != null && r.status != status) return false;
       if (q.isEmpty) return true;
       return r.cat.name.toLowerCase().contains(q) ||
@@ -56,98 +55,102 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<AdminStore>();
+    final reservations = context.watch<ReservationController>();
     final text = Theme.of(context).textTheme;
 
     final items = _visible();
 
     return Scaffold(
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.page,
-                AppSpacing.xl,
-                AppSpacing.page,
-                0,
-              ),
-              sliver: SliverList.list(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                    child: Text('Reservasi', style: text.headlineLarge),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: TextField(
-                      controller: _search,
-                      textInputAction: TextInputAction.search,
-                      decoration: InputDecoration(
-                        hintText: 'Cari nama kucing atau pemilik',
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          color: AppColors.muted,
-                        ),
-                        suffixIcon: _search.text.isEmpty
-                            ? null
-                            : IconButton(
-                                tooltip: 'Hapus',
-                                onPressed: _search.clear,
-                                icon: const Icon(Icons.close),
-                              ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: FilterChipRow(
-                labels: [for (final f in _filters) f.$1],
-                selected: _filter,
-                onSelected: (i) => setState(() => _filter = i),
-              ),
-            ),
-            if (items.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: EmptyState(
-                  icon: Icons.event_note_outlined,
-                  title: _search.text.isEmpty
-                      ? 'Belum ada reservasi'
-                      : 'Tidak ditemukan',
-                  message: _search.text.isEmpty
-                      ? 'Reservasi berstatus '
-                            '${_filters[_filter].$1.toLowerCase()} '
-                            'akan muncul di sini.'
-                      : 'Coba kata kunci lain atau ganti filter status.',
-                ),
-              )
-            else
+        child: RefreshIndicator(
+          onRefresh: () => reservations.load(),
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.page,
-                  AppSpacing.md,
-                  AppSpacing.page,
                   AppSpacing.xl,
+                  AppSpacing.page,
+                  0,
                 ),
-                sliver: SliverList.separated(
-                  itemCount: items.length,
-                  separatorBuilder: (_, _) => const Padding(
-                    padding: EdgeInsets.only(top: AppSpacing.lg),
+                sliver: SliverList.list(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      child: Text('Reservasi', style: text.headlineLarge),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: TextField(
+                        controller: _search,
+                        textInputAction: TextInputAction.search,
+                        decoration: InputDecoration(
+                          hintText: 'Cari nama kucing atau pemilik',
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: AppColors.muted,
+                          ),
+                          suffixIcon: _search.text.isEmpty
+                              ? null
+                              : IconButton(
+                                  tooltip: 'Hapus',
+                                  onPressed: _search.clear,
+                                  icon: const Icon(Icons.close),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: FilterChipRow(
+                  labels: [for (final f in _filters) f.$1],
+                  selected: _filter,
+                  onSelected: (i) => setState(() => _filter = i),
+                ),
+              ),
+              if (items.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: EmptyState(
+                    icon: Icons.event_note_outlined,
+                    title: _search.text.isEmpty
+                        ? 'Belum ada reservasi'
+                        : 'Tidak ditemukan',
+                    message: _search.text.isEmpty
+                        ? 'Reservasi berstatus '
+                              '${_filters[_filter].$1.toLowerCase()} '
+                              'akan muncul di sini.'
+                        : 'Coba kata kunci lain atau ganti filter status.',
                   ),
-                  itemBuilder: (context, i) => ReservationCard(
-                    reservation: items[i],
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      AppRoutes.adminReservationsDetail,
-                      arguments: items[i],
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.page,
+                    AppSpacing.md,
+                    AppSpacing.page,
+                    AppSpacing.xl,
+                  ),
+                  sliver: SliverList.separated(
+                    itemCount: items.length,
+                    separatorBuilder: (_, _) => const Padding(
+                      padding: EdgeInsets.only(top: AppSpacing.lg),
+                    ),
+                    itemBuilder: (context, i) => ReservationCard(
+                      reservation: items[i],
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.adminReservationsDetail,
+                        arguments: items[i],
+                      ),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

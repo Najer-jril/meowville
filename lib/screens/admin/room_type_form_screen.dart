@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
-import '../../data/data.dart';
+import '../../controllers/room_controller.dart';
+import '../../core/api_client.dart';
 import '../../data/models.dart';
-import '../../theme/app_assets.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
+import '../../widgets/photo_picker.dart';
 
 class RoomTypeFormScreen extends StatefulWidget {
   const RoomTypeFormScreen({super.key, this.existing});
@@ -19,7 +20,8 @@ class RoomTypeFormScreen extends StatefulWidget {
 }
 
 class _RoomTypeFormScreenState extends State<RoomTypeFormScreen> {
-  AdminStore get _store => context.read<AdminStore>();
+  RoomController get _rooms => context.read<RoomController>();
+  bool _saving = false;
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.existing?.name);
   late final _prefix = TextEditingController(text: widget.existing?.prefix);
@@ -52,60 +54,8 @@ class _RoomTypeFormScreenState extends State<RoomTypeFormScreen> {
   }
 
   Future<void> _pickPhoto() async {
-    const options = [
-      AppImages.roomStandard,
-      AppImages.roomDeluxe,
-      AppImages.roomSuite,
-      AppImages.roomPresidential,
-    ];
-    final picked = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.page,
-            0,
-            AppSpacing.page,
-            AppSpacing.lg,
-          ),
-          child: Column(
-            spacing: AppSpacing.lg,
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SheetHeader(
-                title: 'Pilih foto kamar',
-                subtitle: 'Contoh foto dari galeri',
-              ),
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: AppSpacing.md,
-                crossAxisSpacing: AppSpacing.md,
-                childAspectRatio: 1.4,
-                children: [
-                  for (final p in options)
-                    GestureDetector(
-                      onTap: () => Navigator.pop(ctx, p),
-                      child: LayoutBuilder(
-                        builder: (_, c) => AppPhoto(
-                          p,
-                          size: c.maxWidth,
-                          height: c.maxHeight,
-                          placeholderIcon: Icons.bed_outlined,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (picked != null) setState(() => _photo = picked);
+    final path = await pickPhoto(context);
+    if (path != null && mounted) setState(() => _photo = path);
   }
 
   Future<void> _addChip(List<String> target, String title) async {
@@ -118,26 +68,38 @@ class _RoomTypeFormScreenState extends State<RoomTypeFormScreen> {
     if (v.isNotEmpty && !target.contains(v)) setState(() => target.add(v));
   }
 
-  void _save() {
+  Future<void> _save() async {
     setState(() => _submitted = true);
     final valid = _formKey.currentState!.validate();
     if (!valid || _packages.isEmpty) return;
-    _store.saveRoomType(
-      existing: widget.existing,
-      name: _name.text.trim(),
-      prefix: _prefix.text.trim().toUpperCase(),
-      description: _desc.text.trim(),
-      price: int.parse(_price.text),
-      unitCount: _units,
-      facilities: _facilities,
-      packages: _packages,
-      photo: _photo,
-    );
-    Navigator.pop(context);
-    showSnack(
-      context,
-      _isEdit ? 'Tipe kamar disimpan' : 'Tipe kamar ditambahkan',
-    );
+    setState(() => _saving = true);
+    try {
+      await _rooms.save(
+        RoomType(
+          id: widget.existing?.id ?? 0,
+          name: _name.text.trim(),
+          prefix: _prefix.text.trim().toUpperCase(),
+          description: _desc.text.trim(),
+          price: int.parse(_price.text),
+          unitCount: _units,
+          facilities: _facilities,
+          packages: _packages,
+          photo: _photo,
+          active: widget.existing?.active ?? true,
+        ),
+        existing: widget.existing,
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+      showSnack(
+        context,
+        _isEdit ? 'Tipe kamar disimpan' : 'Tipe kamar ditambahkan',
+      );
+    } on ApiException catch (e) {
+      if (mounted) showSnack(context, e.message);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
@@ -216,7 +178,7 @@ class _RoomTypeFormScreenState extends State<RoomTypeFormScreen> {
                       if (v == null || v.trim().isEmpty) {
                         return 'Kode awalan wajib diisi';
                       }
-                      if (_store.prefixTaken(v.trim())) {
+                      if (_rooms.prefixTaken(v.trim())) {
                         return 'Kode ${v.trim().toUpperCase()} sudah dipakai '
                             'tipe lain';
                       }
@@ -321,7 +283,10 @@ class _RoomTypeFormScreenState extends State<RoomTypeFormScreen> {
         ),
       ),
       bottomNavigationBar: BottomActionBar(
-        child: FilledButton(onPressed: _save, child: const Text('Simpan Data')),
+        child: FilledButton(
+          onPressed: _saving ? null : _save,
+          child: const Text('Simpan Data'),
+        ),
       ),
     );
   }

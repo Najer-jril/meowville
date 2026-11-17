@@ -3,13 +3,15 @@ import 'package:provider/provider.dart';
 
 import '../../routes/app_routes.dart';
 
-import '../../data/data.dart';
+import '../../controllers/reservation_controller.dart';
+import '../../controllers/room_controller.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
 import 'widgets/reservation_actions.dart';
+import '../../utils/clock.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key, this.onSeeAllReservations});
@@ -21,7 +23,9 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
-  AdminStore get _store => context.read<AdminStore>();
+  ReservationController get _reservations =>
+      context.read<ReservationController>();
+  RoomController get _rooms => context.read<RoomController>();
   int _tab = 0;
 
   void _openDetail(Reservation r) => Navigator.pushNamed(
@@ -32,63 +36,58 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final reservations = context.watch<ReservationController>();
+    context.watch<RoomController>();
     final text = Theme.of(context).textTheme;
 
-    final pending = store.pending;
+    final pending = reservations.pending;
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.page,
-            AppSpacing.xl,
-            AppSpacing.page,
-            AppSpacing.xl,
-          ),
-          child: Column(
-            spacing: AppSpacing.lg,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Column(
-              //   spacing: AppSpacing.xs,
-              //   crossAxisAlignment: CrossAxisAlignment.start,
-              //   children: [
-              //     Text('Halo, Admin', style: text.headlineLarge),
-              //     Text(
-              //       '${Fmt.dateLong(store.today)} - '
-              //       '${pending.isEmpty ? 'Tidak ada' : pending.length} '
-              //       'reservasi baru masuk',
-              //       style: text.bodySmall!.copyWith(fontSize: 14),
-              //     ),
-              //   ],
-              // ),
-              Text('Halo, Admin', style: text.headlineLarge),
-              Text(
-                '${Fmt.dateLong(store.today)} - '
-                '${pending.isEmpty ? 'Tidak ada' : pending.length} '
-                'reservasi baru masuk',
-                style: text.bodySmall!.copyWith(fontSize: 14),
-              ),
-              SegmentedTabs(
-                labels: [
-                  'Semua',
-                  'Butuh Respon${pending.isEmpty ? '' : ' (${pending.length})'}',
-                ],
-                selected: _tab,
-                onChanged: (i) => setState(() => _tab = i),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.sm),
-                child: Column(
-                  spacing: AppSpacing.xl,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: _tab == 0
-                      ? _overview(context)
-                      : _needsResponse(context, pending),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await reservations.load();
+            await _rooms.refreshAvailability();
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.page,
+              AppSpacing.xl,
+              AppSpacing.page,
+              AppSpacing.xl,
+            ),
+            child: Column(
+              spacing: AppSpacing.lg,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Halo, Admin', style: text.headlineLarge),
+                Text(
+                  '${Fmt.dateLong(Clock.today())} - '
+                  '${pending.isEmpty ? 'Tidak ada' : pending.length} '
+                  'reservasi baru masuk',
+                  style: text.bodySmall!.copyWith(fontSize: 14),
                 ),
-              ),
-            ],
+                SegmentedTabs(
+                  labels: [
+                    'Semua',
+                    'Butuh Respon${pending.isEmpty ? '' : ' (${pending.length})'}',
+                  ],
+                  selected: _tab,
+                  onChanged: (i) => setState(() => _tab = i),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
+                  child: Column(
+                    spacing: AppSpacing.xl,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: _tab == 0
+                        ? _overview(context)
+                        : _needsResponse(context, pending),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -97,19 +96,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   List<Widget> _overview(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final checkIns = _store.checkInsToday();
+    final checkIns = _reservations.checkInsToday();
     final arrived = checkIns
         .where((r) => r.status == ReservationStatus.checkedIn)
         .length;
-    final staying = _store.staying.length;
-    final capacity = _store.totalActiveUnits == 0
+    final staying = _reservations.staying.length;
+    final capacity = _rooms.totalActiveUnits == 0
         ? 0
-        : (staying * 100 / _store.totalActiveUnits).round();
-    final types = _store.activeRoomTypes;
+        : (staying * 100 / _rooms.totalActiveUnits).round();
+    final types = _rooms.active;
     final free = {
       for (final t in types)
         t: () {
-          final a = _store.availability(t, _store.today);
+          final a = _rooms.availability(t, Clock.today());
           return (a.units - a.occupied - a.blocked).clamp(0, a.units);
         }(),
     };
@@ -133,7 +132,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
           _StatCard(
             label: 'Check out hari Ini',
-            value: '${_store.checkOutsToday().length}',
+            value: '${_reservations.checkOutsToday().length}',
           ),
           _StatCard(
             label: 'Lagi Menginap',
@@ -203,7 +202,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               for (final r in list)
                 _PendingCard(
                   reservation: r,
-                  now: _store.now,
+                  now: Clock.now(),
                   onTap: () => _openDetail(r),
                 ),
             ],
@@ -261,14 +260,14 @@ class _StatsRoomRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final rooms = context.watch<RoomController>();
     final text = Theme.of(context).textTheme;
-    final a = store.availability(type, store.today);
+    final a = rooms.availability(type, Clock.today());
     final percent = a.units == 0 ? 0 : (a.occupied * 100 / a.units).round();
     final high = percent >= 80;
     final ready = (a.units - a.occupied - a.blocked).clamp(0, a.units);
-    final todayBlocks = store.blocks.where(
-      (b) => b.roomType == type && b.covers(store.today),
+    final todayBlocks = rooms.blocks.where(
+      (b) => b.roomType == type && b.covers(Clock.today()),
     );
 
     return Padding(

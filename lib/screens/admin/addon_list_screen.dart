@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/data.dart';
+import '../../controllers/addon_controller.dart';
+import '../../core/api_client.dart';
 import '../../data/models.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
@@ -13,59 +14,67 @@ class AddonListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final addons = context.watch<AddonController>();
     final text = Theme.of(context).textTheme;
 
     final items = [
-      ...store.addons.where((a) => a.active),
-      ...store.addons.where((a) => !a.active),
+      ...addons.addons.where((a) => a.active),
+      ...addons.addons.where((a) => !a.active),
     ];
-    final active = store.addons.where((a) => a.active).length;
+    final active = addons.active.length;
 
     return Scaffold(
       appBar: const SubPageAppBar(title: 'Layanan Tambahan'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.page,
-          AppSpacing.sm,
-          AppSpacing.page,
-          AppSpacing.xl,
-        ),
-        child: Column(
-          spacing: AppSpacing.lg,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    '$active aktif dan ${items.length - active} nonaktif',
-                    style: text.bodySmall!.copyWith(fontSize: 14),
+      body: RefreshIndicator(
+        onRefresh: () => addons.load(),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.page,
+            AppSpacing.sm,
+            AppSpacing.page,
+            AppSpacing.xl,
+          ),
+          child: Column(
+            spacing: AppSpacing.lg,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '$active aktif dan ${items.length - active} nonaktif',
+                      style: text.bodySmall!.copyWith(fontSize: 14),
+                    ),
                   ),
-                ),
-                FilledButton.icon(
-                  onPressed: () =>
-                      Navigator.pushNamed(context, AppRoutes.adminAddOnForm),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(0, 48),
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                  FilledButton.icon(
+                    onPressed: () =>
+                        Navigator.pushNamed(context, AppRoutes.adminAddOnForm),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Tambah'),
                   ),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Tambah'),
-                ),
-              ],
-            ),
-            if (items.isEmpty)
-              const EmptyState(
-                icon: Icons.auto_awesome_outlined,
-                title: 'Belum ada layanan',
-                message:
-                    'Tambahkan layanan seperti grooming atau antar '
-                    'jemput.',
-              )
-            else
-              for (final a in items) _AddonCard(addon: a),
-          ],
+                ],
+              ),
+              if (addons.loading && items.isEmpty)
+                const Center(child: CircularProgressIndicator())
+              else if (addons.error != null && items.isEmpty)
+                ErrorState(message: addons.error!, onRetry: () => addons.load())
+              else if (items.isEmpty)
+                const EmptyState(
+                  icon: Icons.auto_awesome_outlined,
+                  title: 'Belum ada layanan',
+                  message:
+                      'Tambahkan layanan seperti grooming atau antar '
+                      'jemput.',
+                )
+              else
+                for (final a in items) _AddonCard(addon: a),
+            ],
+          ),
         ),
       ),
     );
@@ -78,11 +87,18 @@ class _AddonCard extends StatelessWidget {
   final Addon addon;
 
   Future<void> _toggle(BuildContext context) async {
-    final store = context.read<AdminStore>();
+    final addons = context.read<AddonController>();
+    Future<void> set(bool active, String done) async {
+      try {
+        await addons.setActive(addon, active);
+        if (context.mounted) showSnack(context, done);
+      } on ApiException catch (e) {
+        if (context.mounted) showSnack(context, e.message);
+      }
+    }
+
     if (!addon.active) {
-      store.setAddonActive(addon, true);
-      showSnack(context, '${addon.name} diaktifkan');
-      return;
+      return set(true, '${addon.name} diaktifkan');
     }
     final ok = await showConfirmDialog(
       context,
@@ -94,10 +110,7 @@ class _AddonCard extends StatelessWidget {
       destructive: true,
       icon: Icons.warning_amber_rounded,
     );
-    if (ok) {
-      store.setAddonActive(addon, false);
-      if (context.mounted) showSnack(context, '${addon.name} dinonaktifkan');
-    }
+    if (ok) await set(false, '${addon.name} dinonaktifkan');
   }
 
   @override

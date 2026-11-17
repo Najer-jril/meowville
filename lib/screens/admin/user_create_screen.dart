@@ -243,9 +243,23 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
         ),
       ),
       bottomNavigationBar: BottomActionBar(
-        child: FilledButton(
-          onPressed: _filled && !_loading ? _submit : null,
-          child: const Text('Buat Akun'),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Text(
+                'Jika verifikasi email aktif, akun baru perlu mengklik '
+                'tautan di email sebelum bisa masuk.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+            FilledButton(
+              onPressed: _filled && !_loading ? _submit : null,
+              child: const Text('Buat Akun'),
+            ),
+          ],
         ),
       ),
     );

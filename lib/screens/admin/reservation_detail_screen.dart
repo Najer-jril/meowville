@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/data.dart';
+import '../../controllers/reservation_controller.dart';
+import '../../core/api_client.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
@@ -17,9 +18,10 @@ class ReservationDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<AdminStore>();
-
-    final r = reservation;
+    // status bisa berubah habis reload, jadi ngambil data terbaru lewat id
+    final r =
+        context.watch<ReservationController>().byId(reservation.id) ??
+        reservation;
 
     return Scaffold(
       appBar: SubPageAppBar(
@@ -93,7 +95,7 @@ class ReservationDetailScreen extends StatelessWidget {
         return BottomActionBar(
           child: OutlinedButton(
             onPressed: () async {
-              final store = context.read<AdminStore>();
+              final reservations = context.read<ReservationController>();
               final ok = await showConfirmDialog(
                 context,
                 title: 'Batalkan reservasi?',
@@ -105,9 +107,12 @@ class ReservationDetailScreen extends StatelessWidget {
                 destructive: true,
                 icon: Icons.event_busy,
               );
-              if (ok) {
-                store.cancel(r);
+              if (!ok) return;
+              try {
+                await reservations.cancel(r);
                 if (context.mounted) showSnack(context, 'Reservasi dibatalkan');
+              } on ApiException catch (e) {
+                if (context.mounted) showSnack(context, e.message);
               }
             },
             style: dangerOutlinedStyle(),
@@ -264,7 +269,7 @@ class _CostCard extends StatelessWidget {
           line(
             'Kamar ${r.roomType.name} x ${r.nights} malam',
             r.roomTotal,
-            sub: '${Fmt.rupiah(r.roomType.price)}/malam',
+            sub: '${Fmt.rupiah(r.roomPrice)}/malam',
           ),
           for (final a in r.addons) line(a.name, a.price),
           const Padding(
