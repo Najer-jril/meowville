@@ -31,38 +31,52 @@ class ReportHistoryScreen extends StatelessWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
             AppSpacing.xl,
             AppSpacing.page,
             AppSpacing.xl,
           ),
-          children: [
-            Text('Riwayat', style: text.headlineLarge),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Laporan semua pet sitter',
-              style: text.bodySmall!.copyWith(fontSize: 15),
-            ),
-            if (groups.isEmpty)
-              const EmptyState(
-                icon: Icons.assignment_outlined,
-                title: 'Belum ada laporan',
-                message:
-                    'Laporan harian yang dikirim pet sitter akan '
-                    'muncul di sini.',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Column(
+                spacing: AppSpacing.xs,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Riwayat', style: text.headlineLarge),
+                  Text(
+                    'Laporan semua pet sitter',
+                    style: text.bodySmall!.copyWith(fontSize: 15),
+                  ),
+                ],
               ),
-            for (final e in groups.entries) ...[
-              const SizedBox(height: AppSpacing.xl),
-              Text(_dayLabel(e.key, store.today), style: text.labelLarge),
-              const SizedBox(height: AppSpacing.md),
-              for (final d in e.value) ...[
-                _ReportCard(report: d),
-                const SizedBox(height: AppSpacing.md),
-              ],
+              if (groups.isEmpty)
+                const EmptyState(
+                  icon: Icons.assignment_outlined,
+                  title: 'Belum ada laporan',
+                  message:
+                      'Laporan harian yang dikirim pet sitter akan '
+                      'muncul di sini.',
+                ),
+              for (final e in groups.entries)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.xl),
+                  child: Column(
+                    spacing: AppSpacing.md,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        _dayLabel(e.key, store.today),
+                        style: text.labelLarge,
+                      ),
+                      for (final d in e.value) _ReportCard(report: d),
+                    ],
+                  ),
+                ),
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -82,8 +96,10 @@ class _ReportCard extends StatelessWidget {
       onTap: () => showReportDetailSheet(context, report),
       child: Row(
         children: [
-          AppPhoto(cat.photo, size: 56, radius: 14),
-          const SizedBox(width: AppSpacing.lg),
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.lg),
+            child: AppPhoto(cat.photo, size: 56, radius: 14),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,23 +156,30 @@ Future<void> showReportDetailSheet(BuildContext context, DailyReport report) {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  const IconBubble(icon: Icons.assignment_outlined, size: 44),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Text(
-                      'Laporan ${r.cat.name}',
-                      style: text.titleLarge!.copyWith(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: Row(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(right: AppSpacing.md),
+                      child: IconBubble(
+                        icon: Icons.assignment_outlined,
+                        size: 44,
                       ),
                     ),
-                  ),
-                  if (r.unit != null) TagChip('Kamar ${r.unit}'),
-                ],
+                    Expanded(
+                      child: Text(
+                        'Laporan ${r.cat.name}',
+                        style: text.titleLarge!.copyWith(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    if (r.unit != null) TagChip('Kamar ${r.unit}'),
+                  ],
+                ),
               ),
-              const SizedBox(height: AppSpacing.md),
               row('Pelapor', strong(report.reporter.name)),
               row(
                 'Waktu',
@@ -171,36 +194,43 @@ Future<void> showReportDetailSheet(BuildContext context, DailyReport report) {
                   style: AppBadges.mood(report.mood),
                 ),
               ),
-              if (report.note.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  'CATATAN',
-                  style: text.labelSmall!.copyWith(letterSpacing: 1.2),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceAlt,
-                    borderRadius: BorderRadius.circular(AppRadius.input),
+              if (report.note.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.lg),
+                  child: Column(
+                    spacing: AppSpacing.sm,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'CATATAN',
+                        style: text.labelSmall!.copyWith(letterSpacing: 1.2),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceAlt,
+                          borderRadius: BorderRadius.circular(AppRadius.input),
+                        ),
+                        child: Text(report.note, style: text.bodyLarge),
+                      ),
+                    ],
                   ),
-                  child: Text(report.note, style: text.bodyLarge),
                 ),
-              ],
-              if (report.photo != null) ...[
-                const SizedBox(height: AppSpacing.lg),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: GestureDetector(
-                    onTap: () => showPhotoViewer(
-                      ctx,
-                      report.photo!,
-                      title: 'Foto ${r.cat.name}',
+              if (report.photo != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.lg),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: GestureDetector(
+                      onTap: () => showPhotoViewer(
+                        ctx,
+                        report.photo!,
+                        title: 'Foto ${r.cat.name}',
+                      ),
+                      child: AppPhoto(report.photo, size: 120),
                     ),
-                    child: AppPhoto(report.photo, size: 120),
                   ),
                 ),
-              ],
             ],
           ),
         ),

@@ -78,39 +78,44 @@ class _DailyReportFormScreenState extends State<DailyReportFormScreen> {
           AppSpacing.xl,
         ),
         children: [
-          if (showErrors) ...[
-            _Banner(
-              icon: Icons.error,
-              color: AppColors.danger,
-              background: AppColors.dangerSoft,
-              title: 'Data belum lengkap',
-              message:
-                  'Harap pilih status makan, minum, dan mood '
-                  '${r.cat.name} terlebih dahulu.',
+          if (showErrors)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+              child: _Banner(
+                icon: Icons.error,
+                color: AppColors.danger,
+                background: AppColors.dangerSoft,
+                title: 'Data belum lengkap',
+                message:
+                    'Harap pilih status makan, minum, dan mood '
+                    '${r.cat.name} terlebih dahulu.',
+              ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-          ],
           AppCard(
             padding: const EdgeInsets.all(AppSpacing.page),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (previous != null) ...[
-                  _Banner(
-                    icon: Icons.info_outline,
-                    color: AppColors.warning,
-                    background: AppColors.warningSoft,
-                    message:
-                        '${r.cat.name} sudah dilaporkan '
-                        '${previous.reporter.firstName}, '
-                        '${Fmt.time(previous.time)}. Tetap kirim laporan baru?',
+                if (previous != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                    child: _Banner(
+                      icon: Icons.info_outline,
+                      color: AppColors.warning,
+                      background: AppColors.warningSoft,
+                      message:
+                          '${r.cat.name} sudah dilaporkan '
+                          '${previous.reporter.firstName}, '
+                          '${Fmt.time(previous.time)}. Tetap kirim laporan '
+                          'baru?',
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                ],
                 Row(
                   children: [
-                    AppPhoto(r.cat.photo, size: 56, radius: 14),
-                    const SizedBox(width: AppSpacing.md),
+                    Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.md),
+                      child: AppPhoto(r.cat.photo, size: 56, radius: 14),
+                    ),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,29 +159,36 @@ class _DailyReportFormScreenState extends State<DailyReportFormScreen> {
                   error: _submitted && _mood == null,
                   onChanged: (v) => setState(() => _mood = v),
                 ),
-                FieldLabel('Catatan', trailing: '${_note.text.length}/200'),
-                TextField(
-                  controller: _note,
-                  minLines: 3,
-                  maxLines: 5,
-                  maxLength: 200,
-                  buildCounter: (
-                    _, {
-                    required currentLength,
-                    required isFocused,
-                    maxLength,
-                  }) => null,
-                  textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(
-                    hintText: 'deskripsi singkat kondisi kucingnya',
+                LabeledField(
+                  label: 'Catatan',
+                  trailing: '${_note.text.length}/200',
+                  child: TextField(
+                    controller: _note,
+                    minLines: 3,
+                    maxLines: 5,
+                    maxLength: 200,
+                    buildCounter: (
+                      _, {
+                      required currentLength,
+                      required isFocused,
+                      maxLength,
+                    }) => null,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: const InputDecoration(
+                      hintText: 'deskripsi singkat kondisi kucingnya',
+                    ),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xl),
-                const FieldLabel('Foto'),
-                _PhotoPicker(
-                  photo: _photo,
-                  onPick: () => setState(() => _photo = r.cat.photo),
-                  onRemove: () => setState(() => _photo = null),
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.xl),
+                  child: LabeledField(
+                    label: 'Foto',
+                    child: _PhotoPicker(
+                      photo: _photo,
+                      onPick: () => setState(() => _photo = r.cat.photo),
+                      onRemove: () => setState(() => _photo = null),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -219,10 +231,10 @@ class _Banner extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.input),
       ),
       child: Row(
+        spacing: AppSpacing.sm,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color),
-          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,8 +303,8 @@ class _ChoiceGroup extends StatelessWidget {
                   runSpacing: gap,
                   children: [
                     for (final o in options)
-                      SizedBox(
-                        width: width,
+                      ConstrainedBox(
+                        constraints: BoxConstraints.tightFor(width: width),
                         child: _Pill(
                           label: o,
                           selected: o == value,
@@ -308,9 +320,9 @@ class _ChoiceGroup extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.sm),
               child: Row(
+                spacing: AppSpacing.sm,
                 children: [
                   const Icon(Icons.error, size: 18, color: AppColors.danger),
-                  const SizedBox(width: 6),
                   Text(
                     'Pilih salah satu',
                     style: text.bodySmall!.copyWith(color: AppColors.danger),
@@ -343,8 +355,10 @@ class _Pill extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.pill),
-        child: SizedBox(
-          height: 48,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints.tightFor(
+            height: AppSizes.touchTarget,
+          ),
           child: Center(
             child: Text(
               label,
@@ -411,6 +425,7 @@ class _PhotoPicker extends StatelessWidget {
             border: Border.all(color: AppColors.border),
           ),
           child: const Column(
+            spacing: AppSpacing.sm,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconBubble(
@@ -418,7 +433,6 @@ class _PhotoPicker extends StatelessWidget {
                 background: AppColors.surface,
                 size: 48,
               ),
-              SizedBox(height: AppSpacing.sm),
               Text(
                 'tambahin foto kucingnya',
                 style: TextStyle(color: AppColors.muted),

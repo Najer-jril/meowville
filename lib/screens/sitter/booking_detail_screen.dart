@@ -58,13 +58,14 @@ class SitterBookingDetailScreen extends StatelessWidget {
         warning: reported ? null : 'Belum ada laporan hari ini.',
         message: 'Reservasi akan ditandai selesai.',
         actions: [
-          if (!reported) ...[
-            OutlinedButton(
-              onPressed: () => Navigator.pop(ctx, 'report'),
-              child: const Text('Isi Laporan Dulu'),
+          if (!reported)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(ctx, 'report'),
+                child: const Text('Isi Laporan Dulu'),
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
-          ],
           FilledButton(
             onPressed: () => Navigator.pop(ctx, 'checkout'),
             child: Text(reported ? 'Check-out' : 'Tetap Check-out'),
@@ -94,81 +95,89 @@ class SitterBookingDetailScreen extends StatelessWidget {
         title: 'Detail Menginap',
         trailing: StatusBadge.booking(r.status.key),
       ),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.page,
           AppSpacing.sm,
           AppSpacing.page,
           AppSpacing.xl,
         ),
-        children: [
-          _CatCard(r),
-          if (staying) ...[
-            const SizedBox(height: AppSpacing.md),
-            _ReportStatus(report: report, onFill: () => _openReport(context)),
-          ],
-          const SizedBox(height: AppSpacing.lg),
-          _OwnerCard(r.owner),
-          const SizedBox(height: AppSpacing.lg),
-          AppCard(
-            child: Column(
+        child: Column(
+          spacing: AppSpacing.lg,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Column(
+              spacing: AppSpacing.md,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _CardTitle(
-                  Icons.hotel_outlined,
-                  'Informasi Menginap',
-                  trailing: r.unit == null ? null : 'Kamar ${r.unit}',
-                ),
-                InfoRow('Tipe kamar', r.roomType.name),
-                InfoRow('Unit', r.unit ?? '-'),
-                InfoRow('Check-in', Fmt.dateLong(r.checkIn)),
-                InfoRow('Check-out', Fmt.dateLong(r.checkOut)),
-                InfoRow('Durasi', '${r.nights} malam'),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _CardTitle(
-                  Icons.spa_outlined,
-                  'Layanan Tambahan',
-                  trailing: r.addons.isEmpty
-                      ? null
-                      : '${r.addons.length} layanan',
-                ),
-                if (r.addons.isEmpty)
-                  Text(
-                    'Tidak ada layanan tambahan.',
-                    style: Theme.of(context).textTheme.bodySmall!
-                        .copyWith(fontSize: 15),
-                  )
-                else
-                  Wrap(
-                    spacing: AppSpacing.sm,
-                    runSpacing: AppSpacing.sm,
-                    children: [
-                      for (final a in r.addons)
-                        Chip(
-                          avatar: const Icon(
-                            Icons.content_cut,
-                            size: 18,
-                            color: AppColors.primary,
-                          ),
-                          label: Text(a.name),
-                          backgroundColor: AppColors.primarySoft,
-                          labelStyle: const TextStyle(
-                            color: AppColors.primaryDeep,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                    ],
+                _CatCard(r),
+                if (staying)
+                  _ReportStatus(
+                    report: report,
+                    onFill: () => _openReport(context),
                   ),
               ],
             ),
-          ),
-        ],
+            _OwnerCard(r.owner),
+            AppCard(
+              child: Column(
+                children: [
+                  _CardTitle(
+                    Icons.hotel_outlined,
+                    'Informasi Menginap',
+                    trailing: r.unit == null ? null : 'Kamar ${r.unit}',
+                  ),
+                  InfoRow('Tipe kamar', r.roomType.name),
+                  InfoRow('Unit', r.unit ?? '-'),
+                  InfoRow('Check-in', Fmt.dateLong(r.checkIn)),
+                  InfoRow('Check-out', Fmt.dateLong(r.checkOut)),
+                  InfoRow('Durasi', '${r.nights} malam'),
+                ],
+              ),
+            ),
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _CardTitle(
+                    Icons.spa_outlined,
+                    'Layanan Tambahan',
+                    trailing: r.addons.isEmpty
+                        ? null
+                        : '${r.addons.length} layanan',
+                  ),
+                  if (r.addons.isEmpty)
+                    Text(
+                      'Tidak ada layanan tambahan.',
+                      style: Theme.of(context).textTheme.bodySmall!
+                          .copyWith(fontSize: 15),
+                    )
+                  else
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: [
+                        for (final a in r.addons)
+                          Chip(
+                            avatar: const Icon(
+                              Icons.content_cut,
+                              size: 18,
+                              color: AppColors.primary,
+                            ),
+                            label: Text(a.name),
+                            backgroundColor: AppColors.primarySoft,
+                            labelStyle: const TextStyle(
+                              color: AppColors.primaryDeep,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: switch (r.status) {
         ReservationStatus.confirmed => BottomActionBar(
@@ -180,6 +189,7 @@ class SitterBookingDetailScreen extends StatelessWidget {
         ),
         ReservationStatus.checkedIn => BottomActionBar(
           child: Row(
+            spacing: AppSpacing.md,
             children: [
               Expanded(
                 child: OutlinedButton.icon(
@@ -188,7 +198,6 @@ class SitterBookingDetailScreen extends StatelessWidget {
                   label: const Text('Isi Laporan'),
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: FilledButton.icon(
                   onPressed: () => _checkOut(context),
@@ -215,9 +224,9 @@ class _CatCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return AppCard(
       child: Row(
+        spacing: AppSpacing.lg,
         children: [
           AppPhoto(r.cat.photo, size: 72),
-          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,28 +270,34 @@ class _ReportStatus extends StatelessWidget {
         color: done ? AppColors.successSoft : AppColors.warningSoft,
         borderRadius: BorderRadius.circular(AppRadius.button),
       ),
-      child: Row(
-        children: [
-          Icon(done ? Icons.check_circle_outline : Icons.schedule, color: fg),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Text(
-              done
-                  ? 'Dilaporkan ${report!.reporter.firstName}, '
-                        '${Fmt.time(report!.time)} - ${report!.mood}'
-                  : 'Belum dilaporkan hari ini',
-              style: text.bodyMedium!.copyWith(color: fg),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: AppSizes.touchTarget),
+        child: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.md),
+              child: Icon(
+                done ? Icons.check_circle_outline : Icons.schedule,
+                color: fg,
+              ),
             ),
-          ),
-          if (!done)
-            TextButton(
-              onPressed: onFill,
-              style: TextButton.styleFrom(foregroundColor: fg),
-              child: const Text('Isi sekarang'),
-            )
-          else
-            const SizedBox(height: 48),
-        ],
+            Expanded(
+              child: Text(
+                done
+                    ? 'Dilaporkan ${report!.reporter.firstName}, '
+                          '${Fmt.time(report!.time)} - ${report!.mood}'
+                    : 'Belum dilaporkan hari ini',
+                style: text.bodyMedium!.copyWith(color: fg),
+              ),
+            ),
+            if (!done)
+              TextButton(
+                onPressed: onFill,
+                style: TextButton.styleFrom(foregroundColor: fg),
+                child: const Text('Isi sekarang'),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -298,9 +313,9 @@ class _OwnerCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return AppCard(
       child: Row(
+        spacing: AppSpacing.md,
         children: [
           UserAvatar(initial: owner.initial, photo: owner.photo, size: 48),
-          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,8 +352,10 @@ class _CardTitle extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primary),
-          const SizedBox(width: AppSpacing.sm),
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: Icon(icon, color: AppColors.primary),
+          ),
           Expanded(
             child: Text(
               title,
@@ -388,46 +405,53 @@ class _ConfirmSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SheetHeader(title: title),
-            if (warning != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: AppColors.warningSoft,
-                  borderRadius: BorderRadius.circular(AppRadius.input),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.warning_amber_rounded,
-                      color: AppColors.warning,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        warning!,
-                        style: text.labelLarge!.copyWith(
-                          fontSize: 15,
-                          color: AppColors.warning,
+            if (warning != null)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.md),
+                child: Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.warningSoft,
+                    borderRadius: BorderRadius.circular(AppRadius.input),
+                  ),
+                  child: Row(
+                    spacing: AppSpacing.sm,
+                    children: [
+                      const Icon(
+                        Icons.warning_amber_rounded,
+                        color: AppColors.warning,
+                      ),
+                      Expanded(
+                        child: Text(
+                          warning!,
+                          style: text.labelLarge!.copyWith(
+                            fontSize: 15,
+                            color: AppColors.warning,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ],
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              message,
-              style: text.bodyLarge!.copyWith(color: AppColors.muted),
+            Padding(
+              padding: const EdgeInsets.only(
+                top: AppSpacing.md,
+                bottom: AppSpacing.xl,
+              ),
+              child: Text(
+                message,
+                style: text.bodyLarge!.copyWith(color: AppColors.muted),
+              ),
             ),
-            const SizedBox(height: AppSpacing.xl),
             ...actions,
-            const SizedBox(height: AppSpacing.xs),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              style: TextButton.styleFrom(foregroundColor: AppColors.muted),
-              child: const Text('Batal'),
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.xs),
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(foregroundColor: AppColors.muted),
+                child: const Text('Batal'),
+              ),
             ),
           ],
         ),

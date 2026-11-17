@@ -26,58 +26,81 @@ class SitterTodayScreen extends StatelessWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
             AppSpacing.xl,
             AppSpacing.page,
             AppSpacing.xl,
           ),
-          children: [
-            Text('Hari Ini', style: text.headlineLarge),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              Fmt.dateLong(store.today),
-              style: text.bodySmall!.copyWith(fontSize: 15),
-            ),
-            if (empty)
-              const EmptyState(
-                icon: Icons.pets,
-                title: 'Belum ada yang perlu ditangani',
-                message:
-                    'Kucing yang akan check-in, menginap, atau '
-                    'check-out akan muncul di sini.',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Column(
+                spacing: AppSpacing.xs,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Hari Ini', style: text.headlineLarge),
+                  Text(
+                    Fmt.dateLong(store.today),
+                    style: text.bodySmall!.copyWith(fontSize: 15),
+                  ),
+                ],
               ),
-            _Section(
-              title: 'Mau check-in',
-              items: checkIns,
-              actor: actor,
-              badge: (r) => r.checkIn.isBefore(store.today)
-                  ? const StatusBadge(
-                      label: 'Terlambat',
-                      style: BadgeStyle(AppColors.danger, AppColors.dangerSoft),
-                    )
-                  : const StatusBadge(
-                      label: 'Hari ini',
-                      style: BadgeStyle(
-                        AppColors.primary,
-                        AppColors.primarySoft,
-                      ),
-                    ),
-            ),
-            _Section(
-              title: 'Lagi Nginap',
-              items: staying,
-              actor: actor,
-              badge: ReportBadge.new,
-            ),
-            _Section(
-              title: 'Mau check-out',
-              items: checkOuts,
-              actor: actor,
-              badge: ReportBadge.new,
-            ),
-          ],
+              if (empty)
+                const EmptyState(
+                  icon: Icons.pets,
+                  title: 'Belum ada yang perlu ditangani',
+                  message:
+                      'Kucing yang akan check-in, menginap, atau '
+                      'check-out akan muncul di sini.',
+                ),
+              if (checkIns.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.xl),
+                  child: _Section(
+                    title: 'Mau check-in',
+                    items: checkIns,
+                    actor: actor,
+                    badge: (r) => r.checkIn.isBefore(store.today)
+                        ? const StatusBadge(
+                            label: 'Terlambat',
+                            style: BadgeStyle(
+                              AppColors.danger,
+                              AppColors.dangerSoft,
+                            ),
+                          )
+                        : const StatusBadge(
+                            label: 'Hari ini',
+                            style: BadgeStyle(
+                              AppColors.primary,
+                              AppColors.primarySoft,
+                            ),
+                          ),
+                  ),
+                ),
+              if (staying.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.xl),
+                  child: _Section(
+                    title: 'Lagi Nginap',
+                    items: staying,
+                    actor: actor,
+                    badge: ReportBadge.new,
+                  ),
+                ),
+              if (checkOuts.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.xl),
+                  child: _Section(
+                    title: 'Mau check-out',
+                    items: checkOuts,
+                    actor: actor,
+                    badge: ReportBadge.new,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -99,18 +122,16 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (items.isEmpty) return const SizedBox.shrink();
     final text = Theme.of(context).textTheme;
     return Column(
+      spacing: AppSpacing.md,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: AppSpacing.xl),
         Text(
           '$title (${items.length})',
           style: text.titleLarge!.copyWith(fontWeight: FontWeight.w700),
         ),
-        const SizedBox(height: AppSpacing.md),
-        for (final r in items) ...[
+        for (final r in items)
           GuestCard(
             reservation: r,
             badge: badge(r),
@@ -120,8 +141,6 @@ class _Section extends StatelessWidget {
               arguments: {'reservation': r, 'actor': actor},
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-        ],
       ],
     );
   }
@@ -169,31 +188,38 @@ class GuestCard extends StatelessWidget {
       onTap: onTap,
       child: Row(
         children: [
-          AppPhoto(r.cat.photo, size: 64),
-          const SizedBox(width: AppSpacing.lg),
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.lg),
+            child: AppPhoto(r.cat.photo, size: 64),
+          ),
           Expanded(
             child: Column(
+              spacing: AppSpacing.sm,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text.rich(
-                  TextSpan(
-                    children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text.rich(
                       TextSpan(
-                        text: r.cat.name,
-                        style: text.titleLarge!.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                        children: [
+                          TextSpan(
+                            text: r.cat.name,
+                            style: text.titleLarge!.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      '${r.unit ?? '-'} - ${Fmt.range(r.checkIn, r.checkOut)}',
+                      style: text.bodyMedium!.copyWith(color: AppColors.muted),
+                    ),
+                  ],
                 ),
-                Text(
-                  '${r.unit ?? '-'} - ${Fmt.range(r.checkIn, r.checkOut)}',
-                  style: text.bodyMedium!.copyWith(color: AppColors.muted),
-                ),
-                const SizedBox(height: AppSpacing.sm),
                 FittedBox(fit: BoxFit.scaleDown, child: badge),
               ],
             ),
