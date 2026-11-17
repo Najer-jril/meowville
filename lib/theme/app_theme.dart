@@ -62,6 +62,20 @@ class AppSpacing {
   static const double page = 20;
 }
 
+class AppSizes {
+  AppSizes._();
+
+  static const double timelineCol = 20;
+  static const double spinner = 24;
+  static const double artSm = 40;
+  static const double touchTarget = 48;
+  static const double fieldLg = 56;
+  static const double artLg = 64;
+  static const double calendarCell = 64;
+  static const double metricCard = 88;
+  static const double labelCol = 152;
+}
+
 class AppShadows {
   AppShadows._();
 

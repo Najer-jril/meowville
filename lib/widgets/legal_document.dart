@@ -33,36 +33,40 @@ class LegalDocument extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
             AppSpacing.page,
             AppSpacing.page,
             AppSpacing.xl,
           ),
-          children: [
-            _Header(title: appBarTitle),
-            const SizedBox(height: 20),
-            _IntroCard(
-              overline: overline,
-              title: title,
-              subtitle: subtitle,
-              updatedAt: updatedAt,
-              icon: icon,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            _Card(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (var i = 0; i < sections.length; i++) ...[
-                    if (i > 0) const SizedBox(height: 20),
-                    _Pasal(number: i + 1, section: sections[i]),
-                  ],
-                ],
+          child: Column(
+            spacing: AppSpacing.lg,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _Header(title: appBarTitle),
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                child: _IntroCard(
+                  overline: overline,
+                  title: title,
+                  subtitle: subtitle,
+                  updatedAt: updatedAt,
+                  icon: icon,
+                ),
               ),
-            ),
-          ],
+              _Card(
+                child: Column(
+                  spacing: AppSpacing.page,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (var i = 0; i < sections.length; i++)
+                      _Pasal(number: i + 1, section: sections[i]),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: _BottomBar(onPressed: () => Navigator.pop(context)),
@@ -92,6 +96,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
+    spacing: AppSpacing.md,
     children: [
       Material(
         color: AppColors.surface,
@@ -115,7 +120,6 @@ class _Header extends StatelessWidget {
           ),
         ),
       ),
-      const SizedBox(width: AppSpacing.md),
       Expanded(
         child: Text(
           title,
@@ -145,32 +149,38 @@ class _IntroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _Card(
     child: Row(
+      spacing: AppSpacing.sm,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Column(
+            spacing: AppSpacing.sm,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                overline,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.96,
-                  color: AppColors.primary,
-                ),
+              Column(
+                spacing: AppSpacing.xs,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    overline,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.96,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      height: 1.25,
+                      color: AppColors.text,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  height: 1.25,
-                  color: AppColors.text,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
               Text(
                 subtitle,
                 style: const TextStyle(
@@ -179,15 +189,16 @@ class _IntroCard extends StatelessWidget {
                   color: AppColors.muted,
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                updatedAt,
-                style: const TextStyle(fontSize: 13, color: AppColors.muted),
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                child: Text(
+                  updatedAt,
+                  style: const TextStyle(fontSize: 13, color: AppColors.muted),
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(width: AppSpacing.sm),
         Container(
           width: 40,
           height: 40,
@@ -211,26 +222,25 @@ class _Pasal extends StatelessWidget {
   Widget build(BuildContext context) {
     const head = TextStyle(fontSize: 16, fontWeight: FontWeight.w700);
     return Column(
+      spacing: AppSpacing.sm,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          spacing: AppSpacing.sm,
           children: [
             Text(
               number.toString().padLeft(2, '0'),
               style: head.copyWith(color: AppColors.primary),
             ),
-            const SizedBox(width: AppSpacing.sm),
             Flexible(
               child: Text(
                 section.title,
                 style: head.copyWith(color: AppColors.text),
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
             const Expanded(child: Divider(height: 1, color: AppColors.border)),
           ],
         ),
-        const SizedBox(height: AppSpacing.sm),
         Text(
           section.body,
           style: const TextStyle(
@@ -266,12 +276,9 @@ class _BottomBar extends StatelessWidget {
     ),
     child: SafeArea(
       top: false,
-      child: SizedBox(
-        height: 52,
-        child: FilledButton(
-          onPressed: onPressed,
-          child: const Text('Saya mengerti'),
-        ),
+      child: FilledButton(
+        onPressed: onPressed,
+        child: const Text('Saya mengerti'),
       ),
     ),
   );

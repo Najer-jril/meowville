@@ -132,10 +132,10 @@ class PhotoViewerScreen extends StatelessWidget {
             path,
             fit: BoxFit.contain,
             errorBuilder: (_, _, _) => const Column(
+              spacing: AppSpacing.md,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.receipt_long, color: Colors.white54, size: 64),
-                SizedBox(height: 12),
                 Text(
                   'Gambar bukti pembayaran belum tersedia',
                   style: TextStyle(color: Colors.white70),

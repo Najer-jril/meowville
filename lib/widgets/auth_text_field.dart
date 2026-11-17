@@ -72,10 +72,10 @@ class _AuthTextFieldState extends State<AuthTextField> {
     final caption = text.bodySmall!;
 
     return Column(
+      spacing: AppSpacing.sm,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(widget.label, style: text.labelLarge!.copyWith(fontSize: 14)),
-        const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: widget.controller,
           focusNode: _focusNode,

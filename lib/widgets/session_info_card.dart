@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/auth_controller.dart';
+import '../core/session.dart';
 import '../data/models.dart';
 import '../routes/app_routes.dart';
 import '../theme/app_theme.dart';
@@ -11,15 +12,19 @@ import 'common.dart';
 /// Shows what the login stored: who the token belongs to, when it expires,
 /// and whether it is kept on the device.
 class SessionInfoCard extends StatelessWidget {
-  const SessionInfoCard({super.key});
+  const SessionInfoCard({
+    super.key,
+    required this.session,
+    required this.user,
+    required this.remembered,
+  });
+
+  final Session session;
+  final AppUser user;
+  final bool remembered;
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthController>();
-    final session = auth.session;
-    final user = auth.user;
-    if (session == null || user == null) return const SizedBox.shrink();
-
     final text = Theme.of(context).textTheme;
     final token = session.accessToken;
     final expires = session.expiresAt;
@@ -27,36 +32,41 @@ class SessionInfoCard extends StatelessWidget {
 
     return AppCard(
       child: Column(
+        spacing: AppSpacing.md,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            spacing: AppSpacing.sm,
             children: [
               const Icon(
                 Icons.verified_user_outlined,
                 color: AppColors.primary,
               ),
-              const SizedBox(width: AppSpacing.sm),
               Text('Info Sesi', style: text.labelLarge!.copyWith(fontSize: 17)),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          _Row(label: 'User ID', value: session.userId),
-          _Row(label: 'Email', value: session.email),
-          _Row(label: 'Peran', value: user.role.key),
-          _Row(
-            label: 'Token berlaku s/d',
-            value:
-                '${Fmt.date(expires)} '
-                '${two(expires.hour)}:${two(expires.minute)}',
-          ),
-          _Row(
-            label: 'Access token',
-            value: '${token.substring(0, 24)}…',
-            mono: true,
-          ),
-          _Row(
-            label: 'Disimpan di perangkat',
-            value: auth.remembered ? 'Ya (Ingat saya)' : 'Tidak',
+          Column(
+            spacing: AppSpacing.xs,
+            children: [
+              _Row(label: 'User ID', value: session.userId),
+              _Row(label: 'Email', value: session.email),
+              _Row(label: 'Peran', value: user.role.key),
+              _Row(
+                label: 'Token berlaku s/d',
+                value:
+                    '${Fmt.date(expires)} '
+                    '${two(expires.hour)}:${two(expires.minute)}',
+              ),
+              _Row(
+                label: 'Access token',
+                value: '${token.substring(0, 24)}…',
+                mono: true,
+              ),
+              _Row(
+                label: 'Disimpan di perangkat',
+                value: remembered ? 'Ya (Ingat saya)' : 'Tidak',
+              ),
+            ],
           ),
         ],
       ),
@@ -74,23 +84,20 @@ class _Row extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final caption = Theme.of(context).textTheme.bodySmall!;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 150,
-            child: Text(label, style: caption.copyWith(color: AppColors.muted)),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints.tightFor(width: AppSizes.labelCol),
+          child: Text(label, style: caption.copyWith(color: AppColors.muted)),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: mono ? caption.copyWith(fontFamily: 'monospace') : caption,
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: mono ? caption.copyWith(fontFamily: 'monospace') : caption,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
