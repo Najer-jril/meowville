@@ -97,7 +97,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.page,
+            0,
+            AppSpacing.page,
+            AppSpacing.lg,
+          ),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 430),
@@ -106,45 +111,55 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 children: [
                   AuthHeader(showTitle: true, onBack: _backToLogin),
                   Column(
+                    spacing: AppSpacing.sm,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Akun pemilik baru', style: AppText.overline),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text('Daftar akun Meowville', style: text.headlineLarge),
-                      const SizedBox(height: AppSpacing.sm),
+                      Column(
+                        spacing: AppSpacing.xs,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Akun pemilik baru', style: AppText.overline),
+                          Text(
+                            'Daftar akun Meowville',
+                            style: text.headlineLarge,
+                          ),
+                        ],
+                      ),
                       Text(
-                        'Bergabunglah dengan Meowville untuk memesan kamar & memantau anabul Anda.',
+                        'Bergabunglah dengan Meowville untuk memesan kamar & '
+                        'memantau anabul Anda.',
                         style: muted,
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Stack(
-                    children: [
-                      Opacity(
-                        opacity: 0.6,
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 40,
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: AppSpacing.xl,
+                      bottom: AppSpacing.sm,
+                    ),
+                    child: Stack(
+                      children: [
+                        Opacity(
+                          opacity: 0.6,
                           child: SvgPicture.asset(
                             AppSvg.catHouse,
+                            width: double.infinity,
+                            height: AppSizes.artSm,
                             fit: BoxFit.fill,
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 32),
-                        child: _buildCard(text),
-                      ),
-                    ],
+                        Padding(
+                          padding: const EdgeInsets.only(top: 32),
+                          child: _buildCard(text),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
                   _FooterLink(
                     prompt: 'Sudah memiliki akun?',
                     action: 'Masuk di sini',
                     onTap: _backToLogin,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
                 ],
               ),
             ),
@@ -166,80 +181,90 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         child: Form(
           key: _formKey,
           child: Column(
+            spacing: AppSpacing.xl,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const _SectionHeader(number: '01', title: 'Data pemilik'),
-              const SizedBox(height: AppSpacing.lg),
-              AuthTextField(
-                label: 'Nama lengkap',
-                hint: 'misal, Nama sesuai KTP',
-                icon: Icons.person_outline,
-                controller: _name,
-                keyboardType: TextInputType.name,
-                textInputAction: TextInputAction.next,
-                validator: validateRequired,
+              Column(
+                spacing: AppSpacing.lg,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const _SectionHeader(number: '01', title: 'Data pemilik'),
+                  AuthTextField(
+                    label: 'Nama lengkap',
+                    hint: 'misal, Nama sesuai KTP',
+                    icon: Icons.person_outline,
+                    controller: _name,
+                    keyboardType: TextInputType.name,
+                    textInputAction: TextInputAction.next,
+                    validator: validateRequired,
+                  ),
+                  AuthTextField(
+                    label: 'Nomor WhatsApp',
+                    hint: 'misal, 0812-3456-7890',
+                    icon: Icons.chat_bubble_outline,
+                    controller: _phone,
+                    keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.next,
+                    validator: validateRequired,
+                  ),
+                ],
               ),
-              const SizedBox(height: AppSpacing.lg),
-              AuthTextField(
-                label: 'Nomor WhatsApp',
-                hint: 'misal, 0812-3456-7890',
-                icon: Icons.chat_bubble_outline,
-                controller: _phone,
-                keyboardType: TextInputType.phone,
-                textInputAction: TextInputAction.next,
-                validator: validateRequired,
+              Column(
+                spacing: AppSpacing.lg,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const _SectionHeader(number: '02', title: 'Akses akun'),
+                  AuthTextField(
+                    label: 'Alamat email',
+                    hint: 'nama@email.com',
+                    icon: Icons.mail_outline,
+                    controller: _email,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    validator: validateEmail,
+                  ),
+                  Column(
+                    spacing: AppSpacing.sm,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      AuthTextField(
+                        label: 'Kata sandi',
+                        hint: 'Minimal 8 karakter',
+                        icon: Icons.lock_outline,
+                        controller: _password,
+                        obscure: true,
+                        textInputAction: TextInputAction.next,
+                        validator: (v) =>
+                            validateRequired(v) ??
+                            (v!.length < 8 ? 'Minimal 8 karakter' : null),
+                      ),
+                      if (_password.text.isNotEmpty)
+                        _StrengthMeter(password: _password.text),
+                    ],
+                  ),
+                  AuthTextField(
+                    label: 'Konfirmasi kata sandi',
+                    hint: 'Ulangi kata sandi',
+                    icon: Icons.lock_outline,
+                    controller: _confirm,
+                    obscure: true,
+                    textInputAction: TextInputAction.done,
+                    validator: (v) =>
+                        validateRequired(v) ??
+                        (v != _password.text ? 'Kata sandi tidak sama' : null),
+                  ),
+                ],
               ),
-              const SizedBox(height: AppSpacing.xl),
-              const _SectionHeader(number: '02', title: 'Akses akun'),
-              const SizedBox(height: AppSpacing.lg),
-              AuthTextField(
-                label: 'Alamat email',
-                hint: 'nama@email.com',
-                icon: Icons.mail_outline,
-                controller: _email,
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                validator: validateEmail,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              AuthTextField(
-                label: 'Kata sandi',
-                hint: 'Minimal 8 karakter',
-                icon: Icons.lock_outline,
-                controller: _password,
-                obscure: true,
-                textInputAction: TextInputAction.next,
-                validator: (v) =>
-                    validateRequired(v) ??
-                    (v!.length < 8 ? 'Minimal 8 karakter' : null),
-              ),
-              if (_password.text.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.sm),
-                _StrengthMeter(password: _password.text),
-              ],
-              const SizedBox(height: AppSpacing.lg),
-              AuthTextField(
-                label: 'Konfirmasi kata sandi',
-                hint: 'Ulangi kata sandi',
-                icon: Icons.lock_outline,
-                controller: _confirm,
-                obscure: true,
-                textInputAction: TextInputAction.done,
-                validator: (v) =>
-                    validateRequired(v) ??
-                    (v != _password.text ? 'Kata sandi tidak sama' : null),
-              ),
-              const SizedBox(height: AppSpacing.xl),
               _AgreementCheck(
                 value: _agreed,
                 onChanged: (v) => setState(() => _agreed = v),
                 legalTap: _legalTap,
                 policyTap: _policyTap,
               ),
-              const SizedBox(height: AppSpacing.xl),
               FilledButton(
                 onPressed: _agreed && !_loading ? _submit : null,
                 child: const Row(
+                  spacing: AppSpacing.sm,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Flexible(
@@ -248,7 +273,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    SizedBox(width: AppSpacing.sm),
                     Icon(Icons.arrow_forward, size: 20),
                   ],
                 ),
@@ -271,11 +295,15 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = Theme.of(context).textTheme.labelLarge!;
     return Row(
+      spacing: AppSpacing.md,
       children: [
-        Text(number, style: style.copyWith(color: AppColors.primary)),
-        const SizedBox(width: AppSpacing.sm),
-        Text(title, style: style),
-        const SizedBox(width: AppSpacing.md),
+        Row(
+          spacing: AppSpacing.sm,
+          children: [
+            Text(number, style: style.copyWith(color: AppColors.primary)),
+            Text(title, style: style),
+          ],
+        ),
         const Expanded(child: Divider()),
       ],
     );
@@ -303,21 +331,26 @@ class _StrengthMeter extends StatelessWidget {
       _ => ('Lemah', AppColors.danger),
     };
     return Row(
+      spacing: AppSpacing.md,
       children: [
-        for (var i = 0; i < 4; i++) ...[
-          if (i > 0) const SizedBox(width: 6),
-          Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              height: 6,
-              decoration: BoxDecoration(
-                color: i < score ? color : AppColors.surfaceAlt,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-              ),
-            ),
+        Expanded(
+          child: Row(
+            spacing: AppSpacing.sm,
+            children: [
+              for (var i = 0; i < 4; i++)
+                Expanded(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: i < score ? color : AppColors.surfaceAlt,
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ],
-        const SizedBox(width: AppSpacing.md),
+        ),
         Text(
           'Kekuatan: $label',
           style: Theme.of(context).textTheme.bodySmall!
@@ -359,9 +392,11 @@ class _AgreementCheck extends StatelessWidget {
           child: InkWell(
             onTap: () => onChanged(!value),
             customBorder: const CircleBorder(),
-            child: SizedBox(
-              width: 48,
-              height: 48,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints.tightFor(
+                width: AppSizes.touchTarget,
+                height: AppSizes.touchTarget,
+              ),
               child: Center(
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),

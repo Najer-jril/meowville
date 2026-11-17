@@ -159,10 +159,10 @@ class _NotFoundScreen extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: Column(
+          spacing: AppSpacing.sm,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('404', style: text.headlineLarge),
-            const SizedBox(height: AppSpacing.sm),
             Text('Halaman tidak ditemukan', style: text.bodySmall),
           ],
         ),
