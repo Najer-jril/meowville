@@ -51,6 +51,7 @@ class _ApproveSheetState extends State<_ApproveSheet> {
           AppSpacing.md,
         ),
         child: Column(
+          spacing: AppSpacing.lg,
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -60,53 +61,68 @@ class _ApproveSheetState extends State<_ApproveSheet> {
                   'Unit ${r.roomType.name} tersedia '
                   '${Fmt.range(r.checkIn, r.checkOut)}',
             ),
-            const SizedBox(height: AppSpacing.lg),
-            if (widget.units.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                decoration: BoxDecoration(
-                  color: AppColors.warningSoft,
-                  borderRadius: BorderRadius.circular(AppRadius.input),
-                ),
-                child: Text(
-                  'Semua unit penuh atau diblokir di tanggal ini. '
-                  'Tolak reservasi atau buka blokir unit terlebih dahulu.',
-                  style: text.bodyMedium!.copyWith(color: AppColors.warning),
-                ),
-              )
-            else
-              RadioGroup<String>(
-                groupValue: _unit,
-                onChanged: (v) => setState(() => _unit = v),
-                child: Column(
-                  children: [
-                    for (final u in widget.units)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: _UnitOption(
-                          unit: u,
-                          selected: u == _unit,
-                          onTap: () => setState(() => _unit = u),
-                        ),
+            Column(
+              spacing: AppSpacing.md,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (widget.units.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    decoration: BoxDecoration(
+                      color: AppColors.warningSoft,
+                      borderRadius: BorderRadius.circular(AppRadius.input),
+                    ),
+                    child: Text(
+                      'Semua unit penuh atau diblokir di tanggal ini. '
+                      'Tolak reservasi atau buka blokir unit terlebih dahulu.',
+                      style: text.bodyMedium!.copyWith(
+                        color: AppColors.warning,
                       ),
+                    ),
+                  )
+                else
+                  RadioGroup<String>(
+                    groupValue: _unit,
+                    onChanged: (v) => setState(() => _unit = v),
+                    child: Column(
+                      children: [
+                        for (final u in widget.units)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: AppSpacing.md,
+                            ),
+                            child: _UnitOption(
+                              unit: u,
+                              selected: u == _unit,
+                              onTap: () => setState(() => _unit = u),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                Column(
+                  spacing: AppSpacing.xs,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    FilledButton(
+                      onPressed: _unit == null
+                          ? null
+                          : () {
+                              context.read<AdminStore>().approve(r, _unit!);
+                              Navigator.pop(context, true);
+                            },
+                      child: const Text('Konfirmasi Reservasi'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.muted,
+                      ),
+                      child: const Text('Batal'),
+                    ),
                   ],
                 ),
-              ),
-            const SizedBox(height: AppSpacing.md),
-            FilledButton(
-              onPressed: _unit == null
-                  ? null
-                  : () {
-                      context.read<AdminStore>().approve(r, _unit!);
-                      Navigator.pop(context, true);
-                    },
-              child: const Text('Konfirmasi Reservasi'),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              style: TextButton.styleFrom(foregroundColor: AppColors.muted),
-              child: const Text('Batal'),
+              ],
             ),
           ],
         ),
@@ -145,9 +161,9 @@ class _UnitOption extends StatelessWidget {
             ),
           ),
           child: Row(
+            spacing: AppSpacing.xs,
             children: [
               Radio<String>(value: unit),
-              const SizedBox(width: AppSpacing.xs),
               Text('Unit $unit', style: Theme.of(context).textTheme.labelLarge),
             ],
           ),
@@ -215,6 +231,7 @@ class _RejectSheetState extends State<_RejectSheet> {
           child: Form(
             key: _formKey,
             child: Column(
+              spacing: AppSpacing.lg,
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -224,44 +241,49 @@ class _RejectSheetState extends State<_RejectSheet> {
                       'Alasan ini akan terlihat oleh pemilik di detail '
                       'reservasi.',
                 ),
-                const SizedBox(height: AppSpacing.lg),
-                FieldLabel(
-                  'Alasan Penolakan',
+                LabeledField(
+                  label: 'Alasan Penolakan',
                   required: true,
                   trailing: '${_reason.text.length}/250',
-                ),
-                TextFormField(
-                  controller: _reason,
-                  autofocus: true,
-                  minLines: 4,
-                  maxLines: 6,
-                  maxLength: 250,
-                  buildCounter: (
-                    _, {
-                    required currentLength,
-                    required isFocused,
-                    maxLength,
-                  }) => null,
-                  decoration: const InputDecoration(
-                    hintText: 'misal, Semua unit sedang dalam pemeliharaan',
+                  child: TextFormField(
+                    controller: _reason,
+                    autofocus: true,
+                    minLines: 4,
+                    maxLines: 6,
+                    maxLength: 250,
+                    buildCounter: (
+                      _, {
+                      required currentLength,
+                      required isFocused,
+                      maxLength,
+                    }) => null,
+                    decoration: const InputDecoration(
+                      hintText: 'misal, Semua unit sedang dalam pemeliharaan',
+                    ),
+                    validator: (v) => (v == null || v.trim().length < 10)
+                        ? 'Tulis alasan minimal 10 karakter'
+                        : null,
                   ),
-                  validator: (v) => (v == null || v.trim().length < 10)
-                      ? 'Tulis alasan minimal 10 karakter'
-                      : null,
                 ),
-                const SizedBox(height: AppSpacing.lg),
-                FilledButton(
-                  onPressed: _submit,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.danger,
-                  ),
-                  child: const Text('Tolak Reservasi'),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  style: TextButton.styleFrom(foregroundColor: AppColors.muted),
-                  child: const Text('Batal'),
+                Column(
+                  spacing: AppSpacing.xs,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    FilledButton(
+                      onPressed: _submit,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.danger,
+                      ),
+                      child: const Text('Tolak Reservasi'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.muted,
+                      ),
+                      child: const Text('Batal'),
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -74,27 +74,31 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
               ),
               sliver: SliverList.list(
                 children: [
-                  Text('Reservasi', style: text.headlineLarge),
-                  const SizedBox(height: AppSpacing.lg),
-                  TextField(
-                    controller: _search,
-                    textInputAction: TextInputAction.search,
-                    decoration: InputDecoration(
-                      hintText: 'Cari nama kucing atau pemilik',
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        color: AppColors.muted,
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                    child: Text('Reservasi', style: text.headlineLarge),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: TextField(
+                      controller: _search,
+                      textInputAction: TextInputAction.search,
+                      decoration: InputDecoration(
+                        hintText: 'Cari nama kucing atau pemilik',
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: AppColors.muted,
+                        ),
+                        suffixIcon: _search.text.isEmpty
+                            ? null
+                            : IconButton(
+                                tooltip: 'Hapus',
+                                onPressed: _search.clear,
+                                icon: const Icon(Icons.close),
+                              ),
                       ),
-                      suffixIcon: _search.text.isEmpty
-                          ? null
-                          : IconButton(
-                              tooltip: 'Hapus',
-                              onPressed: _search.clear,
-                              icon: const Icon(Icons.close),
-                            ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
                 ],
               ),
             ),
@@ -130,8 +134,9 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                 ),
                 sliver: SliverList.separated(
                   itemCount: items.length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: AppSpacing.lg),
+                  separatorBuilder: (_, _) => const Padding(
+                    padding: EdgeInsets.only(top: AppSpacing.lg),
+                  ),
                   itemBuilder: (context, i) => ReservationCard(
                     reservation: items[i],
                     onTap: () => Navigator.pushNamed(

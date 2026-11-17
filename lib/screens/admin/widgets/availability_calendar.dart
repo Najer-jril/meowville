@@ -72,15 +72,18 @@ class AvailabilityCalendar extends StatelessWidget {
                   style: text.titleLarge!.copyWith(fontSize: 20),
                 ),
               ),
-              navButton(
-                Icons.chevron_left,
-                'Bulan sebelumnya',
-                month.isAfter(thisMonth)
-                    ? () =>
-                          onMonthChanged(DateTime(month.year, month.month - 1))
-                    : null,
+              Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.sm),
+                child: navButton(
+                  Icons.chevron_left,
+                  'Bulan sebelumnya',
+                  month.isAfter(thisMonth)
+                      ? () => onMonthChanged(
+                          DateTime(month.year, month.month - 1),
+                        )
+                      : null,
+                ),
               ),
-              const SizedBox(width: AppSpacing.sm),
               navButton(
                 Icons.chevron_right,
                 'Bulan berikutnya',
@@ -88,21 +91,25 @@ class AvailabilityCalendar extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              for (final w in _weekdays)
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      w,
-                      style: text.bodySmall!.copyWith(fontSize: 14),
+          Padding(
+            padding: const EdgeInsets.only(
+              top: AppSpacing.md,
+              bottom: AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                for (final w in _weekdays)
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        w,
+                        style: text.bodySmall!.copyWith(fontSize: 14),
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
           for (var row = 0; row < rows; row++)
             Row(
               children: [
@@ -139,7 +146,13 @@ class AvailabilityCalendar extends StatelessWidget {
     int day,
     int daysInMonth,
   ) {
-    if (day < 1 || day > daysInMonth) return const SizedBox(height: 60);
+    if (day < 1 || day > daysInMonth) {
+      return ConstrainedBox(
+        constraints: const BoxConstraints.tightFor(
+          height: AppSizes.calendarCell,
+        ),
+      );
+    }
     final date = DateTime(month.year, month.month, day);
     final past = date.isBefore(store.today);
     final isToday = date == store.today;
@@ -150,7 +163,7 @@ class AvailabilityCalendar extends StatelessWidget {
       onTap: past ? null : () => onDayTap(date),
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        height: 60,
+        height: AppSizes.calendarCell,
         margin: const EdgeInsets.all(2),
         decoration: isToday
             ? BoxDecoration(
@@ -159,6 +172,7 @@ class AvailabilityCalendar extends StatelessWidget {
               )
             : null,
         child: Column(
+          spacing: AppSpacing.xs,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
@@ -171,7 +185,6 @@ class AvailabilityCalendar extends StatelessWidget {
                     : (isToday ? AppColors.primaryDeep : AppColors.text),
               ),
             ),
-            const SizedBox(height: 4),
             if (style != null)
               Container(
                 width: 20,
@@ -191,7 +204,11 @@ class AvailabilityCalendar extends StatelessWidget {
                 ),
               )
             else
-              const SizedBox(height: 20),
+              ConstrainedBox(
+                constraints: const BoxConstraints.tightFor(
+                  height: AppSizes.timelineCol,
+                ),
+              ),
           ],
         ),
       ),
@@ -208,6 +225,7 @@ class _Legend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      spacing: AppSpacing.sm,
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
@@ -218,7 +236,6 @@ class _Legend extends StatelessWidget {
             border: Border.all(color: color, width: 1.5),
           ),
         ),
-        const SizedBox(width: 6),
         Text(label, style: Theme.of(context).textTheme.bodyMedium),
       ],
     );
@@ -241,12 +258,14 @@ Future<void> showDayDetailSheet(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         child: Row(
           children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.md),
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+              ),
             ),
-            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(
                 label,
@@ -269,11 +288,13 @@ Future<void> showDayDetailSheet(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SheetHeader(
-                title: 'Rincian ${Fmt.dayMonth(day)}',
-                subtitle: 'Kamar ${type.name}',
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: SheetHeader(
+                  title: 'Rincian ${Fmt.dayMonth(day)}',
+                  subtitle: 'Kamar ${type.name}',
+                ),
               ),
-              const SizedBox(height: AppSpacing.md),
               row(AppColors.primaryDeep, 'Unit aktif', a.units),
               row(AppColors.info, 'Terisi', a.occupied),
               row(AppColors.warning, 'Menunggu konfirmasi', a.pending),
