@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../../routes/app_routes.dart';
 
-import '../../data/data.dart';
+import '../../controllers/booking_controller.dart';
+import '../../controllers/pet_controller.dart';
+import '../../core/api_client.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_photo.dart';
@@ -15,9 +17,8 @@ class PetDetailScreen extends StatelessWidget {
 
   final Cat cat;
 
-  Future<void> _delete(BuildContext context) async {
-    final store = context.read<AdminStore>();
-    if (store.activeReservationOf(cat) != null) {
+  Future<void> _delete(BuildContext context, Cat cat) async {
+    if (context.read<BookingController>().activeFor(cat) != null) {
       return showInfoDialog(
         context,
         title: 'Belum bisa dihapus',
@@ -37,7 +38,13 @@ class PetDetailScreen extends StatelessWidget {
       icon: Icons.delete_outline,
     );
     if (!ok || !context.mounted) return;
-    store.deleteCat(cat);
+    try {
+      await context.read<PetController>().delete(cat);
+    } on ApiException catch (e) {
+      if (context.mounted) showSnack(context, e.message);
+      return;
+    }
+    if (!context.mounted) return;
     Navigator.pop(context);
     showSnack(context, '${cat.name} dihapus');
   }
@@ -45,6 +52,11 @@ class PetDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    // Argumen route jadi usang setelah diedit, jadi utamakan data hasil reload.
+    final cat = context.watch<PetController>().cats.firstWhere(
+      (c) => c == this.cat,
+      orElse: () => this.cat,
+    );
     final badge = catStayBadge(context, cat);
 
     Widget row(IconData icon, String label, String value) => Padding(
@@ -106,7 +118,7 @@ class PetDetailScreen extends StatelessWidget {
               ),
             ),
             OutlinedButton.icon(
-              onPressed: () => _delete(context),
+              onPressed: () => _delete(context, cat),
               style: dangerOutlinedStyle(),
               icon: const Icon(Icons.delete_outline),
               label: const Text('Hapus Kucing'),

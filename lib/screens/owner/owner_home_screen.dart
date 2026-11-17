@@ -3,12 +3,15 @@ import 'package:provider/provider.dart';
 
 import '../../routes/app_routes.dart';
 
-import '../../data/data.dart';
+import '../../controllers/auth_controller.dart';
+import '../../controllers/booking_controller.dart';
+import '../../controllers/daily_report_controller.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/common.dart';
 import 'widgets/owner_widgets.dart';
+import '../../utils/clock.dart';
 
 class OwnerHomeScreen extends StatelessWidget {
   const OwnerHomeScreen({super.key, this.onSeeBookings});
@@ -17,14 +20,16 @@ class OwnerHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final booking = context.watch<BookingController>();
     final text = Theme.of(context).textTheme;
 
     void push(String route, [Object? args]) =>
         Navigator.pushNamed(context, route, arguments: args);
 
-    final owner = store.currentOwner;
-    final mine = store.reservationsOf(owner);
+    final owner = context.watch<AuthController>().user;
+    // Bisa null sesaat saat logout, sebelum halaman diganti.
+    if (owner == null) return const SizedBox.shrink();
+    final mine = booking.reservations;
     final staying = mine
         .where((r) => r.status == ReservationStatus.checkedIn)
         .toList();
@@ -41,82 +46,89 @@ class OwnerHomeScreen extends StatelessWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.page,
-            AppSpacing.xl,
-            AppSpacing.page,
-            AppSpacing.xl,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Column(
-                spacing: AppSpacing.xs,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Halo, ${owner.firstName}', style: text.headlineLarge),
-                  Text(
-                    Fmt.dateLong(store.today),
-                    style: text.bodySmall!.copyWith(fontSize: 15),
+        child: RefreshIndicator(
+          onRefresh: () => Future.wait([
+            booking.load(),
+            context.read<DailyReportController>().load(),
+          ]),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.page,
+              AppSpacing.xl,
+              AppSpacing.page,
+              AppSpacing.xl,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Column(
+                  spacing: AppSpacing.xs,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Halo, ${owner.firstName}', style: text.headlineLarge),
+                    Text(
+                      Fmt.dateLong(Clock.today()),
+                      style: text.bodySmall!.copyWith(fontSize: 15),
+                    ),
+                  ],
+                ),
+                if (staying.isEmpty && nearest == null)
+                  const Padding(
+                    padding: EdgeInsets.only(top: AppSpacing.xl),
+                    child: AppCard(
+                      child: EmptyState(
+                        icon: Icons.pets,
+                        title: 'Belum ada reservasi',
+                        message: 'Pesan kamar untuk kucing kesayanganmu.',
+                      ),
+                    ),
                   ),
+                if (staying.isNotEmpty) ...[
+                  const _SectionTitle('Lagi Nginap'),
+                  for (final r in staying)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: _StayingCard(
+                        reservation: r,
+                        onTap: () => push(AppRoutes.ownerBookingDetail, r),
+                        onReport: () => push(AppRoutes.ownerPetReport, r),
+                      ),
+                    ),
                 ],
-              ),
-              if (staying.isEmpty && nearest == null)
-                const Padding(
-                  padding: EdgeInsets.only(top: AppSpacing.xl),
-                  child: AppCard(
-                    child: EmptyState(
-                      icon: Icons.pets,
-                      title: 'Belum ada reservasi',
-                      message: 'Pesan kamar untuk kucing kesayanganmu.',
+                if (nearest != null) ...[
+                  _SectionTitle(
+                    'Booking terdekat',
+                    action: upcoming.length > 1 ? 'Lihat semua' : null,
+                    onAction: onSeeBookings,
+                  ),
+                  OwnerBookingCard(
+                    reservation: nearest,
+                    onTap: () => push(AppRoutes.ownerBookingDetail, nearest),
+                  ),
+                  if (nearest.status == ReservationStatus.pending &&
+                      nearest.paymentProof == null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.md),
+                      child: ProofDeadlineNotice(nearest),
                     ),
+                ],
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: AppSpacing.xl,
+                    bottom: AppSpacing.xs,
+                  ),
+                  child: FilledButton.icon(
+                    onPressed: () => push(AppRoutes.ownerReservationFlow),
+                    label: const Text('Pesan Kamar'),
                   ),
                 ),
-              if (staying.isNotEmpty) ...[
-                const _SectionTitle('Lagi Nginap'),
-                for (final r in staying)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: _StayingCard(
-                      reservation: r,
-                      onTap: () => push(AppRoutes.ownerBookingDetail, r),
-                      onReport: () => push(AppRoutes.ownerPetReport, r),
-                    ),
-                  ),
+                OutlinedButton(
+                  onPressed: () => push(AppRoutes.ownerRoomCatalog),
+                  child: const Text('Lihat tipe kamar'),
+                ),
               ],
-              if (nearest != null) ...[
-                _SectionTitle(
-                  'Booking terdekat',
-                  action: upcoming.length > 1 ? 'Lihat semua' : null,
-                  onAction: onSeeBookings,
-                ),
-                OwnerBookingCard(
-                  reservation: nearest,
-                  onTap: () => push(AppRoutes.ownerBookingDetail, nearest),
-                ),
-                if (nearest.status == ReservationStatus.pending &&
-                    nearest.paymentProof == null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.md),
-                    child: ProofDeadlineNotice(nearest),
-                  ),
-              ],
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: AppSpacing.xl,
-                  bottom: AppSpacing.xs,
-                ),
-                child: FilledButton.icon(
-                  onPressed: () => push(AppRoutes.ownerReservationFlow),
-                  label: const Text('Pesan Kamar'),
-                ),
-              ),
-              OutlinedButton(
-                onPressed: () => push(AppRoutes.ownerRoomCatalog),
-                child: const Text('Lihat tipe kamar'),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -165,9 +177,10 @@ class _StayingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
     final text = Theme.of(context).textTheme;
-    final report = store.reportToday(reservation);
+    final report = context.watch<DailyReportController>().reportToday(
+      reservation,
+    );
     return Column(
       spacing: AppSpacing.sm,
       crossAxisAlignment: CrossAxisAlignment.stretch,

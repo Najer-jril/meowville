@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/data.dart';
+import '../../../controllers/addon_controller.dart';
 import '../../../data/models.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/format.dart';
@@ -15,7 +15,7 @@ class StepAddon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final addons = context.watch<AdminStore>().addons.where((a) => a.active);
+    final addons = context.watch<AddonController>().active;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/data.dart';
+import '../../controllers/auth_controller.dart';
+import '../../core/api_client.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/app_photo.dart';
 import '../../widgets/auth_text_field.dart';
 import '../../widgets/common.dart';
+import '../../widgets/photo_picker.dart';
 
 class ProfileFormScreen extends StatefulWidget {
   const ProfileFormScreen({super.key, required this.user});
@@ -20,6 +23,8 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.user.name);
   late final _phone = TextEditingController(text: widget.user.phone);
+  late String? _photo = widget.user.photo;
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -28,15 +33,28 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
     super.dispose();
   }
 
-  void _save() {
+  Future<void> _pickPhoto() async {
+    final path = await pickPhoto(context);
+    if (path != null && mounted) setState(() => _photo = path);
+  }
+
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    context.read<AdminStore>().updateProfile(
-      widget.user,
-      name: _name.text.trim(),
-      phone: _phone.text.trim(),
-    );
-    Navigator.pop(context);
-    showSnack(context, 'Profil disimpan');
+    setState(() => _saving = true);
+    try {
+      await context.read<AuthController>().updateProfile(
+        name: _name.text.trim(),
+        phone: _phone.text.trim(),
+        photo: _photo,
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+      showSnack(context, 'Profil disimpan');
+    } on ApiException catch (e) {
+      if (mounted) showSnack(context, e.message);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
@@ -59,6 +77,25 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
                 spacing: AppSpacing.lg,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Center(
+                    child: GestureDetector(
+                      onTap: _saving ? null : _pickPhoto,
+                      child: Column(
+                        spacing: AppSpacing.sm,
+                        children: [
+                          UserAvatar(
+                            initial: widget.user.initial,
+                            photo: _photo,
+                            size: 96,
+                          ),
+                          Text(
+                            'Ketuk untuk mengganti foto',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   AuthTextField(
                     label: 'Nama lengkap',
                     hint: 'misal, Najer Pinkman',
@@ -87,7 +124,10 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
         ),
       ),
       bottomNavigationBar: BottomActionBar(
-        child: FilledButton(onPressed: _save, child: const Text('Simpan')),
+        child: FilledButton(
+          onPressed: _saving ? null : _save,
+          child: const Text('Simpan'),
+        ),
       ),
     );
   }

@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
-import '../../data/data.dart';
+import '../../controllers/pet_controller.dart';
+import '../../core/api_client.dart';
 import '../../data/models.dart';
-import '../../theme/app_assets.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
+import '../../widgets/photo_picker.dart';
 
 class PetFormScreen extends StatefulWidget {
   const PetFormScreen({super.key, this.existing});
@@ -19,7 +20,6 @@ class PetFormScreen extends StatefulWidget {
 }
 
 class _PetFormScreenState extends State<PetFormScreen> {
-  AdminStore get _store => context.read<AdminStore>();
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.existing?.name);
   late final _breed = TextEditingController(text: widget.existing?.breed);
@@ -28,6 +28,7 @@ class _PetFormScreenState extends State<PetFormScreen> {
   );
   late String? _photo = widget.existing?.photo;
   bool _invalid = false;
+  bool _saving = false;
 
   bool get _isEdit => widget.existing != null;
 
@@ -42,30 +43,33 @@ class _PetFormScreenState extends State<PetFormScreen> {
   double? get _weightValue =>
       double.tryParse(_weight.text.trim().replaceAll(',', '.'));
 
-  void _save() {
+  Future<void> _pickPhoto() async {
+    final path = await pickPhoto(context);
+    if (path != null && mounted) setState(() => _photo = path);
+  }
+
+  Future<void> _save() async {
     final valid = _formKey.currentState!.validate();
     setState(() => _invalid = !valid);
     if (!valid) return;
     final name = _name.text.trim();
-    if (_isEdit) {
-      _store.updateCat(
-        widget.existing!,
+    setState(() => _saving = true);
+    try {
+      await context.read<PetController>().save(
+        existing: widget.existing,
         name: name,
         breed: _breed.text.trim(),
         weightKg: _weightValue!,
         photo: _photo,
       );
-    } else {
-      _store.addCat(
-        owner: _store.currentOwner,
-        name: name,
-        breed: _breed.text.trim(),
-        weightKg: _weightValue!,
-        photo: _photo,
-      );
+      if (!mounted) return;
+      Navigator.pop(context);
+      showSnack(context, _isEdit ? 'Perubahan disimpan' : '$name ditambahkan');
+    } on ApiException catch (e) {
+      if (mounted) showSnack(context, e.message);
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
-    Navigator.pop(context);
-    showSnack(context, _isEdit ? 'Perubahan disimpan' : '$name ditambahkan');
   }
 
   @override
@@ -99,8 +103,7 @@ class _PetFormScreenState extends State<PetFormScreen> {
                     Center(
                       child: _PhotoPicker(
                         photo: _photo,
-                        onTap: () =>
-                            setState(() => _photo = AppImages.catDialga),
+                        onTap: _saving ? null : _pickPhoto,
                       ),
                     ),
                     LabeledField(
@@ -165,7 +168,7 @@ class _PetFormScreenState extends State<PetFormScreen> {
       ),
       bottomNavigationBar: BottomActionBar(
         child: FilledButton(
-          onPressed: _save,
+          onPressed: _saving ? null : _save,
           child: Text(_isEdit ? 'Simpan Perubahan' : 'Simpan'),
         ),
       ),
@@ -177,7 +180,7 @@ class _PhotoPicker extends StatelessWidget {
   const _PhotoPicker({required this.photo, required this.onTap});
 
   final String? photo;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

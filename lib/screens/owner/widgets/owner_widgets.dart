@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
-import '../../../data/data.dart';
+import '../../../controllers/booking_controller.dart';
 import '../../../data/models.dart';
-import '../../../theme/app_assets.dart';
 import '../../../theme/app_theme.dart';
+import '../../../utils/clock.dart';
 import '../../../utils/format.dart';
 import '../../../widgets/app_photo.dart';
 import '../../../widgets/common.dart';
+import '../../../widgets/photo_picker.dart';
 
 abstract final class PaymentInfo {
   static const bank = 'BKA';
@@ -110,8 +111,10 @@ class ProofDeadlineNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
-    final left = store.proofDeadline(reservation).difference(store.now);
+    final left = context
+        .read<BookingController>()
+        .proofDeadline(reservation)
+        .difference(Clock.now());
     if (left.isNegative) {
       return const NoticeBox.danger(
         icon: Icons.timer_off_outlined,
@@ -249,7 +252,10 @@ class _UploadProofSheet extends StatefulWidget {
 class _UploadProofSheetState extends State<_UploadProofSheet> {
   late String? _picked = widget.current;
 
-  void _pick() => setState(() => _picked = AppImages.payment1);
+  Future<void> _pick() async {
+    final path = await pickPhoto(context);
+    if (path != null && mounted) setState(() => _picked = path);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -403,17 +409,22 @@ class CostBreakdownCard extends StatelessWidget {
     required this.type,
     required this.nights,
     required this.addons,
+    this.roomPrice,
   });
 
   final RoomType type;
+
+  /// Harga per malam yang terkunci di reservasi tersimpan. Saat booking,
+  /// default-nya [RoomType.price] yang berlaku sekarang.
+  final int? roomPrice;
   final int nights;
   final List<Addon> addons;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final total =
-        type.price * nights + addons.fold<int>(0, (s, a) => s + a.price);
+    final price = roomPrice ?? type.price;
+    final total = price * nights + addons.fold<int>(0, (s, a) => s + a.price);
 
     Widget line(String label, int value, {String? sub}) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -455,8 +466,8 @@ class CostBreakdownCard extends StatelessWidget {
           ),
           line(
             'Kamar ${type.name} x $nights malam',
-            type.price * nights,
-            sub: '${Fmt.rupiah(type.price)}/malam',
+            price * nights,
+            sub: '${Fmt.rupiah(price)}/malam',
           ),
           for (final a in addons) line(a.name, a.price),
           const Padding(

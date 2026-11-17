@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../routes/app_routes.dart';
 
-import '../../data/data.dart';
+import '../../controllers/room_controller.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
@@ -15,37 +15,45 @@ class RoomCatalogScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final rooms = context.watch<RoomController>();
     final text = Theme.of(context).textTheme;
-    final types = store.activeRoomTypes;
+    final types = rooms.active;
 
     return Scaffold(
       appBar: const SubPageAppBar(title: 'Tipe Kamar'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.page,
-          AppSpacing.sm,
-          AppSpacing.page,
-          AppSpacing.xl,
-        ),
-        child: Column(
-          spacing: AppSpacing.lg,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Pilih kamar ternyaman untuk anabul tersayang.',
-              style: text.bodyLarge!.copyWith(color: AppColors.muted),
-            ),
-            for (final t in types)
-              RoomTypeCard(
-                type: t,
-                onTap: () => Navigator.pushNamed(
-                  context,
-                  AppRoutes.ownerRoomDetail,
-                  arguments: t,
-                ),
+      body: RefreshIndicator(
+        onRefresh: () => rooms.load(),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.page,
+            AppSpacing.sm,
+            AppSpacing.page,
+            AppSpacing.xl,
+          ),
+          child: Column(
+            spacing: AppSpacing.lg,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Pilih kamar ternyaman untuk anabul tersayang.',
+                style: text.bodyLarge!.copyWith(color: AppColors.muted),
               ),
-          ],
+              if (rooms.loading && types.isEmpty)
+                const Center(child: CircularProgressIndicator())
+              else if (rooms.error != null && types.isEmpty)
+                ErrorState(message: rooms.error!, onRetry: () => rooms.load()),
+              for (final t in types)
+                RoomTypeCard(
+                  type: t,
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    AppRoutes.ownerRoomDetail,
+                    arguments: t,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
