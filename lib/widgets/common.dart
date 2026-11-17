@@ -133,10 +133,8 @@ class SubPageAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       title: Text(title, style: Theme.of(context).textTheme.titleLarge),
-      actions: [
-        ?trailing,
-        const SizedBox(width: AppSpacing.page),
-      ],
+      actionsPadding: const EdgeInsets.only(right: AppSpacing.page),
+      actions: [?trailing],
     );
   }
 }
@@ -157,13 +155,14 @@ class FilterChipRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
+    return ConstrainedBox(
+      constraints: const BoxConstraints.tightFor(height: AppSizes.touchTarget),
       child: ListView.separated(
         padding: padding,
         scrollDirection: Axis.horizontal,
         itemCount: labels.length,
-        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+        separatorBuilder: (_, _) =>
+            const Padding(padding: EdgeInsets.only(left: AppSpacing.sm)),
         itemBuilder: (_, i) {
           final active = i == selected;
           return Center(
@@ -262,6 +261,7 @@ class EmptyState extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       child: Column(
+        spacing: AppSpacing.lg,
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
@@ -273,18 +273,18 @@ class EmptyState extends StatelessWidget {
             ),
             child: Icon(icon, size: 36, color: AppColors.primary),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(title, style: text.titleLarge, textAlign: TextAlign.center),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            message,
-            style: text.bodyLarge!.copyWith(color: AppColors.muted),
-            textAlign: TextAlign.center,
+          Column(
+            spacing: AppSpacing.xs,
+            children: [
+              Text(title, style: text.titleLarge, textAlign: TextAlign.center),
+              Text(
+                message,
+                style: text.bodyLarge!.copyWith(color: AppColors.muted),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-          if (action != null) ...[
-            const SizedBox(height: AppSpacing.lg),
-            action!,
-          ],
+          ?action,
         ],
       ),
     );
@@ -332,6 +332,34 @@ class FieldLabel extends StatelessWidget {
   }
 }
 
+/// Wraps a [FieldLabel] and its input control as a single column block so form
+/// columns can use uniform `spacing:` without inflating label-to-field gaps.
+class LabeledField extends StatelessWidget {
+  const LabeledField({
+    super.key,
+    required this.label,
+    this.trailing,
+    this.required = false,
+    required this.child,
+  });
+
+  final String label;
+  final String? trailing;
+  final bool required;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FieldLabel(label, trailing: trailing, required: required),
+        child,
+      ],
+    );
+  }
+}
+
 class InfoRow extends StatelessWidget {
   const InfoRow(this.label, this.value, {super.key, this.valueStyle});
 
@@ -345,11 +373,11 @@ class InfoRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
+        spacing: AppSpacing.lg,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: text.bodySmall!.copyWith(fontSize: 14)),
-          const SizedBox(width: AppSpacing.lg),
           Flexible(
             child: Text(
               value,
@@ -436,7 +464,6 @@ Future<bool> showConfirmDialog(
             child: Text(cancelLabel),
           ),
         ),
-        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -508,37 +535,40 @@ class _AppDialog extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
         child: Column(
+          spacing: AppSpacing.lg,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon != null) ...[
+            if (icon != null)
               IconBubble(
                 icon: icon!,
                 color: iconColor,
                 background: iconBackground,
                 size: 64,
               ),
-              const SizedBox(height: AppSpacing.lg),
-            ],
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: text.titleLarge!.copyWith(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
+            Column(
+              spacing: AppSpacing.sm,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: text.titleLarge!.copyWith(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: text.bodyLarge!.copyWith(color: AppColors.muted),
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: text.bodyLarge!.copyWith(color: AppColors.muted),
+            ?extra,
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: Row(spacing: AppSpacing.md, children: actions),
             ),
-            if (extra != null) ...[
-              const SizedBox(height: AppSpacing.lg),
-              extra!,
-            ],
-            const SizedBox(height: AppSpacing.xl),
-            Row(children: actions),
           ],
         ),
       ),
@@ -583,10 +613,10 @@ class NoticeBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.input),
       ),
       child: Row(
+        spacing: AppSpacing.sm,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color),
-          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -626,6 +656,7 @@ class SheetHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Column(
+      spacing: AppSpacing.xs,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -635,13 +666,11 @@ class SheetHeader extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        if (subtitle != null) ...[
-          const SizedBox(height: AppSpacing.xs),
+        if (subtitle != null)
           Text(
             subtitle!,
             style: text.bodyLarge!.copyWith(color: AppColors.muted),
           ),
-        ],
       ],
     );
   }

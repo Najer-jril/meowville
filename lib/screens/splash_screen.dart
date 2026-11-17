@@ -117,6 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ),
                         Column(
+                          spacing: AppSpacing.lg,
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             AnimatedBuilder(
@@ -133,27 +134,31 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                               child: const _Logo(),
                             ),
-                            const SizedBox(height: AppSpacing.lg),
-                            Text(
-                              'Meowville',
-                              style: text.headlineLarge!.copyWith(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.xl,
-                              ),
-                              child: Text(
-                                'Rumah kedua yang nyaman untuk kucing kesayanganmu',
-                                textAlign: TextAlign.center,
-                                style: text.bodyLarge!.copyWith(
-                                  color: AppColors.muted,
+                            Column(
+                              spacing: AppSpacing.sm,
+                              children: [
+                                Text(
+                                  'Meowville',
+                                  style: text.headlineLarge!.copyWith(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.5,
+                                  ),
                                 ),
-                              ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.xl,
+                                  ),
+                                  child: Text(
+                                    'Rumah kedua yang nyaman untuk kucing '
+                                    'kesayanganmu',
+                                    textAlign: TextAlign.center,
+                                    style: text.bodyLarge!.copyWith(
+                                      color: AppColors.muted,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -162,11 +167,14 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
                 _LoadingDots(animation: _dots),
-                const SizedBox(height: AppSpacing.xl),
-                SizedBox(
-                  width: double.infinity,
-                  height: 64,
-                  child: SvgPicture.asset(AppSvg.villageCat, fit: BoxFit.fill),
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.xl),
+                  child: SvgPicture.asset(
+                    AppSvg.villageCat,
+                    width: double.infinity,
+                    height: AppSizes.artLg,
+                    fit: BoxFit.fill,
+                  ),
                 ),
               ],
             ),
@@ -267,10 +275,10 @@ class _LoadingDots extends StatelessWidget {
       child: AnimatedBuilder(
         animation: animation,
         builder: (context, _) => Row(
+          spacing: AppSpacing.sm,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            for (var i = 0; i < delays.length; i++) ...[
-              if (i > 0) const SizedBox(width: AppSpacing.sm),
+            for (var i = 0; i < delays.length; i++)
               Transform.translate(
                 offset: Offset(
                   0,
@@ -289,7 +297,6 @@ class _LoadingDots extends StatelessWidget {
                   ),
                 ),
               ),
-            ],
           ],
         ),
       ),

@@ -31,13 +31,16 @@ class ReservationCard extends StatelessWidget {
     return AppCard(
       onTap: onTap,
       child: Column(
+        spacing: AppSpacing.md,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppPhoto(r.cat.photo, size: 56, radius: 14),
-              const SizedBox(width: AppSpacing.md),
+              Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.md),
+                child: AppPhoto(r.cat.photo, size: 56, radius: 14),
+              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,7 +51,10 @@ class ReservationCard extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    for (final line in [r.cat.breedLabel, 'Owner: ${r.owner.name}'])
+                    for (final line in [
+                      r.cat.breedLabel,
+                      'Owner: ${r.owner.name}',
+                    ])
                       Text(
                         line,
                         style: text.bodySmall!.copyWith(fontSize: 14),
@@ -58,11 +64,12 @@ class ReservationCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              StatusBadge.booking(r.status.key),
+              Padding(
+                padding: const EdgeInsets.only(left: AppSpacing.sm),
+                child: StatusBadge.booking(r.status.key),
+              ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
           Text.rich(
             TextSpan(
               style: body,
@@ -85,9 +92,9 @@ class ReservationCard extends StatelessWidget {
               ],
             ),
           ),
-          if (r.addons.isNotEmpty || showPrice) ...[
-            const SizedBox(height: AppSpacing.md),
+          if (r.addons.isNotEmpty || showPrice)
             Row(
+              spacing: AppSpacing.sm,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
@@ -97,8 +104,7 @@ class ReservationCard extends StatelessWidget {
                     children: [for (final a in r.addons) TagChip(a.name)],
                   ),
                 ),
-                if (showPrice) ...[
-                  const SizedBox(width: AppSpacing.sm),
+                if (showPrice)
                   Text(
                     Fmt.rupiah(r.total),
                     style: text.labelLarge!.copyWith(
@@ -106,10 +112,8 @@ class ReservationCard extends StatelessWidget {
                       color: dim ? AppColors.text : AppColors.primary,
                     ),
                   ),
-                ],
               ],
             ),
-          ],
         ],
       ),
     );

@@ -79,11 +79,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: Column(
                     children: [
                       AuthHeader(showTitle: !_sent, onBack: _toLogin),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 250),
-                        child: _sent ? _buildSuccess() : _buildForm(),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          child: _sent ? _buildSuccess() : _buildForm(),
+                        ),
                       ),
-                      const SizedBox(height: AppSpacing.lg),
                     ],
                   ),
                 ),
@@ -144,66 +146,76 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Column(
       key: const ValueKey('form'),
       children: [
-        _Illustration(
-          asset: AppSvg.envelopeCat,
-          size: 176,
-          glow: AppColors.primarySoft,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        _Heading(
-          overline: 'Lupa kata sandi',
-          title: 'Aman, kami bantu',
-          body: 'Masukkan email akun Anda. Kami akan mengirim tautan untuk mengatur ulang kata sandi.',
-        ),
-        const SizedBox(height: AppSpacing.page),
-        Transform.translate(
-          offset: const Offset(0, -12),
-          child: Container(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(AppRadius.card),
-              boxShadow: AppShadows.soft,
+        Column(
+          spacing: AppSpacing.sm,
+          children: [
+            _Illustration(
+              asset: AppSvg.envelopeCat,
+              size: 176,
+              glow: AppColors.primarySoft,
             ),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AuthTextField(
-                    label: 'Alamat email',
-                    hint: 'nama@email.com',
-                    icon: Icons.mail_outline,
-                    controller: _email,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.done,
-                    helperText:
-                        'Gunakan email yang terdaftar saat membuat profil.',
-                    validator: validateEmail,
-                  ),
-                  const SizedBox(height: AppSpacing.page),
-                  FilledButton(
-                    onPressed: _send,
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'Kirim tautan reset',
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        SizedBox(width: AppSpacing.sm),
-                        Icon(Icons.arrow_forward, size: 20),
-                      ],
+            const _Heading(
+              overline: 'Lupa kata sandi',
+              title: 'Aman, kami bantu',
+              body:
+                  'Masukkan email akun Anda. Kami akan mengirim tautan untuk '
+                  'mengatur ulang kata sandi.',
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.only(
+            top: AppSpacing.page,
+            bottom: AppSpacing.lg,
+          ),
+          child: Transform.translate(
+            offset: const Offset(0, -12),
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                boxShadow: AppShadows.soft,
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  spacing: AppSpacing.page,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AuthTextField(
+                      label: 'Alamat email',
+                      hint: 'nama@email.com',
+                      icon: Icons.mail_outline,
+                      controller: _email,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.done,
+                      helperText:
+                          'Gunakan email yang terdaftar saat membuat profil.',
+                      validator: validateEmail,
                     ),
-                  ),
-                ],
+                    FilledButton(
+                      onPressed: _send,
+                      child: const Row(
+                        spacing: AppSpacing.sm,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'Kirim tautan reset',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Icon(Icons.arrow_forward, size: 20),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.lg),
         Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
@@ -241,144 +253,167 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Column(
       key: const ValueKey('sent'),
       children: [
-        _Illustration(
-          asset: AppSvg.sendCat,
-          size: 140,
-          glow: AppColors.secondarySoft,
+        Column(
+          spacing: AppSpacing.sm,
+          children: [
+            _Illustration(
+              asset: AppSvg.sendCat,
+              size: 140,
+              glow: AppColors.secondarySoft,
+            ),
+            const _Heading(
+              overline: 'Lupa kata sandi',
+              title: 'Tautan Berhasil Dikirim',
+              body:
+                  'Kami telah mengirimkan instruksi pemulihan ke alamat email '
+                  'Anda.',
+            ),
+          ],
         ),
-        const SizedBox(height: AppSpacing.sm),
-        const _Heading(
-          overline: 'Lupa kata sandi',
-          title: 'Tautan Berhasil Dikirim',
-          body: 'Kami telah mengirimkan instruksi pemulihan ke alamat email Anda.',
-        ),
-        const SizedBox(height: AppSpacing.page),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          decoration: BoxDecoration(
-            color: AppColors.successSoft,
-            borderRadius: BorderRadius.circular(AppRadius.card),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.success.withValues(alpha: 0.12),
-                offset: const Offset(0, 4),
-                blurRadius: 20,
-              ),
-            ],
+        Padding(
+          padding: const EdgeInsets.only(
+            top: AppSpacing.page,
+            bottom: AppSpacing.xl,
           ),
-          child: Column(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: const BoxDecoration(
-                  color: AppColors.surface,
-                  shape: BoxShape.circle,
-                  boxShadow: AppShadows.soft,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            decoration: BoxDecoration(
+              color: AppColors.successSoft,
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.success.withValues(alpha: 0.12),
+                  offset: const Offset(0, 4),
+                  blurRadius: 20,
                 ),
-                child: const Icon(
-                  Icons.check_circle,
-                  size: 28,
-                  color: AppColors.success,
+              ],
+            ),
+            child: Column(
+              spacing: AppSpacing.lg,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: const BoxDecoration(
+                    color: AppColors.surface,
+                    shape: BoxShape.circle,
+                    boxShadow: AppShadows.soft,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    size: 28,
+                    color: AppColors.success,
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text('Tautan terkirim', style: text.headlineMedium),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Cek kotak masuk email Anda. Jika tidak ada, periksa folder spam.',
-                textAlign: TextAlign.center,
-                style: text.bodyLarge,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                  vertical: AppSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.surface.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                  boxShadow: AppShadows.soft,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                Column(
+                  spacing: AppSpacing.sm,
                   children: [
-                    const Icon(
-                      Icons.mail_outline,
-                      size: 18,
-                      color: AppColors.primary,
+                    Text('Tautan terkirim', style: text.headlineMedium),
+                    Text(
+                      'Cek kotak masuk email Anda. Jika tidak ada, periksa '
+                      'folder spam.',
+                      textAlign: TextAlign.center,
+                      style: text.bodyLarge,
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Flexible(
-                      child: Text(
-                        _email.text.trim(),
-                        overflow: TextOverflow.ellipsis,
-                        style: text.labelLarge!.copyWith(
-                          fontSize: 14,
-                          color: AppColors.primary,
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                    boxShadow: AppShadows.soft,
+                  ),
+                  child: Row(
+                    spacing: AppSpacing.sm,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.mail_outline,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
+                      Flexible(
+                        child: Text(
+                          _email.text.trim(),
+                          overflow: TextOverflow.ellipsis,
+                          style: text.labelLarge!.copyWith(
+                            fontSize: 14,
+                            color: AppColors.primary,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              FilledButton(
-                onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  AppRoutes.login,
-                  (_) => false,
-                ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.surface.withValues(alpha: 0.7),
-                  foregroundColor: AppColors.primary,
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.arrow_back, size: 20),
-                    SizedBox(width: AppSpacing.sm),
-                    Flexible(
-                      child: Text(
-                        'Kembali ke halaman masuk',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Wrap(
-                alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text('Belum menerima email?', style: caption),
-                  TextButton(
-                    onPressed: counting ? null : _resend,
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.xs,
-                      ),
-                      disabledForegroundColor: AppColors.primary,
-                    ),
-                    child: Text(
-                      counting
-                          ? 'Kirim ulang (${_secondsLeft}s)'
-                          : 'Kirim ulang',
-                      style: caption.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
+                  child: Column(
+                    spacing: AppSpacing.sm,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      FilledButton(
+                        onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          AppRoutes.login,
+                          (_) => false,
+                        ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.surface.withValues(
+                            alpha: 0.7,
+                          ),
+                          foregroundColor: AppColors.primary,
+                        ),
+                        child: const Row(
+                          spacing: AppSpacing.sm,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.arrow_back, size: 20),
+                            Flexible(
+                              child: Text(
+                                'Kembali ke halaman masuk',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text('Belum menerima email?', style: caption),
+                          TextButton(
+                            onPressed: counting ? null : _resend,
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.xs,
+                              ),
+                              disabledForegroundColor: AppColors.primary,
+                            ),
+                            child: Text(
+                              counting
+                                  ? 'Kirim ulang (${_secondsLeft}s)'
+                                  : 'Kirim ulang',
+                              style: caption.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: AppSpacing.xl),
         Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
@@ -417,9 +452,8 @@ class _Illustration extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
+    return ConstrainedBox(
+      constraints: BoxConstraints.tightFor(width: size, height: size),
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -456,11 +490,15 @@ class _Heading extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Column(
+      spacing: AppSpacing.sm,
       children: [
-        Text(overline, style: AppText.overline),
-        const SizedBox(height: AppSpacing.xs),
-        Text(title, textAlign: TextAlign.center, style: text.headlineLarge),
-        const SizedBox(height: AppSpacing.sm),
+        Column(
+          spacing: AppSpacing.xs,
+          children: [
+            Text(overline, style: AppText.overline),
+            Text(title, textAlign: TextAlign.center, style: text.headlineLarge),
+          ],
+        ),
         Text(
           body,
           textAlign: TextAlign.center,

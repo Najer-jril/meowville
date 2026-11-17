@@ -47,16 +47,22 @@ class OwnerBookingCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              AppPhoto(r.cat.photo, size: 56, radius: 14),
-              const SizedBox(width: AppSpacing.md),
+              Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.md),
+                child: AppPhoto(r.cat.photo, size: 56, radius: 14),
+              ),
               Expanded(
-                child: Text(
-                  r.cat.name,
-                  style: text.titleLarge!.copyWith(fontWeight: FontWeight.w700),
-                  overflow: TextOverflow.ellipsis,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.sm),
+                  child: Text(
+                    r.cat.name,
+                    style: text.titleLarge!.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
               Flexible(
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
@@ -66,17 +72,21 @@ class OwnerBookingCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            [
-              'Kamar ${r.roomType.name} \n',
-              ?r.unit,
-              Fmt.range(r.checkIn, r.checkOut),
-              '\n ${r.nights} malam',
-            ].join(' '),
-            style: text.bodyMedium!.copyWith(color: AppColors.muted),
+          Padding(
+            padding: const EdgeInsets.only(
+              top: AppSpacing.md,
+              bottom: AppSpacing.sm,
+            ),
+            child: Text(
+              [
+                'Kamar ${r.roomType.name} \n',
+                ?r.unit,
+                Fmt.range(r.checkIn, r.checkOut),
+                '\n ${r.nights} malam',
+              ].join(' '),
+              style: text.bodyMedium!.copyWith(color: AppColors.muted),
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
           Align(
             alignment: Alignment.centerRight,
             child: Text(
@@ -130,12 +140,12 @@ class BankInfoCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            spacing: AppSpacing.sm,
             children: [
               const Icon(
                 Icons.account_balance_outlined,
                 color: AppColors.primary,
               ),
-              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   'Cara pembayaran',
@@ -144,21 +154,25 @@ class BankInfoCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text.rich(
-            TextSpan(
-              children: [
-                const TextSpan(text: 'Transfer sebesar '),
-                TextSpan(
-                  text: Fmt.rupiah(amount),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const TextSpan(text: ' ke:'),
-              ],
+          Padding(
+            padding: const EdgeInsets.only(
+              top: AppSpacing.sm,
+              bottom: AppSpacing.md,
             ),
-            style: text.bodyMedium!.copyWith(color: AppColors.muted),
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  const TextSpan(text: 'Transfer sebesar '),
+                  TextSpan(
+                    text: Fmt.rupiah(amount),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const TextSpan(text: ' ke:'),
+                ],
+              ),
+              style: text.bodyMedium!.copyWith(color: AppColors.muted),
+            ),
           ),
-          const SizedBox(height: AppSpacing.md),
           Container(
             padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
@@ -253,11 +267,13 @@ class _UploadProofSheetState extends State<_UploadProofSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SheetHeader(
-              title: 'Unggah bukti bayar',
-              subtitle: 'Satu gambar JPG atau PNG.',
+            const Padding(
+              padding: EdgeInsets.only(bottom: AppSpacing.lg),
+              child: SheetHeader(
+                title: 'Unggah bukti bayar',
+                subtitle: 'Satu gambar JPG atau PNG.',
+              ),
             ),
-            const SizedBox(height: AppSpacing.lg),
             Center(
               child: GestureDetector(
                 onTap: _pick,
@@ -271,13 +287,13 @@ class _UploadProofSheetState extends State<_UploadProofSheet> {
                           border: Border.all(color: AppColors.border),
                         ),
                         child: const Column(
+                          spacing: AppSpacing.sm,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             IconBubble(
                               icon: Icons.add_photo_alternate_outlined,
                               size: 56,
                             ),
-                            SizedBox(height: AppSpacing.sm),
                             Text(
                               'Pilih gambar',
                               style: TextStyle(color: AppColors.primary),
@@ -300,41 +316,53 @@ class _UploadProofSheetState extends State<_UploadProofSheet> {
                   label: const Text('Ganti gambar'),
                 ),
               ),
-            const SizedBox(height: AppSpacing.md),
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceAlt,
-                borderRadius: BorderRadius.circular(AppRadius.input),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.receipt_long_outlined,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      'Nominal transfer',
-                      style: text.bodyMedium!.copyWith(color: AppColors.muted),
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.md),
+              child: Container(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(AppRadius.input),
+                ),
+                child: Row(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(right: AppSpacing.sm),
+                      child: Icon(
+                        Icons.receipt_long_outlined,
+                        color: AppColors.primary,
+                      ),
                     ),
-                  ),
-                  Text(
-                    Fmt.rupiah(widget.amount),
-                    style: text.labelLarge!.copyWith(color: AppColors.primary),
-                  ),
-                ],
+                    Expanded(
+                      child: Text(
+                        'Nominal transfer',
+                        style: text.bodyMedium!.copyWith(
+                          color: AppColors.muted,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      Fmt.rupiah(widget.amount),
+                      style: text.labelLarge!.copyWith(
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            FilledButton(
-              onPressed: picked == null || picked == widget.current
-                  ? null
-                  : () => Navigator.pop(context, picked),
-              child: const Text('Kirim Bukti'),
+            Padding(
+              padding: const EdgeInsets.only(
+                top: AppSpacing.lg,
+                bottom: AppSpacing.xs,
+              ),
+              child: FilledButton(
+                onPressed: picked == null || picked == widget.current
+                    ? null
+                    : () => Navigator.pop(context, picked),
+                child: const Text('Kirim Bukti'),
+              ),
             ),
-            const SizedBox(height: AppSpacing.xs),
             TextButton(
               onPressed: () => Navigator.pop(context),
               style: TextButton.styleFrom(foregroundColor: AppColors.muted),
@@ -409,17 +437,22 @@ class CostBreakdownCard extends StatelessWidget {
     return AppCard(
       child: Column(
         children: [
-          Row(
-            children: [
-              const Icon(Icons.receipt_long_outlined, color: AppColors.primary),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Rincian biaya',
-                style: text.titleLarge!.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: Row(
+              spacing: AppSpacing.sm,
+              children: [
+                const Icon(
+                  Icons.receipt_long_outlined,
+                  color: AppColors.primary,
+                ),
+                Text(
+                  'Rincian biaya',
+                  style: text.titleLarge!.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
           line(
             'Kamar ${type.name} x $nights malam',
             type.price * nights,

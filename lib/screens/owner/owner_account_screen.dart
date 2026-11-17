@@ -16,115 +16,122 @@ class OwnerAccountScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = context.watch<AdminStore>();
     final text = Theme.of(context).textTheme;
-
-    final user = context.watch<AuthController>().user ?? store.currentOwner;
+    final auth = context.watch<AuthController>();
+    final user = auth.user ?? store.currentOwner;
 
     return Scaffold(
       body: SafeArea(
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
             AppSpacing.xl,
             AppSpacing.page,
             AppSpacing.xl,
           ),
-          children: [
-            Text('Akun', style: text.headlineLarge),
-            const SizedBox(height: AppSpacing.lg),
-            AppCard(
-              onTap: () => Navigator.pushNamed(
-                context,
-                AppRoutes.ownerProfileForm,
-                arguments: user,
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  UserAvatar(
-                    initial: user.initial,
-                    photo: user.photo,
-                    size: 64,
-                  ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user.name,
-                          style: text.titleLarge!.copyWith(fontSize: 20),
-                        ),
-                        Text(
-                          user.email,
-                          style: text.bodySmall!.copyWith(fontSize: 12),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          user.phone,
-                          style: text.bodySmall!.copyWith(fontSize: 12),
-                        ),
-                      ],
+          child: Column(
+            spacing: AppSpacing.lg,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Akun', style: text.headlineLarge),
+              AppCard(
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.ownerProfileForm,
+                  arguments: user,
+                ),
+                child: Row(
+                  spacing: AppSpacing.lg,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    UserAvatar(
+                      initial: user.initial,
+                      photo: user.photo,
+                      size: 64,
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            AppCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  _MenuTile(
-                    icon: Icons.person_outline,
-                    title: 'Edit profil',
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      AppRoutes.ownerProfileForm,
-                      arguments: user,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.name,
+                            style: text.titleLarge!.copyWith(fontSize: 20),
+                          ),
+                          Text(
+                            user.email,
+                            style: text.bodySmall!.copyWith(fontSize: 12),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            user.phone,
+                            style: text.bodySmall!.copyWith(fontSize: 12),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const Divider(
-                    indent: AppSpacing.page,
-                    endIndent: AppSpacing.page,
-                  ),
-                  _MenuTile(
-                    icon: Icons.policy_outlined,
-                    title: 'Kebijakan Meowville',
-                    onTap: () => Navigator.pushNamed(context, AppRoutes.policy),
-                  ),
-                  const Divider(
-                    indent: AppSpacing.page,
-                    endIndent: AppSpacing.page,
-                  ),
-                  _MenuTile(
-                    icon: Icons.gavel_outlined,
-                    title: 'Ketentuan layanan',
-                    onTap: () => Navigator.pushNamed(context, AppRoutes.legal),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const SessionInfoCard(),
-            const SizedBox(height: AppSpacing.lg),
-            AppCard(
-              padding: const EdgeInsets.all(AppSpacing.page),
-              onTap: () => confirmLogout(context),
-              child: Row(
-                children: [
-                  const Icon(Icons.logout, color: AppColors.danger),
-                  const SizedBox(width: AppSpacing.lg),
-                  Text(
-                    'Keluar',
-                    style: text.labelLarge!.copyWith(
-                      fontSize: 18,
-                      color: AppColors.danger,
+              AppCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    _MenuTile(
+                      icon: Icons.person_outline,
+                      title: 'Edit profil',
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.ownerProfileForm,
+                        arguments: user,
+                      ),
                     ),
-                  ),
-                ],
+                    const Divider(
+                      indent: AppSpacing.page,
+                      endIndent: AppSpacing.page,
+                    ),
+                    _MenuTile(
+                      icon: Icons.policy_outlined,
+                      title: 'Kebijakan Meowville',
+                      onTap: () =>
+                          Navigator.pushNamed(context, AppRoutes.policy),
+                    ),
+                    const Divider(
+                      indent: AppSpacing.page,
+                      endIndent: AppSpacing.page,
+                    ),
+                    _MenuTile(
+                      icon: Icons.gavel_outlined,
+                      title: 'Ketentuan layanan',
+                      onTap: () =>
+                          Navigator.pushNamed(context, AppRoutes.legal),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              if (auth.session case final session? when auth.user != null)
+                SessionInfoCard(
+                  session: session,
+                  user: auth.user!,
+                  remembered: auth.remembered,
+                ),
+              AppCard(
+                padding: const EdgeInsets.all(AppSpacing.page),
+                onTap: () => confirmLogout(context),
+                child: Row(
+                  spacing: AppSpacing.lg,
+                  children: [
+                    const Icon(Icons.logout, color: AppColors.danger),
+                    Text(
+                      'Keluar',
+                      style: text.labelLarge!.copyWith(
+                        fontSize: 18,
+                        color: AppColors.danger,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -153,8 +160,10 @@ class _MenuTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            IconBubble(icon: icon, size: 44),
-            const SizedBox(width: AppSpacing.lg),
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.lg),
+              child: IconBubble(icon: icon, size: 44),
+            ),
             Expanded(
               child: Text(
                 title,

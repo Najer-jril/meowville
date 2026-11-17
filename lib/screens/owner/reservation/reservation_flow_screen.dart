@@ -212,6 +212,7 @@ class _Progress extends StatelessWidget {
         AppSpacing.sm,
       ),
       child: Column(
+        spacing: AppSpacing.sm,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
@@ -221,7 +222,6 @@ class _Progress extends StatelessWidget {
               color: AppColors.muted,
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(value: (step + 1) / 4, minHeight: 6),

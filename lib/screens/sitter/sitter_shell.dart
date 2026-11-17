@@ -88,14 +88,13 @@ class _AdminModeBar extends StatelessWidget {
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(
-            AppSpacing.page,
+            AppSpacing.page + AppSpacing.sm,
             AppSpacing.xs,
             AppSpacing.sm,
             AppSpacing.xs,
           ),
           child: Row(
             children: [
-              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   'Mode Pet Sitter',

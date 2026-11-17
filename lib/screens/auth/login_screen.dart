@@ -68,35 +68,41 @@ class _LoginScreenState extends State<LoginScreen> {
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.page,
+            vertical: AppSpacing.lg,
+          ),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 430),
               child: Column(
+                spacing: AppSpacing.lg,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 16),
-                  Text(
-                    'Selamat datang di Meowville',
-                    style: text.headlineLarge,
+                  Column(
+                    spacing: AppSpacing.sm,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Selamat datang di Meowville',
+                        style: text.headlineLarge,
+                      ),
+                      Text(
+                        'Masuk ke akun anda jika sudah memiliki akun, atau '
+                        'daftar jika belum memiliki akun',
+                        style: muted,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'Masuk ke akun anda jika sudah memiliki akun, atau daftar jika belum memiliki akun',
-                    style: muted,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
                   Stack(
                     children: [
                       Opacity(
                         opacity: 0.6,
-                        child: SizedBox(
+                        child: SvgPicture.asset(
+                          AppSvg.catHouse,
                           width: double.infinity,
-                          height: 40,
-                          child: SvgPicture.asset(
-                            AppSvg.catHouse,
-                            fit: BoxFit.fill,
-                          ),
+                          height: AppSizes.artSm,
+                          fit: BoxFit.fill,
                         ),
                       ),
                       Padding(
@@ -105,27 +111,30 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Center(
-                    child: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        Text('Belum punya akun Meowville?', style: muted),
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, AppRoutes.register),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.xs,
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.sm),
+                    child: Center(
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          Text('Belum punya akun Meowville?', style: muted),
+                          TextButton(
+                            onPressed: () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.register,
                             ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.xs,
+                              ),
+                            ),
+                            child: Text('Daftar sekarang', style: link),
                           ),
-                          child: Text('Daftar sekarang', style: link),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
                 ],
               ),
             ),
@@ -146,6 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Form(
         key: _formKey,
         child: Column(
+          spacing: AppSpacing.lg,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AuthTextField(
@@ -157,7 +167,6 @@ class _LoginScreenState extends State<LoginScreen> {
               textInputAction: TextInputAction.next,
               validator: validateEmail,
             ),
-            const SizedBox(height: AppSpacing.lg),
             AuthTextField(
               label: 'Password',
               hint: 'Masukkan password',
@@ -168,8 +177,8 @@ class _LoginScreenState extends State<LoginScreen> {
               validator: validateRequired,
               onFieldSubmitted: (_) => _submit(),
             ),
-            const SizedBox(height: AppSpacing.lg),
             Row(
+              spacing: AppSpacing.sm,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Flexible(
@@ -178,7 +187,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     onChanged: (v) => setState(() => _remember = v),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
                 TextButton(
                   onPressed: () =>
                       Navigator.pushNamed(context, AppRoutes.forgotPassword),
@@ -194,19 +202,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.xl),
-            FilledButton(
-              onPressed: _loading ? null : _submit,
-              child: _loading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: AppColors.surface,
-                      ),
-                    )
-                  : const Text('Masuk'),
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: FilledButton(
+                onPressed: _loading ? null : _submit,
+                child: _loading
+                    ? ConstrainedBox(
+                        constraints: const BoxConstraints.tightFor(
+                          width: AppSizes.spinner,
+                          height: AppSizes.spinner,
+                        ),
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: AppColors.surface,
+                        ),
+                      )
+                    : const Text('Masuk'),
+              ),
             ),
           ],
         ),
@@ -231,6 +243,7 @@ class _RememberCheck extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 48),
           child: Row(
+            spacing: AppSpacing.sm,
             mainAxisSize: MainAxisSize.min,
             children: [
               AnimatedContainer(
@@ -249,7 +262,6 @@ class _RememberCheck extends StatelessWidget {
                       )
                     : null,
               ),
-              const SizedBox(width: AppSpacing.sm),
               Flexible(
                 child: Text(
                   'Ingat saya',

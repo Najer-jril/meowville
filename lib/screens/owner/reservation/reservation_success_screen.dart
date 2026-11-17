@@ -40,32 +40,38 @@ class ReservationSuccessScreen extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        const IconBubble(
-                          icon: Icons.check_rounded,
-                          color: AppColors.success,
-                          background: AppColors.successSoft,
-                          size: 96,
-                        ),
-                        const SizedBox(height: AppSpacing.xl),
-                        Text(
-                          'Reservasi terkirim',
-                          textAlign: TextAlign.center,
-                          style: text.headlineLarge!.copyWith(fontSize: 30),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          'Reservasi ${r.cat.name} menunggu konfirmasi admin.',
-                          textAlign: TextAlign.center,
-                          style: text.bodyLarge!.copyWith(
-                            color: AppColors.muted,
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: AppSpacing.xl),
+                          child: IconBubble(
+                            icon: Icons.check_rounded,
+                            color: AppColors.success,
+                            background: AppColors.successSoft,
+                            size: 96,
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.xl),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: Text(
+                            'Reservasi terkirim',
+                            textAlign: TextAlign.center,
+                            style: text.headlineLarge!.copyWith(fontSize: 30),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+                          child: Text(
+                            'Reservasi ${r.cat.name} menunggu konfirmasi admin.',
+                            textAlign: TextAlign.center,
+                            style: text.bodyLarge!.copyWith(
+                              color: AppColors.muted,
+                            ),
+                          ),
+                        ),
                         AppCard(
                           child: Row(
+                            spacing: AppSpacing.md,
                             children: [
                               AppPhoto(r.cat.photo, size: 56, radius: 14),
-                              const SizedBox(width: AppSpacing.md),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,22 +91,27 @@ class ReservationSuccessScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (r.paymentProof == null) ...[
-                          const SizedBox(height: AppSpacing.md),
-                          ProofDeadlineNotice(r),
-                        ],
-                        const SizedBox(height: AppSpacing.xl),
-                        FilledButton.icon(
-                          onPressed: () => Navigator.pushReplacementNamed(
-                            context,
-                            AppRoutes.ownerBookingDetail,
-                            arguments: r,
+                        if (r.paymentProof == null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.md),
+                            child: ProofDeadlineNotice(r),
                           ),
-                          icon: const Icon(Icons.arrow_forward),
-                          iconAlignment: IconAlignment.end,
-                          label: const Text('Lihat Reservasi'),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            top: AppSpacing.xl,
+                            bottom: AppSpacing.xs,
+                          ),
+                          child: FilledButton.icon(
+                            onPressed: () => Navigator.pushReplacementNamed(
+                              context,
+                              AppRoutes.ownerBookingDetail,
+                              arguments: r,
+                            ),
+                            icon: const Icon(Icons.arrow_forward),
+                            iconAlignment: IconAlignment.end,
+                            label: const Text('Lihat Reservasi'),
+                          ),
                         ),
-                        const SizedBox(height: AppSpacing.xs),
                         TextButton(
                           onPressed: () => Navigator.popUntil(
                             context,
@@ -113,10 +124,11 @@ class ReservationSuccessScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(
+              SvgPicture.asset(
+                AppSvg.villageCat,
                 width: double.infinity,
-                height: 64,
-                child: SvgPicture.asset(AppSvg.villageCat, fit: BoxFit.fill),
+                height: AppSizes.artLg,
+                fit: BoxFit.fill,
               ),
             ],
           ),

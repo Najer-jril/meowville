@@ -53,10 +53,10 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
               ),
               sliver: SliverToBoxAdapter(
                 child: Column(
+                  spacing: AppSpacing.md,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Booking', style: text.headlineLarge),
-                    const SizedBox(height: AppSpacing.md),
                     Row(
                       children: [
                         Expanded(
@@ -121,8 +121,9 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                 ),
                 sliver: SliverList.separated(
                   itemCount: items.length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: AppSpacing.lg),
+                  separatorBuilder: (_, _) => const Padding(
+                    padding: EdgeInsets.only(top: AppSpacing.lg),
+                  ),
                   itemBuilder: (context, i) => OwnerBookingCard(
                     reservation: items[i],
                     onTap: () => Navigator.pushNamed(

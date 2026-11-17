@@ -26,42 +26,43 @@ class StepRoom extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final nights = range.duration.inDays;
 
-    return ListView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.page,
         AppSpacing.md,
         AppSpacing.page,
         AppSpacing.xl,
       ),
-      children: [
-        Row(
-          children: [
-            const Icon(
-              Icons.calendar_today_outlined,
-              size: 18,
-              color: AppColors.muted,
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Text(
-                '${Fmt.range(range.start, range.end)} - $nights malam',
-                style: text.bodyMedium!.copyWith(color: AppColors.muted),
+      child: Column(
+        spacing: AppSpacing.lg,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            spacing: AppSpacing.sm,
+            children: [
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 18,
+                color: AppColors.muted,
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        for (final t in store.activeRoomTypes) ...[
-          _RoomOption(
-            type: t,
-            nights: nights,
-            full: store.remainingFor(t, range.start, range.end) < 1,
-            selected: t == selected,
-            onTap: () => onSelected(t),
+              Expanded(
+                child: Text(
+                  '${Fmt.range(range.start, range.end)} - $nights malam',
+                  style: text.bodyMedium!.copyWith(color: AppColors.muted),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.lg),
+          for (final t in store.activeRoomTypes)
+            _RoomOption(
+              type: t,
+              nights: nights,
+              full: store.remainingFor(t, range.start, range.end) < 1,
+              selected: t == selected,
+              onTap: () => onSelected(t),
+            ),
         ],
-      ],
+      ),
     );
   }
 }
@@ -102,17 +103,20 @@ class _RoomOption extends StatelessWidget {
             ),
           ),
           child: Column(
+            spacing: AppSpacing.md,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppPhoto(
-                    type.photo,
-                    size: 72,
-                    placeholderIcon: Icons.bed_outlined,
+                  Padding(
+                    padding: const EdgeInsets.only(right: AppSpacing.lg),
+                    child: AppPhoto(
+                      type.photo,
+                      size: 72,
+                      placeholderIcon: Icons.bed_outlined,
+                    ),
                   ),
-                  const SizedBox(width: AppSpacing.lg),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,11 +133,13 @@ class _RoomOption extends StatelessWidget {
                             color: AppColors.muted,
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: [for (final p in shown) TagChip(p)],
+                        Padding(
+                          padding: const EdgeInsets.only(top: AppSpacing.sm),
+                          child: Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [for (final p in shown) TagChip(p)],
+                          ),
                         ),
                       ],
                     ),
@@ -149,7 +155,6 @@ class _RoomOption extends StatelessWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.md),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.lg,

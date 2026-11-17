@@ -175,8 +175,9 @@ class _UserListScreenState extends State<UserListScreen> {
                 ),
                 sliver: SliverList.separated(
                   itemCount: users.length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: AppSpacing.lg),
+                  separatorBuilder: (_, _) => const Padding(
+                    padding: EdgeInsets.only(top: AppSpacing.lg),
+                  ),
                   itemBuilder: (_, i) => _UserCard(user: users[i]),
                 ),
               ),
@@ -208,8 +209,14 @@ class _UserCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              UserAvatar(initial: user.initial, photo: user.photo, size: 64),
-              const SizedBox(width: AppSpacing.lg),
+              Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.lg),
+                child: UserAvatar(
+                  initial: user.initial,
+                  photo: user.photo,
+                  size: 64,
+                ),
+              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,28 +230,32 @@ class _UserCard extends StatelessWidget {
                       style: text.bodySmall!.copyWith(fontSize: 15),
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.call_outlined,
-                          size: 16,
-                          color: AppColors.muted,
-                        ),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            user.phone,
-                            style: text.bodySmall!.copyWith(fontSize: 15),
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.xs),
+                      child: Row(
+                        spacing: AppSpacing.sm,
+                        children: [
+                          const Icon(
+                            Icons.call_outlined,
+                            size: 16,
+                            color: AppColors.muted,
                           ),
-                        ),
-                      ],
+                          Flexible(
+                            child: Text(
+                              user.phone,
+                              style: text.bodySmall!.copyWith(fontSize: 15),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              StatusBadge.role(user.role.key),
+              Padding(
+                padding: const EdgeInsets.only(left: AppSpacing.sm),
+                child: StatusBadge.role(user.role.key),
+              ),
             ],
           ),
           const Divider(height: AppSpacing.xl),

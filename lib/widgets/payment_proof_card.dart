@@ -73,30 +73,33 @@ class PaymentProofCard extends StatelessWidget {
 
     return AppCard(
       child: Column(
+        spacing: AppSpacing.md,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              GestureDetector(
-                onTap: p == null ? null : open,
-                child: AppPhoto(
-                  p,
-                  size: 64,
-                  radius: 14,
-                  placeholderIcon: Icons.receipt_long_outlined,
+              Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.lg),
+                child: GestureDetector(
+                  onTap: p == null ? null : open,
+                  child: AppPhoto(
+                    p,
+                    size: 64,
+                    radius: 14,
+                    placeholderIcon: Icons.receipt_long_outlined,
+                  ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
+                  spacing: AppSpacing.xs,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Bukti bayar', style: text.titleLarge),
-                    const SizedBox(height: 2),
                     Row(
+                      spacing: AppSpacing.xs,
                       children: [
                         Icon(statusIcon, size: 16, color: tone),
-                        const SizedBox(width: 4),
                         Flexible(
                           child: Text(
                             status,
@@ -116,8 +119,7 @@ class PaymentProofCard extends StatelessWidget {
                 TextButton(onPressed: open, child: const Text('Lihat Bukti')),
             ],
           ),
-          if (onUpload != null) ...[
-            const SizedBox(height: AppSpacing.md),
+          if (onUpload != null)
             p == null
                 ? FilledButton.icon(
                     onPressed: onUpload,
@@ -132,7 +134,6 @@ class PaymentProofCard extends StatelessWidget {
                     icon: const Icon(Icons.swap_horiz),
                     label: const Text('Ganti Bukti'),
                   ),
-          ],
         ],
       ),
     );

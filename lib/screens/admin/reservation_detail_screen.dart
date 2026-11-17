@@ -26,28 +26,25 @@ class ReservationDetailScreen extends StatelessWidget {
         title: 'Detail Reservasi',
         trailing: StatusBadge.booking(r.status.key),
       ),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.page,
           AppSpacing.sm,
           AppSpacing.page,
           AppSpacing.xl,
         ),
-        children: [
-          _CatCard(r),
-          const SizedBox(height: AppSpacing.lg),
-          _OwnerCard(r),
-          const SizedBox(height: AppSpacing.lg),
-          _StayCard(r),
-          const SizedBox(height: AppSpacing.lg),
-          _CostCard(r),
-          const SizedBox(height: AppSpacing.lg),
-          PaymentProofCard.forReservation(r),
-          if (r.adminNote != null) ...[
-            const SizedBox(height: AppSpacing.lg),
-            _NoteCard(r.adminNote!),
+        child: Column(
+          spacing: AppSpacing.lg,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _CatCard(r),
+            _OwnerCard(r),
+            _StayCard(r),
+            _CostCard(r),
+            PaymentProofCard.forReservation(r),
+            if (r.adminNote != null) _NoteCard(r.adminNote!),
           ],
-        ],
+        ),
       ),
       bottomNavigationBar: _actions(context, r),
     );
@@ -70,6 +67,7 @@ class ReservationDetailScreen extends StatelessWidget {
                   ),
                 ),
               Row(
+                spacing: AppSpacing.md,
                 children: [
                   Expanded(
                     child: OutlinedButton(
@@ -78,7 +76,6 @@ class ReservationDetailScreen extends StatelessWidget {
                       child: const Text('Tolak'),
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: FilledButton(
                       onPressed: hasProof
@@ -133,9 +130,9 @@ class _CatCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return AppCard(
       child: Row(
+        spacing: AppSpacing.lg,
         children: [
           AppPhoto(r.cat.photo, size: 72),
-          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,8 +167,10 @@ class _OwnerCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Owner', style: text.labelSmall!.copyWith(letterSpacing: 1.2)),
-          const SizedBox(height: AppSpacing.xs),
-          Text(r.owner.name, style: text.titleLarge),
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xs),
+            child: Text(r.owner.name, style: text.titleLarge),
+          ),
           Text(r.owner.phone, style: text.bodySmall!.copyWith(fontSize: 15)),
         ],
       ),
@@ -190,9 +189,9 @@ class _CardTitle extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
+        spacing: AppSpacing.sm,
         children: [
           Icon(icon, color: AppColors.primary),
-          const SizedBox(width: AppSpacing.sm),
           Text(
             title,
             style: Theme.of(context).textTheme.titleLarge!
@@ -305,13 +304,13 @@ class _NoteCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.card),
       ),
       child: Column(
+        spacing: AppSpacing.xs,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Catatan admin',
             style: text.labelLarge!.copyWith(color: AppColors.danger),
           ),
-          const SizedBox(height: AppSpacing.xs),
           Text(note, style: text.bodyLarge),
         ],
       ),

@@ -93,136 +93,153 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
       appBar: const SubPageAppBar(title: 'Buat Akun'),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
             AppSpacing.sm,
             AppSpacing.page,
             AppSpacing.xl,
           ),
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+          child: Column(
+            spacing: AppSpacing.lg,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySoft,
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                  ),
+                  child: Row(
+                    spacing: AppSpacing.sm,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.pets,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
+                      Text(
+                        'Pendaftaran akun baru',
+                        style: text.labelLarge!.copyWith(
+                          fontSize: 14,
+                          color: AppColors.primaryDeep,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                decoration: BoxDecoration(
-                  color: AppColors.primarySoft,
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+              ),
+              AppCard(
+                padding: const EdgeInsets.all(AppSpacing.page),
+                child: Column(
+                  spacing: AppSpacing.lg,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(Icons.pets, size: 18, color: AppColors.primary),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Pendaftaran akun baru',
-                      style: text.labelLarge!.copyWith(
-                        fontSize: 14,
-                        color: AppColors.primaryDeep,
+                    AuthTextField(
+                      label: 'Nama lengkap',
+                      hint: 'misal, Faisal Gaming',
+                      icon: Icons.person_outline,
+                      controller: _name,
+                      textInputAction: TextInputAction.next,
+                      validator: validateRequired,
+                    ),
+                    AuthTextField(
+                      label: 'Nomor WhatsApp',
+                      hint: 'misal, 0812-3456-7890',
+                      icon: Icons.call_outlined,
+                      controller: _phone,
+                      keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) {
+                        final digits = (v ?? '').replaceAll(RegExp(r'\D'), '');
+                        if (digits.isEmpty) return 'Wajib diisi';
+                        if (digits.length < 10) return 'Nomor minimal 10 digit';
+                        return null;
+                      },
+                    ),
+                    AuthTextField(
+                      label: 'Alamat email',
+                      hint: 'nama@email.com',
+                      icon: Icons.mail_outline,
+                      controller: _email,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) {
+                        final e = validateEmail(v);
+                        if (e != null) return e;
+                        return _users.emailTaken(v!.trim())
+                            ? 'Email sudah terdaftar'
+                            : null;
+                      },
+                    ),
+                    AuthTextField(
+                      label: 'Kata sandi sementara',
+                      hint: 'Minimal 8 karakter',
+                      icon: Icons.lock_outline,
+                      controller: _password,
+                      obscure: true,
+                      helperText:
+                          'Sampaikan kata sandi ini langsung kepada '
+                          'pengguna',
+                      validator: (v) => (v == null || v.length < 8)
+                          ? 'Kata sandi minimal 8 karakter'
+                          : null,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: Column(
+                        spacing: AppSpacing.sm,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'Peran',
+                            style: text.labelLarge!.copyWith(fontSize: 14),
+                          ),
+                          RadioGroup<UserRole>(
+                            groupValue: _role,
+                            onChanged: (v) {
+                              HapticFeedback.selectionClick();
+                              setState(() => _role = v);
+                            },
+                            child: Column(
+                              children: [
+                                for (final r in _roles)
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      bottom: AppSpacing.sm,
+                                    ),
+                                    child: _RoleTile(
+                                      value: r.$1,
+                                      title: r.$2,
+                                      subtitle: r.$3,
+                                      selected: _role == r.$1,
+                                      onTap: () => setState(() => _role = r.$1),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          if (_submitted && _role == null)
+                            Text(
+                              'Pilih peran akun',
+                              style: text.bodySmall!.copyWith(
+                                color: AppColors.danger,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            AppCard(
-              padding: const EdgeInsets.all(AppSpacing.page),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AuthTextField(
-                    label: 'Nama lengkap',
-                    hint: 'misal, Faisal Gaming',
-                    icon: Icons.person_outline,
-                    controller: _name,
-                    textInputAction: TextInputAction.next,
-                    validator: validateRequired,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  AuthTextField(
-                    label: 'Nomor WhatsApp',
-                    hint: 'misal, 0812-3456-7890',
-                    icon: Icons.call_outlined,
-                    controller: _phone,
-                    keyboardType: TextInputType.phone,
-                    textInputAction: TextInputAction.next,
-                    validator: (v) {
-                      final digits = (v ?? '').replaceAll(RegExp(r'\D'), '');
-                      if (digits.isEmpty) return 'Wajib diisi';
-                      if (digits.length < 10) return 'Nomor minimal 10 digit';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  AuthTextField(
-                    label: 'Alamat email',
-                    hint: 'nama@email.com',
-                    icon: Icons.mail_outline,
-                    controller: _email,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    validator: (v) {
-                      final e = validateEmail(v);
-                      if (e != null) return e;
-                      return _users.emailTaken(v!.trim())
-                          ? 'Email sudah terdaftar'
-                          : null;
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  AuthTextField(
-                    label: 'Kata sandi sementara',
-                    hint: 'Minimal 8 karakter',
-                    icon: Icons.lock_outline,
-                    controller: _password,
-                    obscure: true,
-                    helperText:
-                        'Sampaikan kata sandi ini langsung kepada '
-                        'pengguna',
-                    validator: (v) => (v == null || v.length < 8)
-                        ? 'Kata sandi minimal 8 karakter'
-                        : null,
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Text('Peran', style: text.labelLarge!.copyWith(fontSize: 14)),
-                  const SizedBox(height: AppSpacing.sm),
-                  RadioGroup<UserRole>(
-                    groupValue: _role,
-                    onChanged: (v) {
-                      HapticFeedback.selectionClick();
-                      setState(() => _role = v);
-                    },
-                    child: Column(
-                      children: [
-                        for (final r in _roles)
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              bottom: AppSpacing.sm,
-                            ),
-                            child: _RoleTile(
-                              value: r.$1,
-                              title: r.$2,
-                              subtitle: r.$3,
-                              selected: _role == r.$1,
-                              onTap: () => setState(() => _role = r.$1),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  if (_submitted && _role == null)
-                    Text(
-                      'Pilih peran akun',
-                      style: text.bodySmall!.copyWith(color: AppColors.danger),
-                    ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: BottomActionBar(

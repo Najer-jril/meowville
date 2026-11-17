@@ -74,79 +74,93 @@ class _PetFormScreenState extends State<PetFormScreen> {
       appBar: SubPageAppBar(title: _isEdit ? 'Edit Kucing' : 'Tambah Kucing'),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
             AppSpacing.sm,
             AppSpacing.page,
             AppSpacing.xl,
           ),
-          children: [
-            if (_invalid) ...[
-              const NoticeBox.danger(
-                title: 'Ada data yang belum lengkap',
-                message: 'Periksa kolom bertanda merah di bawah.',
+          child: Column(
+            spacing: AppSpacing.lg,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_invalid)
+                const NoticeBox.danger(
+                  title: 'Ada data yang belum lengkap',
+                  message: 'Periksa kolom bertanda merah di bawah.',
+                ),
+              AppCard(
+                padding: const EdgeInsets.all(AppSpacing.page),
+                child: Column(
+                  spacing: AppSpacing.xl,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: _PhotoPicker(
+                        photo: _photo,
+                        onTap: () =>
+                            setState(() => _photo = AppImages.catDialga),
+                      ),
+                    ),
+                    LabeledField(
+                      label: 'Nama kucing',
+                      required: true,
+                      child: TextFormField(
+                        controller: _name,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(
+                          hintText: 'misal, Luna',
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Wajib diisi'
+                            : null,
+                      ),
+                    ),
+                    LabeledField(
+                      label: 'Ras',
+                      required: true,
+                      child: TextFormField(
+                        controller: _breed,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(
+                          hintText: 'misal, Domestic (opsional)',
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Wajib diisi'
+                            : null,
+                      ),
+                    ),
+                    LabeledField(
+                      label: 'Berat',
+                      required: true,
+                      child: TextFormField(
+                        controller: _weight,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                        ],
+                        decoration: const InputDecoration(
+                          hintText: 'misal, 3,8',
+                          suffixText: 'kg',
+                        ),
+                        validator: (_) {
+                          final w = _weightValue;
+                          if (_weight.text.trim().isEmpty) return 'Wajib diisi';
+                          if (w == null || w <= 0 || w > 20) {
+                            return 'berat antara 0,1 sampai 20 kg';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: AppSpacing.lg),
             ],
-            AppCard(
-              padding: const EdgeInsets.all(AppSpacing.page),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Center(
-                    child: _PhotoPicker(
-                      photo: _photo,
-                      onTap: () => setState(() => _photo = AppImages.catDialga),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  const FieldLabel('Nama kucing', required: true),
-                  TextFormField(
-                    controller: _name,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(hintText: 'misal, Luna'),
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Wajib diisi' : null,
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  const FieldLabel('Ras', required: true),
-                  TextFormField(
-                    controller: _breed,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                      hintText: 'misal, Domestic (opsional)',
-                    ),
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Wajib diisi' : null,
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  const FieldLabel('Berat', required: true),
-                  TextFormField(
-                    controller: _weight,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-                    ],
-                    decoration: const InputDecoration(
-                      hintText: 'misal, 3,8',
-                      suffixText: 'kg',
-                    ),
-                    validator: (_) {
-                      final w = _weightValue;
-                      if (_weight.text.trim().isEmpty) return 'Wajib diisi';
-                      if (w == null || w <= 0 || w > 20) {
-                        return 'berat antara 0,1 sampai 20 kg';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
       bottomNavigationBar: BottomActionBar(
@@ -170,6 +184,7 @@ class _PhotoPicker extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Column(
+        spacing: AppSpacing.sm,
         children: [
           Stack(
             clipBehavior: Clip.none,
@@ -203,7 +218,6 @@ class _PhotoPicker extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
           Text(
             photo == null ? 'Tambah foto (opsional)' : 'Ketuk untuk mengganti',
             style: Theme.of(context).textTheme.bodySmall,

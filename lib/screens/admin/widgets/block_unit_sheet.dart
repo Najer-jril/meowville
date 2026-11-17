@@ -88,10 +88,10 @@ class _BlockUnitSheetState extends State<_BlockUnitSheet> {
 
     Widget dateField(String label, DateTime value, bool start) => Expanded(
       child: Column(
+        spacing: AppSpacing.sm,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: text.bodyMedium),
-          const SizedBox(height: AppSpacing.sm),
           Material(
             color: AppColors.surfaceAlt,
             borderRadius: BorderRadius.circular(AppRadius.input),
@@ -133,101 +133,127 @@ class _BlockUnitSheetState extends State<_BlockUnitSheet> {
           child: Form(
             key: _formKey,
             child: Column(
+              spacing: AppSpacing.lg,
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SheetHeader(title: 'Blokir unit'),
-                if (_error != null) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: AppColors.dangerSoft,
-                      borderRadius: BorderRadius.circular(AppRadius.input),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: AppColors.danger,
+                Column(
+                  spacing: AppSpacing.md,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SheetHeader(title: 'Blokir unit'),
+                    if (_error != null)
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: AppColors.dangerSoft,
+                          borderRadius: BorderRadius.circular(AppRadius.input),
                         ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            _error!,
-                            style: text.bodyMedium!.copyWith(
+                        child: Row(
+                          spacing: AppSpacing.sm,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
                               color: AppColors.danger,
                             ),
+                            Expanded(
+                              child: Text(
+                                _error!,
+                                style: text.bodyMedium!.copyWith(
+                                  color: AppColors.danger,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                Column(
+                  spacing: AppSpacing.sm,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Unit', style: text.bodyMedium),
+                    DropdownButtonFormField<String>(
+                      initialValue: _unit,
+                      borderRadius: BorderRadius.circular(AppRadius.input),
+                      items: [
+                        for (final u in widget.type.units)
+                          DropdownMenuItem(
+                            value: u,
+                            child: Text('Unit $u (${widget.type.name})'),
                           ),
+                      ],
+                      onChanged: (v) => setState(() {
+                        _unit = v!;
+                        _error = null;
+                      }),
+                    ),
+                  ],
+                ),
+                Column(
+                  spacing: AppSpacing.sm,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      spacing: AppSpacing.md,
+                      children: [
+                        dateField('Tanggal mulai', _start, true),
+                        dateField('Tanggal selesai', _end, false),
+                      ],
+                    ),
+                    Text(
+                      'Tanggal selesai termasuk hari terakhir unit tidak bisa '
+                      'dipakai',
+                      style: text.bodySmall,
+                    ),
+                  ],
+                ),
+                Column(
+                  spacing: AppSpacing.sm,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: Text('Alasan', style: text.bodyMedium)),
+                        Text(
+                          '${_reason.text.length}/100',
+                          style: text.bodySmall,
                         ),
                       ],
                     ),
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.lg),
-                Text('Unit', style: text.bodyMedium),
-                const SizedBox(height: AppSpacing.sm),
-                DropdownButtonFormField<String>(
-                  initialValue: _unit,
-                  borderRadius: BorderRadius.circular(AppRadius.input),
-                  items: [
-                    for (final u in widget.type.units)
-                      DropdownMenuItem(
-                        value: u,
-                        child: Text('Unit $u (${widget.type.name})'),
+                    TextFormField(
+                      controller: _reason,
+                      maxLength: 100,
+                      buildCounter: (
+                        _, {
+                        required currentLength,
+                        required isFocused,
+                        maxLength,
+                      }) => null,
+                      decoration: const InputDecoration(
+                        hintText: 'misal, AC rusak',
                       ),
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? 'Alasan wajib diisi'
+                          : null,
+                    ),
                   ],
-                  onChanged: (v) => setState(() {
-                    _unit = v!;
-                    _error = null;
-                  }),
                 ),
-                const SizedBox(height: AppSpacing.lg),
-                Row(
+                Column(
+                  spacing: AppSpacing.xs,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    dateField('Tanggal mulai', _start, true),
-                    const SizedBox(width: AppSpacing.md),
-                    dateField('Tanggal selesai', _end, false),
+                    FilledButton(
+                      onPressed: _submit,
+                      child: const Text('Simpan Blokir'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Batal'),
+                    ),
                   ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  'Tanggal selesai termasuk hari terakhir unit tidak bisa '
-                  'dipakai',
-                  style: text.bodySmall,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Row(
-                  children: [
-                    Expanded(child: Text('Alasan', style: text.bodyMedium)),
-                    Text('${_reason.text.length}/100', style: text.bodySmall),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                TextFormField(
-                  controller: _reason,
-                  maxLength: 100,
-                  buildCounter: (
-                    _, {
-                    required currentLength,
-                    required isFocused,
-                    maxLength,
-                  }) => null,
-                  decoration: const InputDecoration(hintText: 'misal, AC rusak'),
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Alasan wajib diisi'
-                      : null,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                FilledButton(
-                  onPressed: _submit,
-                  child: const Text('Simpan Blokir'),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Batal'),
                 ),
               ],
             ),

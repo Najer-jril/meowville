@@ -29,16 +29,16 @@ class RoomDetailScreen extends StatelessWidget {
 
     Widget section(IconData icon, String title, Widget child) => AppCard(
       child: Column(
+        spacing: AppSpacing.md,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            spacing: AppSpacing.sm,
             children: [
               Icon(icon, color: AppColors.primary),
-              const SizedBox(width: AppSpacing.sm),
               Text(title, style: heading),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
           child,
         ],
       ),
@@ -46,60 +46,63 @@ class RoomDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: const SubPageAppBar(title: 'Detail Tipe Kamar'),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.page,
           AppSpacing.sm,
           AppSpacing.page,
           AppSpacing.xl,
         ),
-        children: [
-          LayoutBuilder(
-            builder: (_, c) => AppPhoto(
-              type.photo,
-              size: c.maxWidth,
-              height: 220,
-              radius: AppRadius.card,
-              placeholderIcon: Icons.bed_outlined,
+        child: Column(
+          spacing: AppSpacing.lg,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            LayoutBuilder(
+              builder: (_, c) => AppPhoto(
+                type.photo,
+                size: c.maxWidth,
+                height: 220,
+                radius: AppRadius.card,
+                placeholderIcon: Icons.bed_outlined,
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          AppCard(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    type.name,
-                    style: text.headlineMedium!.copyWith(fontSize: 24),
+            AppCard(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      type.name,
+                      style: text.headlineMedium!.copyWith(fontSize: 24),
+                    ),
                   ),
-                ),
-                Text(
-                  Fmt.rupiah(type.price),
-                  style: text.labelLarge!.copyWith(
-                    fontSize: 18,
-                    color: AppColors.primary,
+                  Text(
+                    Fmt.rupiah(type.price),
+                    style: text.labelLarge!.copyWith(
+                      fontSize: 18,
+                      color: AppColors.primary,
+                    ),
                   ),
-                ),
-                Text(' / malam', style: text.bodySmall),
-              ],
+                  Text(' / malam', style: text.bodySmall),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          section(
-            Icons.notes,
-            'Deskripsi',
-            Text(
-              type.description,
-              style: text.bodyLarge!.copyWith(color: AppColors.muted),
+            section(
+              Icons.notes,
+              'Deskripsi',
+              Text(
+                type.description,
+                style: text.bodyLarge!.copyWith(color: AppColors.muted),
+              ),
             ),
-          ),
-          if (type.facilities.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.lg),
-            section(Icons.hotel_outlined, 'Fasilitas', chips(type.facilities)),
+            if (type.facilities.isNotEmpty)
+              section(
+                Icons.hotel_outlined,
+                'Fasilitas',
+                chips(type.facilities),
+              ),
+            section(Icons.card_giftcard, 'Paket bawaan', chips(type.packages)),
           ],
-          const SizedBox(height: AppSpacing.lg),
-          section(Icons.card_giftcard, 'Paket bawaan', chips(type.packages)),
-        ],
+        ),
       ),
       bottomNavigationBar: BottomActionBar(
         child: FilledButton.icon(
