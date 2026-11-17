@@ -26,24 +26,26 @@ class _RoomScreenState extends State<RoomScreen> {
     final text = Theme.of(context).textTheme;
     return Scaffold(
       body: SafeArea(
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
             AppSpacing.xl,
             AppSpacing.page,
             AppSpacing.xl,
           ),
-          children: [
-            Text('Kamar', style: text.headlineLarge),
-            const SizedBox(height: AppSpacing.lg),
-            SegmentedTabs(
-              labels: const ['Tipe Kamar', 'Ketersediaan'],
-              selected: _tab,
-              onChanged: (i) => setState(() => _tab = i),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            if (_tab == 0) const _RoomTypeTab() else const _AvailabilityTab(),
-          ],
+          child: Column(
+            spacing: AppSpacing.lg,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Kamar', style: text.headlineLarge),
+              SegmentedTabs(
+                labels: const ['Tipe Kamar', 'Ketersediaan'],
+                selected: _tab,
+                onChanged: (i) => setState(() => _tab = i),
+              ),
+              if (_tab == 0) const _RoomTypeTab() else const _AvailabilityTab(),
+            ],
+          ),
         ),
       ),
     );
@@ -59,35 +61,37 @@ class _RoomTypeTab extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final types = store.activeRoomTypes;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                '${types.length} tipe kamar',
-                style: text.bodySmall!.copyWith(fontSize: 14),
+    return Padding(
+      padding: types.isEmpty
+          ? EdgeInsets.zero
+          : const EdgeInsets.only(bottom: AppSpacing.lg),
+      child: Column(
+        spacing: AppSpacing.lg,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${types.length} tipe kamar',
+                  style: text.bodySmall!.copyWith(fontSize: 14),
+                ),
               ),
-            ),
-            FilledButton.icon(
-              onPressed: () =>
-                  Navigator.pushNamed(context, AppRoutes.adminRoomTypeForm),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(0, 48),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+              FilledButton.icon(
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.adminRoomTypeForm),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, 48),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                ),
+                icon: const Icon(Icons.add),
+                label: const Text('Tambah'),
               ),
-              icon: const Icon(Icons.add),
-              label: const Text('Tambah'),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        for (final t in types) ...[
-          _RoomTypeCard(type: t),
-          const SizedBox(height: AppSpacing.lg),
+            ],
+          ),
+          for (final t in types) _RoomTypeCard(type: t),
         ],
-      ],
+      ),
     );
   }
 }
@@ -131,19 +135,23 @@ class _RoomTypeCard extends StatelessWidget {
 
     return AppCard(
       child: Column(
+        spacing: AppSpacing.md,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppPhoto(
-                type.photo,
-                size: 88,
-                placeholderIcon: Icons.bed_outlined,
+              Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.lg),
+                child: AppPhoto(
+                  type.photo,
+                  size: 88,
+                  placeholderIcon: Icons.bed_outlined,
+                ),
               ),
-              const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
+                  spacing: AppSpacing.xs,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
@@ -156,7 +164,6 @@ class _RoomTypeCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.xs),
                     Text.rich(
                       TextSpan(
                         children: [
@@ -171,15 +178,14 @@ class _RoomTypeCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.xs),
                     Row(
+                      spacing: AppSpacing.sm,
                       children: [
                         const Icon(
                           Icons.bed_outlined,
                           size: 18,
                           color: AppColors.muted,
                         ),
-                        const SizedBox(width: 6),
                         Flexible(
                           child: Text(
                             '${type.unitCount} unit - kode ${type.prefix}',
@@ -236,7 +242,6 @@ class _RoomTypeCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
           Wrap(
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
@@ -279,67 +284,74 @@ class _AvailabilityTabState extends State<_AvailabilityTab> {
     final type = types[_type];
     final blocks = store.blocksFor(type);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        FilterChipRow(
-          padding: EdgeInsets.zero,
-          labels: [for (final t in types) t.name],
-          selected: _type,
-          onSelected: (i) => setState(() => _type = i),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        AvailabilityCalendar(
-          type: type,
-          month: _month,
-          onMonthChanged: (m) => setState(() => _month = m),
-          onDayTap: (day) => showDayDetailSheet(context, type, day),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Blokir aktif',
-                style: text.titleLarge!.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ),
-            OutlinedButton(
-              onPressed: () => showBlockUnitSheet(context, type),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 44),
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              ),
-              child: const Text('+ Blokir Unit'),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        if (blocks.isEmpty)
-          AppCard(
+    return Padding(
+      padding: blocks.isEmpty
+          ? EdgeInsets.zero
+          : const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Column(
+        spacing: AppSpacing.md,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          FilterChipRow(
+            padding: EdgeInsets.zero,
+            labels: [for (final t in types) t.name],
+            selected: _type,
+            onSelected: (i) => setState(() => _type = i),
+          ),
+          AvailabilityCalendar(
+            type: type,
+            month: _month,
+            onMonthChanged: (m) => setState(() => _month = m),
+            onDayTap: (day) => showDayDetailSheet(context, type, day),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.md),
             child: Row(
               children: [
-                const IconBubble(
-                  icon: Icons.check_circle_outline,
-                  square: true,
-                ),
-                const SizedBox(width: AppSpacing.lg),
                 Expanded(
                   child: Text(
-                    'Tidak ada unit ${type.name} yang diblokir. '
-                    'Semua unit bisa dipesan.',
-                    style: text.bodyMedium!.copyWith(color: AppColors.muted),
+                    'Blokir aktif',
+                    style: text.titleLarge!.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
+                ),
+                OutlinedButton(
+                  onPressed: () => showBlockUnitSheet(context, type),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 44),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                    ),
+                  ),
+                  child: const Text('+ Blokir Unit'),
                 ),
               ],
             ),
-          )
-        else
-          for (final b in blocks) ...[
-            _BlockCard(block: b),
-            const SizedBox(height: AppSpacing.md),
-          ],
-      ],
+          ),
+          if (blocks.isEmpty)
+            AppCard(
+              child: Row(
+                spacing: AppSpacing.lg,
+                children: [
+                  const IconBubble(
+                    icon: Icons.check_circle_outline,
+                    square: true,
+                  ),
+                  Expanded(
+                    child: Text(
+                      'Tidak ada unit ${type.name} yang diblokir. '
+                      'Semua unit bisa dipesan.',
+                      style: text.bodyMedium!.copyWith(color: AppColors.muted),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            for (final b in blocks) _BlockCard(block: b),
+        ],
+      ),
     );
   }
 }
@@ -355,14 +367,16 @@ class _BlockCard extends StatelessWidget {
     return AppCard(
       child: Row(
         children: [
-          const IconBubble(
-            icon: Icons.block,
-            color: AppColors.danger,
-            background: AppColors.dangerSoft,
-            square: true,
-            size: 56,
+          const Padding(
+            padding: EdgeInsets.only(right: AppSpacing.lg),
+            child: IconBubble(
+              icon: Icons.block,
+              color: AppColors.danger,
+              background: AppColors.dangerSoft,
+              square: true,
+              size: 56,
+            ),
           ),
-          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

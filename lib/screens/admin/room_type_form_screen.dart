@@ -70,6 +70,7 @@ class _RoomTypeFormScreenState extends State<RoomTypeFormScreen> {
             AppSpacing.lg,
           ),
           child: Column(
+            spacing: AppSpacing.lg,
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -77,7 +78,6 @@ class _RoomTypeFormScreenState extends State<RoomTypeFormScreen> {
                 title: 'Pilih foto kamar',
                 subtitle: 'Contoh foto dari galeri',
               ),
-              const SizedBox(height: AppSpacing.lg),
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -158,34 +158,39 @@ class _RoomTypeFormScreenState extends State<RoomTypeFormScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
             AppSpacing.sm,
             AppSpacing.page,
             AppSpacing.xl,
           ),
-          children: [
-            AppCard(
-              padding: const EdgeInsets.all(AppSpacing.page),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const FieldLabel('Foto Kamar'),
-                  _PhotoBox(photo: _photo, onTap: _pickPhoto),
-                  const SizedBox(height: AppSpacing.xl),
-                  const FieldLabel('Nama Tipe'),
-                  TextFormField(
+          child: AppCard(
+            padding: const EdgeInsets.all(AppSpacing.page),
+            child: Column(
+              spacing: AppSpacing.xl,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                LabeledField(
+                  label: 'Foto Kamar',
+                  child: _PhotoBox(photo: _photo, onTap: _pickPhoto),
+                ),
+                LabeledField(
+                  label: 'Nama Tipe',
+                  child: TextFormField(
                     controller: _name,
                     textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(hintText: 'misal, Deluxe'),
+                    decoration: const InputDecoration(
+                      hintText: 'misal, Deluxe',
+                    ),
                     validator: (v) => (v == null || v.trim().isEmpty)
                         ? 'Nama tipe wajib diisi'
                         : null,
                   ),
-                  const SizedBox(height: AppSpacing.xl),
-                  const FieldLabel('Kode Awalan Unit'),
-                  TextFormField(
+                ),
+                LabeledField(
+                  label: 'Kode Awalan Unit',
+                  child: TextFormField(
                     controller: _prefix,
                     enabled: !_isEdit,
                     maxLength: 3,
@@ -218,9 +223,11 @@ class _RoomTypeFormScreenState extends State<RoomTypeFormScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: AppSpacing.xl),
-                  FieldLabel('Deskripsi', trailing: '${_desc.text.length}/200'),
-                  TextFormField(
+                ),
+                LabeledField(
+                  label: 'Deskripsi',
+                  trailing: '${_desc.text.length}/200',
+                  child: TextFormField(
                     controller: _desc,
                     minLines: 3,
                     maxLines: 5,
@@ -240,30 +247,29 @@ class _RoomTypeFormScreenState extends State<RoomTypeFormScreen> {
                         ? 'Deskripsi minimal 10 karakter'
                         : null,
                   ),
-                  const SizedBox(height: AppSpacing.xl),
-                  _ChipEditor(
-                    label: 'Fasilitas Kamar',
-                    hint: 'Tambah fasilitas...',
-                    emptyText: 'Belum ada fasilitas ditambahkan',
-                    items: _facilities,
-                    onAdd: () => _addChip(_facilities, 'Tambah fasilitas'),
-                    onRemove: (v) => setState(() => _facilities.remove(v)),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  _ChipEditor(
-                    label: 'Paket Bawaan',
-                    hint: 'Tambah paket...',
-                    emptyText: 'Belum ada paket ditambahkan',
-                    items: _packages,
-                    error: _submitted && _packages.isEmpty
-                        ? 'Tambahkan minimal 1 paket bawaan'
-                        : null,
-                    onAdd: () => _addChip(_packages, 'Tambah paket bawaan'),
-                    onRemove: (v) => setState(() => _packages.remove(v)),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  const FieldLabel('Harga per Malam'),
-                  TextFormField(
+                ),
+                _ChipEditor(
+                  label: 'Fasilitas Kamar',
+                  hint: 'Tambah fasilitas...',
+                  emptyText: 'Belum ada fasilitas ditambahkan',
+                  items: _facilities,
+                  onAdd: () => _addChip(_facilities, 'Tambah fasilitas'),
+                  onRemove: (v) => setState(() => _facilities.remove(v)),
+                ),
+                _ChipEditor(
+                  label: 'Paket Bawaan',
+                  hint: 'Tambah paket...',
+                  emptyText: 'Belum ada paket ditambahkan',
+                  items: _packages,
+                  error: _submitted && _packages.isEmpty
+                      ? 'Tambahkan minimal 1 paket bawaan'
+                      : null,
+                  onAdd: () => _addChip(_packages, 'Tambah paket bawaan'),
+                  onRemove: (v) => setState(() => _packages.remove(v)),
+                ),
+                LabeledField(
+                  label: 'Harga per Malam',
+                  child: TextFormField(
                     controller: _price,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -286,16 +292,17 @@ class _RoomTypeFormScreenState extends State<RoomTypeFormScreen> {
                       return n < 10000 ? 'Harga minimal Rp 10.000' : null;
                     },
                   ),
-                  const SizedBox(height: AppSpacing.xl),
-                  const FieldLabel('Jumlah Unit'),
-                  Row(
+                ),
+                LabeledField(
+                  label: 'Jumlah Unit',
+                  child: Row(
+                    spacing: AppSpacing.lg,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _Stepper(
                         value: _units,
                         onChanged: (v) => setState(() => _units = v),
                       ),
-                      const SizedBox(width: AppSpacing.lg),
                       Flexible(
                         child: Text(
                           codes == null
@@ -307,10 +314,10 @@ class _RoomTypeFormScreenState extends State<RoomTypeFormScreen> {
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       bottomNavigationBar: BottomActionBar(
@@ -409,10 +416,10 @@ class _PhotoBox extends StatelessWidget {
               border: Border.all(color: AppColors.border),
             ),
             child: const Column(
+              spacing: AppSpacing.sm,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconBubble(icon: Icons.photo_camera_outlined, size: 56),
-                SizedBox(height: AppSpacing.sm),
                 Text('Tambah foto', style: TextStyle(color: AppColors.primary)),
               ],
             ),
@@ -446,53 +453,55 @@ class _ChipEditor extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Column(
+      spacing: AppSpacing.sm,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FieldLabel(label),
-        Material(
-          color: AppColors.surfaceAlt,
-          borderRadius: BorderRadius.circular(AppRadius.input),
-          child: InkWell(
-            onTap: onAdd,
+        LabeledField(
+          label: label,
+          child: Material(
+            color: AppColors.surfaceAlt,
             borderRadius: BorderRadius.circular(AppRadius.input),
-            child: Container(
-              height: 56,
-              padding: const EdgeInsets.only(left: AppSpacing.lg, right: 6),
-              decoration: error == null
-                  ? null
-                  : BoxDecoration(
-                      borderRadius: BorderRadius.circular(AppRadius.input),
-                      border: Border.all(color: AppColors.danger, width: 1.5),
-                    ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      hint,
-                      style: text.bodyLarge!.copyWith(color: AppColors.muted),
-                    ),
-                  ),
-                  FilledButton(
-                    onPressed: onAdd,
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 44),
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+            child: InkWell(
+              onTap: onAdd,
+              borderRadius: BorderRadius.circular(AppRadius.input),
+              child: Container(
+                height: 56,
+                padding: const EdgeInsets.only(left: AppSpacing.lg, right: 6),
+                decoration: error == null
+                    ? null
+                    : BoxDecoration(
+                        borderRadius: BorderRadius.circular(AppRadius.input),
+                        border: Border.all(color: AppColors.danger, width: 1.5),
                       ),
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        hint,
+                        style: text.bodyLarge!.copyWith(color: AppColors.muted),
                       ),
                     ),
-                    child: const Text('+ Tambah'),
-                  ),
-                ],
+                    FilledButton(
+                      onPressed: onAdd,
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(0, 44),
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      child: const Text('+ Tambah'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
         if (error != null)
           Text(error!, style: text.bodySmall!.copyWith(color: AppColors.danger))
         else if (items.isEmpty)
@@ -553,8 +562,10 @@ class _Stepper extends StatelessWidget {
             ),
             icon: const Icon(Icons.remove),
           ),
-          SizedBox(
-            width: 48,
+          ConstrainedBox(
+            constraints: const BoxConstraints.tightFor(
+              width: AppSizes.touchTarget,
+            ),
             child: Text(
               '$value',
               textAlign: TextAlign.center,

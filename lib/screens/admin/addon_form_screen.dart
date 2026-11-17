@@ -60,95 +60,111 @@ class _AddonFormScreenState extends State<AddonFormScreen> {
       appBar: SubPageAppBar(title: _isEdit ? 'Edit Layanan' : 'Tambah Layanan'),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
             AppSpacing.sm,
             AppSpacing.page,
             AppSpacing.xl,
           ),
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.spa, color: AppColors.primary, size: 20),
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  'LAYANAN TAMBAHAN',
-                  style: text.labelSmall!.copyWith(
-                    color: AppColors.primary,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Tambahkan layanan khusus untuk memanjakan anabul selama masa '
-              'penitipan di hotel.',
-              style: text.bodyLarge!.copyWith(color: AppColors.muted),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            AppCard(
-              padding: const EdgeInsets.all(AppSpacing.page),
-              child: Column(
+          child: Column(
+            spacing: AppSpacing.xl,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Column(
+                spacing: AppSpacing.xs,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const FieldLabel('Nama Layanan'),
-                  TextFormField(
-                    controller: _name,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                      hintText: 'misal, Grooming Lengkap',
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Nama layanan wajib diisi'
-                        : null,
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  FieldLabel('Deskripsi', trailing: '${_desc.text.length}/100'),
-                  TextFormField(
-                    controller: _desc,
-                    minLines: 3,
-                    maxLines: 4,
-                    maxLength: 100,
-                    buildCounter: (
-                      _, {
-                      required currentLength,
-                      required isFocused,
-                      maxLength,
-                    }) => null,
-                    decoration: const InputDecoration(
-                      hintText: 'Jelaskan layanan singkat',
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Deskripsi wajib diisi'
-                        : null,
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  const FieldLabel('Harga'),
-                  TextFormField(
-                    controller: _price,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(
-                      hintText: '0',
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.only(left: 16, right: 8),
-                        child: Text('Rp', style: text.labelLarge),
+                  Row(
+                    spacing: AppSpacing.sm,
+                    children: [
+                      const Icon(Icons.spa, color: AppColors.primary, size: 20),
+                      Text(
+                        'LAYANAN TAMBAHAN',
+                        style: text.labelSmall!.copyWith(
+                          color: AppColors.primary,
+                          letterSpacing: 1.2,
+                        ),
                       ),
-                      prefixIconConstraints: const BoxConstraints(),
-                      suffixText: '/ pemesanan',
-                      helperText: 'Dikenakan sekali per booking',
-                    ),
-                    validator: (v) {
-                      final n = int.tryParse(v ?? '') ?? 0;
-                      return n < 1000 ? 'Harga minimal Rp 1.000' : null;
-                    },
+                    ],
+                  ),
+                  Text(
+                    'Tambahkan layanan khusus untuk memanjakan anabul selama masa '
+                    'penitipan di hotel.',
+                    style: text.bodyLarge!.copyWith(color: AppColors.muted),
                   ),
                 ],
               ),
-            ),
-          ],
+              AppCard(
+                padding: const EdgeInsets.all(AppSpacing.page),
+                child: Column(
+                  spacing: AppSpacing.xl,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    LabeledField(
+                      label: 'Nama Layanan',
+                      child: TextFormField(
+                        controller: _name,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(
+                          hintText: 'misal, Grooming Lengkap',
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Nama layanan wajib diisi'
+                            : null,
+                      ),
+                    ),
+                    LabeledField(
+                      label: 'Deskripsi',
+                      trailing: '${_desc.text.length}/100',
+                      child: TextFormField(
+                        controller: _desc,
+                        minLines: 3,
+                        maxLines: 4,
+                        maxLength: 100,
+                        buildCounter: (
+                          _, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) => null,
+                        decoration: const InputDecoration(
+                          hintText: 'Jelaskan layanan singkat',
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Deskripsi wajib diisi'
+                            : null,
+                      ),
+                    ),
+                    LabeledField(
+                      label: 'Harga',
+                      child: TextFormField(
+                        controller: _price,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: '0',
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.only(left: 16, right: 8),
+                            child: Text('Rp', style: text.labelLarge),
+                          ),
+                          prefixIconConstraints: const BoxConstraints(),
+                          suffixText: '/ pemesanan',
+                          helperText: 'Dikenakan sekali per booking',
+                        ),
+                        validator: (v) {
+                          final n = int.tryParse(v ?? '') ?? 0;
+                          return n < 1000 ? 'Harga minimal Rp 1.000' : null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: BottomActionBar(

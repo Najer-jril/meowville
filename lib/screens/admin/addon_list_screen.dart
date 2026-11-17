@@ -24,49 +24,49 @@ class AddonListScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: const SubPageAppBar(title: 'Layanan Tambahan'),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.page,
           AppSpacing.sm,
           AppSpacing.page,
           AppSpacing.xl,
         ),
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '$active aktif dan ${items.length - active} nonaktif',
-                  style: text.bodySmall!.copyWith(fontSize: 14),
+        child: Column(
+          spacing: AppSpacing.lg,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '$active aktif dan ${items.length - active} nonaktif',
+                    style: text.bodySmall!.copyWith(fontSize: 14),
+                  ),
                 ),
-              ),
-              FilledButton.icon(
-                onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.adminAddOnForm),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(0, 48),
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                FilledButton.icon(
+                  onPressed: () =>
+                      Navigator.pushNamed(context, AppRoutes.adminAddOnForm),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                  ),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Tambah'),
                 ),
-                icon: const Icon(Icons.add),
-                label: const Text('Tambah'),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          if (items.isEmpty)
-            const EmptyState(
-              icon: Icons.auto_awesome_outlined,
-              title: 'Belum ada layanan',
-              message:
-                  'Tambahkan layanan seperti grooming atau antar '
-                  'jemput.',
-            )
-          else
-            for (final a in items) ...[
-              _AddonCard(addon: a),
-              const SizedBox(height: AppSpacing.lg),
-            ],
-        ],
+              ],
+            ),
+            if (items.isEmpty)
+              const EmptyState(
+                icon: Icons.auto_awesome_outlined,
+                title: 'Belum ada layanan',
+                message:
+                    'Tambahkan layanan seperti grooming atau antar '
+                    'jemput.',
+              )
+            else
+              for (final a in items) _AddonCard(addon: a),
+          ],
+        ),
       ),
     );
   }
@@ -120,9 +120,11 @@ class _AddonCard extends StatelessWidget {
         children: [
           Expanded(
             child: Column(
+              spacing: AppSpacing.sm,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  spacing: AppSpacing.sm,
                   children: [
                     Flexible(
                       child: Text(
@@ -133,23 +135,21 @@ class _AddonCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (off) ...[
-                      const SizedBox(width: AppSpacing.sm),
-                      const StatusBadge.inactive(),
-                    ],
+                    if (off) const StatusBadge.inactive(),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.sm),
                 Text(
                   addon.description,
                   style: text.bodySmall!.copyWith(fontSize: 15),
                 ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  Fmt.rupiah(addon.price),
-                  style: text.bodyLarge!.copyWith(
-                    fontSize: 18,
-                    color: off ? AppColors.muted : AppColors.primary,
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.xs),
+                  child: Text(
+                    Fmt.rupiah(addon.price),
+                    style: text.bodyLarge!.copyWith(
+                      fontSize: 18,
+                      color: off ? AppColors.muted : AppColors.primary,
+                    ),
                   ),
                 ),
               ],
