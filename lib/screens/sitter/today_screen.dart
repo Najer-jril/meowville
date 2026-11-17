@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/data.dart';
+import '../../controllers/daily_report_controller.dart';
+import '../../controllers/reservation_controller.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
 import '../../routes/app_routes.dart';
+import '../../utils/clock.dart';
 
 class SitterTodayScreen extends StatelessWidget {
   const SitterTodayScreen({super.key, required this.actor});
@@ -16,90 +18,107 @@ class SitterTodayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final reservations = context.watch<ReservationController>();
     final text = Theme.of(context).textTheme;
 
-    final checkIns = store.awaitingCheckIn;
-    final staying = store.stayingNotLeaving;
-    final checkOuts = store.dueCheckOut;
+    final checkIns = reservations.awaitingCheckIn;
+    final staying = reservations.stayingNotLeaving;
+    final checkOuts = reservations.dueCheckOut;
     final empty = checkIns.isEmpty && staying.isEmpty && checkOuts.isEmpty;
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.page,
-            AppSpacing.xl,
-            AppSpacing.page,
-            AppSpacing.xl,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Column(
-                spacing: AppSpacing.xs,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Hari Ini', style: text.headlineLarge),
-                  Text(
-                    Fmt.dateLong(store.today),
-                    style: text.bodySmall!.copyWith(fontSize: 15),
-                  ),
-                ],
-              ),
-              if (empty)
-                const EmptyState(
-                  icon: Icons.pets,
-                  title: 'Belum ada yang perlu ditangani',
-                  message:
-                      'Kucing yang akan check-in, menginap, atau '
-                      'check-out akan muncul di sini.',
+        child: RefreshIndicator(
+          onRefresh: () => Future.wait([
+            reservations.load(),
+            context.read<DailyReportController>().load(),
+          ]),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.page,
+              AppSpacing.xl,
+              AppSpacing.page,
+              AppSpacing.xl,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Column(
+                  spacing: AppSpacing.xs,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Hari Ini', style: text.headlineLarge),
+                    Text(
+                      Fmt.dateLong(Clock.today()),
+                      style: text.bodySmall!.copyWith(fontSize: 15),
+                    ),
+                  ],
                 ),
-              if (checkIns.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.xl),
-                  child: _Section(
-                    title: 'Mau check-in',
-                    items: checkIns,
-                    actor: actor,
-                    badge: (r) => r.checkIn.isBefore(store.today)
-                        ? const StatusBadge(
-                            label: 'Terlambat',
-                            style: BadgeStyle(
-                              AppColors.danger,
-                              AppColors.dangerSoft,
+                if (reservations.loading && empty)
+                  const Padding(
+                    padding: EdgeInsets.all(AppSpacing.xl),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (reservations.error != null && empty)
+                  ErrorState(
+                    message: reservations.error!,
+                    onRetry: () => reservations.load(),
+                  )
+                else if (empty)
+                  const EmptyState(
+                    icon: Icons.pets,
+                    title: 'Belum ada yang perlu ditangani',
+                    message:
+                        'Kucing yang akan check-in, menginap, atau '
+                        'check-out akan muncul di sini.',
+                  ),
+                if (checkIns.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.xl),
+                    child: _Section(
+                      title: 'Mau check-in',
+                      items: checkIns,
+                      actor: actor,
+                      badge: (r) => r.checkIn.isBefore(Clock.today())
+                          ? const StatusBadge(
+                              label: 'Terlambat',
+                              style: BadgeStyle(
+                                AppColors.danger,
+                                AppColors.dangerSoft,
+                              ),
+                            )
+                          : const StatusBadge(
+                              label: 'Hari ini',
+                              style: BadgeStyle(
+                                AppColors.primary,
+                                AppColors.primarySoft,
+                              ),
                             ),
-                          )
-                        : const StatusBadge(
-                            label: 'Hari ini',
-                            style: BadgeStyle(
-                              AppColors.primary,
-                              AppColors.primarySoft,
-                            ),
-                          ),
+                    ),
                   ),
-                ),
-              if (staying.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.xl),
-                  child: _Section(
-                    title: 'Lagi Nginap',
-                    items: staying,
-                    actor: actor,
-                    badge: ReportBadge.new,
+                if (staying.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.xl),
+                    child: _Section(
+                      title: 'Lagi Nginap',
+                      items: staying,
+                      actor: actor,
+                      badge: ReportBadge.new,
+                    ),
                   ),
-                ),
-              if (checkOuts.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.xl),
-                  child: _Section(
-                    title: 'Mau check-out',
-                    items: checkOuts,
-                    actor: actor,
-                    badge: ReportBadge.new,
+                if (checkOuts.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.xl),
+                    child: _Section(
+                      title: 'Mau check-out',
+                      items: checkOuts,
+                      actor: actor,
+                      badge: ReportBadge.new,
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -153,7 +172,9 @@ class ReportBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final report = context.watch<AdminStore>().reportToday(reservation);
+    final report = context.watch<DailyReportController>().reportToday(
+      reservation,
+    );
     if (report == null) {
       return const StatusBadge(
         label: 'Belum dilaporkan hari ini',
@@ -162,7 +183,7 @@ class ReportBadge extends StatelessWidget {
     }
     return StatusBadge(
       label:
-          'Dilaporkan ${report.reporter.firstName}, ${Fmt.time(report.time)}',
+          'Dilaporkan ${report.reporter?.firstName ?? 'staff'}, ${Fmt.time(report.time)}',
       style: const BadgeStyle(AppColors.success, AppColors.successSoft),
     );
   }
