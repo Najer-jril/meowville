@@ -16,112 +16,127 @@ class MoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final admin =
-        context.watch<AuthController>().user ??
-        context.read<AdminStore>().currentAdmin;
+    final auth = context.watch<AuthController>();
+    final admin = auth.user ?? context.read<AdminStore>().currentAdmin;
 
     void push(String route, [Object? args]) =>
         Navigator.pushNamed(context, route, arguments: args);
 
     return Scaffold(
       body: SafeArea(
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
             AppSpacing.xl,
             AppSpacing.page,
             AppSpacing.xl,
           ),
-          children: [
-            Text('Lainnya', style: text.headlineLarge),
-            const SizedBox(height: AppSpacing.lg),
-            AppCard(
-              child: Row(
-                children: [
-                  UserAvatar(
-                    initial: admin.initial,
-                    photo: admin.photo,
-                    size: 64,
-                  ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          admin.name,
-                          style: text.titleLarge!.copyWith(fontSize: 20),
-                        ),
-                        Text(
-                          admin.email,
-                          style: text.bodySmall!.copyWith(fontSize: 15),
-                        ),
-                      ],
-                    ),
-                  ),
-                  StatusBadge.role(admin.role.key),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            AppCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  _MenuTile(
-                    icon: Icons.auto_awesome_outlined,
-                    title: 'Layanan Tambahan',
-                    onTap: () => push(AppRoutes.adminAddOnList),
-                  ),
-                  const _Divider(),
-                  _MenuTile(
-                    icon: Icons.group_outlined,
-                    title: 'Akun Pengguna',
-                    onTap: () => push(AppRoutes.adminUserList),
-                  ),
-                  const _Divider(),
-                  _MenuTile(
-                    icon: Icons.bar_chart,
-                    title: 'Laporan Pethotel',
-                    onTap: () => push(AppRoutes.adminReport),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            Text(
-              'Tugas Ke Staff',
-              style: text.titleLarge!.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            const _SitterTaskCard(),
-            const SizedBox(height: AppSpacing.lg),
-            const SessionInfoCard(),
-            const SizedBox(height: AppSpacing.lg),
-            AppCard(
-              padding: EdgeInsets.zero,
-              onTap: () => confirmLogout(context),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.page,
-                  vertical: AppSpacing.page,
-                ),
+          child: Column(
+            spacing: AppSpacing.lg,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Lainnya', style: text.headlineLarge),
+              AppCard(
                 child: Row(
                   children: [
-                    const Icon(Icons.logout, color: AppColors.danger),
-                    const SizedBox(width: AppSpacing.lg),
-                    Text(
-                      'Keluar',
-                      style: text.labelLarge!.copyWith(
-                        fontSize: 18,
-                        color: AppColors.danger,
+                    Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.lg),
+                      child: UserAvatar(
+                        initial: admin.initial,
+                        photo: admin.photo,
+                        size: 64,
                       ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            admin.name,
+                            style: text.titleLarge!.copyWith(fontSize: 20),
+                          ),
+                          Text(
+                            admin.email,
+                            style: text.bodySmall!.copyWith(fontSize: 15),
+                          ),
+                        ],
+                      ),
+                    ),
+                    StatusBadge.role(admin.role.key),
+                  ],
+                ),
+              ),
+              AppCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    _MenuTile(
+                      icon: Icons.auto_awesome_outlined,
+                      title: 'Layanan Tambahan',
+                      onTap: () => push(AppRoutes.adminAddOnList),
+                    ),
+                    const _Divider(),
+                    _MenuTile(
+                      icon: Icons.group_outlined,
+                      title: 'Akun Pengguna',
+                      onTap: () => push(AppRoutes.adminUserList),
+                    ),
+                    const _Divider(),
+                    _MenuTile(
+                      icon: Icons.bar_chart,
+                      title: 'Laporan Pethotel',
+                      onTap: () => push(AppRoutes.adminReport),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
+                child: Column(
+                  spacing: AppSpacing.md,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Tugas Ke Staff',
+                      style: text.titleLarge!.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const _SitterTaskCard(),
+                  ],
+                ),
+              ),
+              if (auth.session case final session? when auth.user != null)
+                SessionInfoCard(
+                  session: session,
+                  user: auth.user!,
+                  remembered: auth.remembered,
+                ),
+              AppCard(
+                padding: EdgeInsets.zero,
+                onTap: () => confirmLogout(context),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.page,
+                    vertical: AppSpacing.page,
+                  ),
+                  child: Row(
+                    spacing: AppSpacing.lg,
+                    children: [
+                      const Icon(Icons.logout, color: AppColors.danger),
+                      Text(
+                        'Keluar',
+                        style: text.labelLarge!.copyWith(
+                          fontSize: 18,
+                          color: AppColors.danger,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -146,12 +161,15 @@ class _SitterTaskCard extends StatelessWidget {
       onTap: () =>
           Navigator.pushNamed(context, AppRoutes.sitterHome, arguments: true),
       child: Column(
+        spacing: AppSpacing.md,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const IconBubble(icon: Icons.pets, size: 48),
-              const SizedBox(width: AppSpacing.lg),
+              const Padding(
+                padding: EdgeInsets.only(right: AppSpacing.lg),
+                child: IconBubble(icon: Icons.pets, size: 48),
+              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,13 +188,11 @@ class _SitterTaskCard extends StatelessWidget {
               const Icon(Icons.chevron_right, color: AppColors.muted),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
           Row(
+            spacing: AppSpacing.sm,
             children: [
               _TaskCount(value: checkIns, label: 'Check-in'),
-              const SizedBox(width: AppSpacing.sm),
               _TaskCount(value: checkOuts, label: 'Check-out'),
-              const SizedBox(width: AppSpacing.sm),
               _TaskCount(
                 value: unreported,
                 label: 'Belum lapor',
@@ -261,8 +277,10 @@ class _MenuTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            IconBubble(icon: icon, size: 48),
-            const SizedBox(width: AppSpacing.lg),
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.lg),
+              child: IconBubble(icon: icon, size: 48),
+            ),
             Expanded(
               child: Text(
                 title,

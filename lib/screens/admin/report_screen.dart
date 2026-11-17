@@ -43,114 +43,127 @@ class _ReportScreenState extends State<ReportScreen> {
 
     return Scaffold(
       appBar: const SubPageAppBar(title: 'Laporan Pethotel'),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.only(
           top: AppSpacing.sm,
           bottom: AppSpacing.xl,
         ),
-        children: [
-          FilterChipRow(
-            labels: _periods,
-            selected: _period,
-            onSelected: (i) => setState(() => _period = i),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.page,
-              AppSpacing.xs,
-              AppSpacing.page,
-              0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            FilterChipRow(
+              labels: _periods,
+              selected: _period,
+              onSelected: (i) => setState(() => _period = i),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  range.start.year == range.end.year
-                      ? '${Fmt.range(range.start, range.end)} ${range.end.year}'
-                      : '${Fmt.date(range.start)} - ${Fmt.date(range.end)}',
-                  style: text.bodySmall!.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                if (data.isEmpty)
-                  EmptyState(
-                    icon: Icons.insert_chart_outlined,
-                    title: 'Belum ada data',
-                    message:
-                        'Tidak ada reservasi dikonfirmasi pada periode '
-                        'ini. Coba pilih periode lain.',
-                  )
-                else ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _Metric(
-                          label: 'Total Omzet',
-                          value: Fmt.rupiah(data.revenue),
-                          highlight: true,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: _Metric(
-                          label: 'Jumlah Booking',
-                          value: '${data.bookings}',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _Metric(
-                          label: 'Rata-rata Durasi Inap',
-                          value:
-                              '${data.avgNights.toStringAsFixed(1).replaceAll('.', ',')} malam',
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: _Metric(
-                          label: 'Tier Terlaris',
-                          value: best!.roomType.name,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.page,
+                AppSpacing.xs,
+                AppSpacing.page,
+                0,
+              ),
+              child: Column(
+                spacing: AppSpacing.lg,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                   Text(
-                    'Per tipe kamar',
-                    style: text.titleLarge!.copyWith(
-                      fontWeight: FontWeight.w700,
+                    range.start.year == range.end.year
+                        ? '${Fmt.range(range.start, range.end)} ${range.end.year}'
+                        : '${Fmt.date(range.start)} - ${Fmt.date(range.end)}',
+                    style: text.bodySmall!.copyWith(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  AppCard(
-                    child: Column(
+                  if (data.isEmpty)
+                    EmptyState(
+                      icon: Icons.insert_chart_outlined,
+                      title: 'Belum ada data',
+                      message:
+                          'Tidak ada reservasi dikonfirmasi pada periode '
+                          'ini. Coba pilih periode lain.',
+                    )
+                  else ...[
+                    Column(
+                      spacing: AppSpacing.md,
                       children: [
-                        for (var i = 0; i < data.rows.length; i++) ...[
-                          if (i > 0) const SizedBox(height: AppSpacing.lg),
-                          _TypeRow(
-                            name: data.rows[i].roomType.name,
-                            bookings: data.rows[i].bookings,
-                            revenue: data.rows[i].revenue,
-                            ratio: maxRevenue == 0
-                                ? 0
-                                : data.rows[i].revenue / maxRevenue,
-                            best: i == 0,
-                          ),
-                        ],
+                        Row(
+                          spacing: AppSpacing.md,
+                          children: [
+                            Expanded(
+                              child: _Metric(
+                                label: 'Total Omzet',
+                                value: Fmt.rupiah(data.revenue),
+                                highlight: true,
+                              ),
+                            ),
+                            Expanded(
+                              child: _Metric(
+                                label: 'Jumlah Booking',
+                                value: '${data.bookings}',
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          spacing: AppSpacing.md,
+                          children: [
+                            Expanded(
+                              child: _Metric(
+                                label: 'Rata-rata Durasi Inap',
+                                value:
+                                    '${data.avgNights.toStringAsFixed(1).replaceAll('.', ',')} malam',
+                              ),
+                            ),
+                            Expanded(
+                              child: _Metric(
+                                label: 'Tier Terlaris',
+                                value: best!.roomType.name,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                  ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: Column(
+                        spacing: AppSpacing.md,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'Per tipe kamar',
+                            style: text.titleLarge!.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          AppCard(
+                            child: Column(
+                              spacing: AppSpacing.lg,
+                              children: [
+                                for (var i = 0; i < data.rows.length; i++)
+                                  _TypeRow(
+                                    name: data.rows[i].roomType.name,
+                                    bookings: data.rows[i].bookings,
+                                    revenue: data.rows[i].revenue,
+                                    ratio: maxRevenue == 0
+                                        ? 0
+                                        : data.rows[i].revenue / maxRevenue,
+                                    best: i == 0,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -171,8 +184,8 @@ class _Metric extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return AppCard(
-      child: SizedBox(
-        height: 84,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints.tightFor(height: AppSizes.metricCard),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,47 +229,51 @@ class _TypeRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Column(
+      spacing: AppSpacing.sm,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Flexible(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      name,
-                      style: text.labelLarge!.copyWith(fontSize: 17),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (best) ...[
-                    const SizedBox(width: AppSpacing.sm),
-                    const StatusBadge(
-                      label: 'Terlaris',
-                      style: BadgeStyle(
-                        AppColors.warning,
-                        AppColors.secondarySoft,
+            Row(
+              spacing: AppSpacing.sm,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Row(
+                    spacing: AppSpacing.sm,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          name,
+                          style: text.labelLarge!.copyWith(fontSize: 17),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
-                ],
-              ),
+                      if (best)
+                        const StatusBadge(
+                          label: 'Terlaris',
+                          style: BadgeStyle(
+                            AppColors.warning,
+                            AppColors.secondarySoft,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Text(
+                  Fmt.rupiah(revenue),
+                  style: text.labelLarge!.copyWith(color: AppColors.primary),
+                ),
+              ],
             ),
-            const SizedBox(width: AppSpacing.sm),
             Text(
-              Fmt.rupiah(revenue),
-              style: text.labelLarge!.copyWith(color: AppColors.primary),
+              '$bookings booking',
+              style: text.bodySmall!.copyWith(fontSize: 14),
             ),
           ],
         ),
-        Text(
-          '$bookings booking',
-          style: text.bodySmall!.copyWith(fontSize: 14),
-        ),
-        const SizedBox(height: AppSpacing.sm),
         ClipRRect(
           borderRadius: BorderRadius.circular(6),
           child: LinearProgressIndicator(

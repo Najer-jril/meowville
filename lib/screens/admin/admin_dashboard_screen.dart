@@ -39,50 +39,57 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.page,
             AppSpacing.xl,
             AppSpacing.page,
             AppSpacing.xl,
           ),
-          children: [
-            // Column(
-            //   spacing: AppSpacing.xs,
-            //   crossAxisAlignment: CrossAxisAlignment.start,
-            //   children: [
-            //     Text('Halo, Admin', style: text.headlineLarge),
-            //     Text(
-            //       '${Fmt.dateLong(store.today)} - '
-            //       '${pending.isEmpty ? 'Tidak ada' : pending.length} '
-            //       'reservasi baru masuk',
-            //       style: text.bodySmall!.copyWith(fontSize: 14),
-            //     ),
-            //   ],
-            // ),
-            Text('Halo, Admin', style: text.headlineLarge),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              '${Fmt.dateLong(store.today)} - '
-              '${pending.isEmpty ? 'Tidak ada' : pending.length} '
-              'reservasi baru masuk',
-              style: text.bodySmall!.copyWith(fontSize: 14),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            SegmentedTabs(
-              labels: [
-                'Semua',
-                'Butuh Respon${pending.isEmpty ? '' : ' (${pending.length})'}',
-              ],
-              selected: _tab,
-              onChanged: (i) => setState(() => _tab = i),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            if (_tab == 0)
-              ..._overview(context)
-            else
-              ..._needsResponse(context, pending),
-          ],
+          child: Column(
+            spacing: AppSpacing.lg,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Column(
+              //   spacing: AppSpacing.xs,
+              //   crossAxisAlignment: CrossAxisAlignment.start,
+              //   children: [
+              //     Text('Halo, Admin', style: text.headlineLarge),
+              //     Text(
+              //       '${Fmt.dateLong(store.today)} - '
+              //       '${pending.isEmpty ? 'Tidak ada' : pending.length} '
+              //       'reservasi baru masuk',
+              //       style: text.bodySmall!.copyWith(fontSize: 14),
+              //     ),
+              //   ],
+              // ),
+              Text('Halo, Admin', style: text.headlineLarge),
+              Text(
+                '${Fmt.dateLong(store.today)} - '
+                '${pending.isEmpty ? 'Tidak ada' : pending.length} '
+                'reservasi baru masuk',
+                style: text.bodySmall!.copyWith(fontSize: 14),
+              ),
+              SegmentedTabs(
+                labels: [
+                  'Semua',
+                  'Butuh Respon${pending.isEmpty ? '' : ' (${pending.length})'}',
+                ],
+                selected: _tab,
+                onChanged: (i) => setState(() => _tab = i),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
+                child: Column(
+                  spacing: AppSpacing.xl,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: _tab == 0
+                      ? _overview(context)
+                      : _needsResponse(context, pending),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -143,22 +150,26 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
         ],
       ),
-      const SizedBox(height: AppSpacing.xl),
-      Text(
-        'Slot Kamar',
-        style: text.titleLarge!.copyWith(fontWeight: FontWeight.w700),
-      ),
-      const SizedBox(height: AppSpacing.md),
-      AppCard(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-        child: Column(
-          children: [
-            for (var i = 0; i < types.length; i++) ...[
-              if (i > 0) const Divider(),
-              _StatsRoomRow(type: types[i]),
-            ],
-          ],
-        ),
+      Column(
+        spacing: AppSpacing.md,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Slot Kamar',
+            style: text.titleLarge!.copyWith(fontWeight: FontWeight.w700),
+          ),
+          AppCard(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Column(
+              children: [
+                for (var i = 0; i < types.length; i++) ...[
+                  if (i > 0) const Divider(),
+                  _StatsRoomRow(type: types[i]),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     ];
   }
@@ -177,19 +188,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
     final text = Theme.of(context).textTheme;
     return [
-      Text(
-        'Perlu keputusan Anda',
-        style: text.titleLarge!.copyWith(fontWeight: FontWeight.w700),
+      Column(
+        spacing: AppSpacing.md,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Perlu keputusan Anda',
+            style: text.titleLarge!.copyWith(fontWeight: FontWeight.w700),
+          ),
+          Column(
+            spacing: AppSpacing.lg,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final r in list)
+                _PendingCard(
+                  reservation: r,
+                  now: _store.now,
+                  onTap: () => _openDetail(r),
+                ),
+            ],
+          ),
+        ],
       ),
-      const SizedBox(height: AppSpacing.md),
-      for (final r in list) ...[
-        _PendingCard(
-          reservation: r,
-          now: _store.now,
-          onTap: () => _openDetail(r),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-      ],
     ];
   }
 }
@@ -210,11 +230,11 @@ class _StatCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Column(
+            spacing: AppSpacing.xs,
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(label, style: text.bodySmall!.copyWith(fontSize: 14)),
-              SizedBox(height: AppSpacing.xs),
               Text(
                 value,
                 style: text.headlineMedium!.copyWith(fontSize: 28, height: 1.1),
@@ -254,38 +274,46 @@ class _StatsRoomRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
       child: Column(
+        spacing: AppSpacing.sm,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(type.name, style: text.labelLarge!.copyWith(fontSize: 17)),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  '${Fmt.rupiah(type.price)} / malam',
-                  style: text.bodySmall,
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.sm),
+                  child: Text(
+                    type.name,
+                    style: text.labelLarge!.copyWith(fontSize: 17),
+                  ),
                 ),
-              ),
-              Text(
-                '${a.occupied} / ${a.units}  ',
-                style: text.bodyMedium!.copyWith(fontSize: 14),
-              ),
-              Text(
-                '$percent%',
-                style: text.bodyMedium!.copyWith(
-                  fontSize: 14,
-                  color: high ? AppColors.warning : AppColors.primary,
+                Expanded(
+                  child: Text(
+                    '${Fmt.rupiah(type.price)} / malam',
+                    style: text.bodySmall,
+                  ),
                 ),
-              ),
-            ],
+                Text(
+                  '${a.occupied} / ${a.units}  ',
+                  style: text.bodyMedium!.copyWith(fontSize: 14),
+                ),
+                Text(
+                  '$percent%',
+                  style: text.bodyMedium!.copyWith(
+                    fontSize: 14,
+                    color: high ? AppColors.warning : AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.md),
           Row(
+            spacing: AppSpacing.xs,
             children: [
-              for (var i = 0; i < a.units; i++) ...[
-                if (i > 0) const SizedBox(width: 6),
+              for (var i = 0; i < a.units; i++)
                 Expanded(
                   child: Container(
                     height: 6,
@@ -297,10 +325,8 @@ class _StatsRoomRow extends StatelessWidget {
                     ),
                   ),
                 ),
-              ],
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
           Text(
             [
               '$ready unit ready',
@@ -334,12 +360,13 @@ class _PendingCard extends StatelessWidget {
     return AppCard(
       onTap: onTap,
       child: Column(
+        spacing: AppSpacing.md,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            spacing: AppSpacing.md,
             children: [
               AppPhoto(r.cat.photo, size: 56, radius: 14),
-              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -359,73 +386,87 @@ class _PendingCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          Text('Pemilik : ${r.owner.name}', style: text.bodyMedium),
-          Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(text: 'Kamar : ${r.roomType.name} - '),
-                TextSpan(
-                  text: 'Unit dipilih ketika diterima',
-                  style: small.copyWith(fontStyle: FontStyle.italic),
-                ),
-              ],
-            ),
-            style: text.bodyMedium,
-          ),
-          Text(
-            '${r.nights} malam dari ${Fmt.range(r.checkIn, r.checkOut)}',
-            style: text.bodyMedium,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Flexible(
-                child: Text(
-                  'Total ${Fmt.rupiah(r.total)}',
-                  style: text.labelLarge!.copyWith(color: AppColors.primary),
+              Text('Pemilik : ${r.owner.name}', style: text.bodyMedium),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: 'Kamar : ${r.roomType.name} - '),
+                    TextSpan(
+                      text: 'Unit dipilih ketika diterima',
+                      style: small.copyWith(fontStyle: FontStyle.italic),
+                    ),
+                  ],
                 ),
+                style: text.bodyMedium,
               ),
-              if (r.paymentProof != null)
-                Flexible(
-                  child: TextButton.icon(
-                    onPressed: () => showPhotoViewer(context, r.paymentProof!),
-                    icon: const Icon(Icons.receipt_long_outlined, size: 18),
-                    label: const Text('Lihat Bukti'),
-                  ),
-                )
-              else
-                Flexible(
-                  child: Text(
-                    'Belum kirim bukti bayar',
-                    textAlign: TextAlign.right,
-                    style: text.bodySmall!.copyWith(color: AppColors.warning),
-                  ),
-                ),
+              Text(
+                '${r.nights} malam dari ${Fmt.range(r.checkIn, r.checkOut)}',
+                style: text.bodyMedium,
+              ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
+          Column(
+            spacing: AppSpacing.sm,
             children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => showRejectSheet(context, r),
-                  style: dangerOutlinedStyle().copyWith(
-                    minimumSize: const WidgetStatePropertyAll(Size(0, 44)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Text(
+                      'Total ${Fmt.rupiah(r.total)}',
+                      style: text.labelLarge!.copyWith(
+                        color: AppColors.primary,
+                      ),
+                    ),
                   ),
-                  child: const Text('Tolak'),
-                ),
+                  if (r.paymentProof != null)
+                    Flexible(
+                      child: TextButton.icon(
+                        onPressed: () =>
+                            showPhotoViewer(context, r.paymentProof!),
+                        icon: const Icon(Icons.receipt_long_outlined, size: 18),
+                        label: const Text('Lihat Bukti'),
+                      ),
+                    )
+                  else
+                    Flexible(
+                      child: Text(
+                        'Belum kirim bukti bayar',
+                        textAlign: TextAlign.right,
+                        style: text.bodySmall!.copyWith(
+                          color: AppColors.warning,
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: FilledButton(
-                  onPressed: r.paymentProof == null
-                      ? null
-                      : () => showApproveSheet(context, r),
-                  style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
-                  child: const Text('Setujui'),
-                ),
+              Row(
+                spacing: AppSpacing.md,
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => showRejectSheet(context, r),
+                      style: dangerOutlinedStyle().copyWith(
+                        minimumSize: const WidgetStatePropertyAll(Size(0, 44)),
+                      ),
+                      child: const Text('Tolak'),
+                    ),
+                  ),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: r.paymentProof == null
+                          ? null
+                          : () => showApproveSheet(context, r),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(0, 44),
+                      ),
+                      child: const Text('Setujui'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
