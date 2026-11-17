@@ -8,19 +8,31 @@ import '../core/session_storage.dart';
 import '../data/models.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
+import '../services/storage_service.dart';
+import '../widgets/app_photo.dart';
 
 class AuthController extends ChangeNotifier {
-  AuthController(this._api, this._auth, this._profiles, this._storage);
+  AuthController(
+    this._api,
+    this._auth,
+    this._profiles,
+    this._storage,
+    this._files,
+  ) {
+    _api.onUnauthorized = refreshNow;
+  }
 
   final ApiClient _api;
   final AuthService _auth;
   final ProfileService _profiles;
   final SessionStorage _storage;
+  final StorageService _files;
 
   Session? _session;
   AppUser? _user;
   bool _remembered = false;
   Timer? _refreshTimer;
+  Future<bool>? _refreshing;
 
   Session? get session => _session;
   AppUser? get user => _user;
@@ -58,8 +70,48 @@ class AuthController extends ChangeNotifier {
     try {
       await _auth.signOut();
     } on Object {
-      //
+      // gagal logout di server diabaikan, data lokal tetap dibersihkan
     }
+    await _clear();
+  }
+
+  Future<void> updateProfile({
+    required String name,
+    required String phone,
+    String? photo,
+  }) async {
+    final url = isLocalPhoto(photo)
+        ? await _files.upload(Buckets.avatars, _user!.id, photo!)
+        : photo;
+    _user = await _profiles.update(
+      _user!.id,
+      name: name,
+      phone: phone,
+      photo: url,
+    );
+    notifyListeners();
+  }
+
+  Future<void> sendResetCode(String email) => _auth.recover(email);
+
+  Future<void> resetPassword(String email, String code, String password) async {
+    final temp = await _auth.verifyRecovery(email, code);
+    _api.accessToken = temp.accessToken;
+    try {
+      await _auth.updatePassword(password);
+      await _auth.signOut();
+    } finally {
+      _api.accessToken = _session?.accessToken;
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    try {
+      await _files.deleteOwnFiles(_user!.id);
+    } on Object {
+      // gagal hapus file diabaikan, akun tetap dihapus
+    }
+    await _profiles.deleteMe();
     await _clear();
   }
 
@@ -90,19 +142,30 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> _refresh() async {
+    if (_session == null) return;
+    if (await refreshNow()) {
+      notifyListeners();
+    } else if (_session != null) {
+      _refreshTimer = Timer(const Duration(seconds: 30), _refresh);
+    }
+  }
+
+  Future<bool> refreshNow() => _refreshing ??= () async {
     final current = _session;
-    if (current == null) return;
+    if (current == null) return false;
     try {
       final next = await _auth.refresh(current.refreshToken);
       _session = next;
       _api.accessToken = next.accessToken;
       if (_remembered) await _storage.save(next);
       _scheduleRefresh();
-      notifyListeners();
+      return true;
     } on Object {
-      _refreshTimer = Timer(const Duration(seconds: 30), _refresh);
+      return false;
+    } finally {
+      _refreshing = null;
     }
-  }
+  }();
 
   Future<void> _clear() async {
     _refreshTimer?.cancel();
