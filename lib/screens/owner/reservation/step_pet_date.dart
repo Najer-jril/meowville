@@ -56,99 +56,115 @@ class StepPetDate extends StatelessWidget {
 
     final cats = store.catsOf(store.currentOwner);
 
-    return ListView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.page,
         AppSpacing.md,
         AppSpacing.page,
         AppSpacing.xl,
       ),
-      children: [
-        Text('Tanggal menginap', style: heading),
-        const SizedBox(height: AppSpacing.md),
-        Row(
-          children: [
-            Expanded(
-              child: _DateField(
-                label: 'Check-in',
-                icon: Icons.login,
-                value: r?.start,
-                onTap: () => _pickRange(context),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: _DateField(
-                label: 'Check-out',
-                icon: Icons.logout,
-                value: r?.end,
-                onTap: () => _pickRange(context),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: r == null
-              ? Text('Minimal 1 malam.', style: text.bodySmall)
-              : StatusBadge(
-                  label: '${r.duration.inDays} malam',
-                  style: const BadgeStyle(
-                    AppColors.primaryDeep,
-                    AppColors.primarySoft,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: Text('Tanggal menginap', style: heading),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: Row(
+              spacing: AppSpacing.md,
+              children: [
+                Expanded(
+                  child: _DateField(
+                    label: 'Check-in',
+                    icon: Icons.login,
+                    value: r?.start,
+                    onTap: () => _pickRange(context),
                   ),
                 ),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        Row(
-          children: [
-            Expanded(child: Text('Pilih kucing', style: heading)),
-            Text('Wajib dipilih', style: text.bodySmall),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        if (cats.isEmpty)
-          AppCard(
-            child: EmptyState(
-              icon: Icons.pets,
-              title: 'Belum ada kucing',
-              message: 'Tambahkan kucing terlebih dahulu.',
-              action: OutlinedButton.icon(
-                onPressed: () => _addCat(context),
-                style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
-                icon: const Icon(Icons.add),
-                label: const Text('Tambah Kucing'),
-              ),
+                Expanded(
+                  child: _DateField(
+                    label: 'Check-out',
+                    icon: Icons.logout,
+                    value: r?.end,
+                    onTap: () => _pickRange(context),
+                  ),
+                ),
+              ],
             ),
-          )
-        else ...[
-          if (r == null)
-            const Padding(
-              padding: EdgeInsets.only(bottom: AppSpacing.md),
-              child: NoticeBox(
-                message: 'Pilih tanggal dulu untuk melihat kucing yang bisa menginap.',
-                color: AppColors.info,
-                background: AppColors.infoSoft,
-              ),
-            ),
-          for (final c in cats) ...[
-            _CatOption(
-              cat: c,
-              selected: c == cat,
-              clash: r == null ? null : store.clashFor(c, r.start, r.end),
-              enabled: r != null,
-              onTap: () => onCatChanged(c),
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-          TextButton.icon(
-            onPressed: () => _addCat(context),
-            icon: const Icon(Icons.add),
-            label: const Text('Tambah kucing baru'),
           ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: r == null
+                ? Text('Minimal 1 malam.', style: text.bodySmall)
+                : StatusBadge(
+                    label: '${r.duration.inDays} malam',
+                    style: const BadgeStyle(
+                      AppColors.primaryDeep,
+                      AppColors.primarySoft,
+                    ),
+                  ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(
+              top: AppSpacing.xl,
+              bottom: AppSpacing.md,
+            ),
+            child: Row(
+              children: [
+                Expanded(child: Text('Pilih kucing', style: heading)),
+                Text('Wajib dipilih', style: text.bodySmall),
+              ],
+            ),
+          ),
+          if (cats.isEmpty)
+            AppCard(
+              child: EmptyState(
+                icon: Icons.pets,
+                title: 'Belum ada kucing',
+                message: 'Tambahkan kucing terlebih dahulu.',
+                action: OutlinedButton.icon(
+                  onPressed: () => _addCat(context),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                  ),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Tambah Kucing'),
+                ),
+              ),
+            )
+          else ...[
+            if (r == null)
+              const Padding(
+                padding: EdgeInsets.only(bottom: AppSpacing.md),
+                child: NoticeBox(
+                  message:
+                      'Pilih tanggal dulu untuk melihat kucing yang bisa '
+                      'menginap.',
+                  color: AppColors.info,
+                  background: AppColors.infoSoft,
+                ),
+              ),
+            for (final c in cats)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: _CatOption(
+                  cat: c,
+                  selected: c == cat,
+                  clash: r == null ? null : store.clashFor(c, r.start, r.end),
+                  enabled: r != null,
+                  onTap: () => onCatChanged(c),
+                ),
+              ),
+            TextButton.icon(
+              onPressed: () => _addCat(context),
+              icon: const Icon(Icons.add),
+              label: const Text('Tambah kucing baru'),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 
@@ -173,33 +189,37 @@ class _DateField extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Column(
+      spacing: AppSpacing.sm,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: text.bodySmall!.copyWith(fontSize: 14)),
-        const SizedBox(height: AppSpacing.sm),
         Material(
           color: AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(AppRadius.input),
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(AppRadius.input),
-            child: SizedBox(
-              height: 56,
-              child: Row(
-                children: [
-                  const SizedBox(width: AppSpacing.md),
-                  Icon(icon, size: 20, color: AppColors.primary),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      value == null ? 'Pilih tanggal' : Fmt.date(value!),
-                      style: value == null
-                          ? text.bodyLarge!.copyWith(color: AppColors.muted)
-                          : text.labelLarge,
-                      overflow: TextOverflow.ellipsis,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints.tightFor(
+                height: AppSizes.fieldLg,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(left: AppSpacing.md),
+                child: Row(
+                  spacing: AppSpacing.sm,
+                  children: [
+                    Icon(icon, size: 20, color: AppColors.primary),
+                    Expanded(
+                      child: Text(
+                        value == null ? 'Pilih tanggal' : Fmt.date(value!),
+                        style: value == null
+                            ? text.bodyLarge!.copyWith(color: AppColors.muted)
+                            : text.labelLarge,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -247,8 +267,10 @@ class _CatOption extends StatelessWidget {
           ),
           child: Row(
             children: [
-              AppPhoto(cat.photo, size: 56, radius: 14),
-              const SizedBox(width: AppSpacing.lg),
+              Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.lg),
+                child: AppPhoto(cat.photo, size: 56, radius: 14),
+              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

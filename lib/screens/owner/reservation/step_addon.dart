@@ -17,28 +17,37 @@ class StepAddon extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final addons = context.watch<AdminStore>().addons.where((a) => a.active);
 
-    return ListView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.page,
         AppSpacing.md,
         AppSpacing.page,
         AppSpacing.xl,
       ),
-      children: [
-        Text(
-          'Opsional. Dikenakan sekali per reservasi.',
-          style: text.bodyMedium!.copyWith(color: AppColors.muted),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        for (final a in addons) ...[
-          _AddonOption(
-            addon: a,
-            selected: selected.contains(a),
-            onTap: () => onToggle(a),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+            child: Text(
+              'Opsional. Dikenakan sekali per reservasi.',
+              style: text.bodyMedium!.copyWith(color: AppColors.muted),
+            ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          Column(
+            spacing: AppSpacing.md,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final a in addons)
+                _AddonOption(
+                  addon: a,
+                  selected: selected.contains(a),
+                  onTap: () => onToggle(a),
+                ),
+            ],
+          ),
         ],
-      ],
+      ),
     );
   }
 }
@@ -92,10 +101,12 @@ class _AddonOption extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                Fmt.rupiah(addon.price),
-                style: text.labelLarge!.copyWith(color: AppColors.primary),
+              Padding(
+                padding: const EdgeInsets.only(left: AppSpacing.sm),
+                child: Text(
+                  Fmt.rupiah(addon.price),
+                  style: text.labelLarge!.copyWith(color: AppColors.primary),
+                ),
               ),
             ],
           ),

@@ -43,84 +43,90 @@ class StepSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
-    return ListView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.page,
         AppSpacing.md,
         AppSpacing.page,
         AppSpacing.xl,
       ),
-      children: [
-        AppCard(
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  AppPhoto(cat.photo, size: 56, radius: 14),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(cat.name, style: text.titleLarge),
-                        Text(
-                          '${cat.breedLabel} - ${cat.weightLabel}',
-                          style: text.bodySmall!.copyWith(fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                  vertical: AppSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceAlt,
-                  borderRadius: BorderRadius.circular(AppRadius.input),
-                ),
-                child: Column(
+      child: Column(
+        spacing: AppSpacing.lg,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppCard(
+            child: Column(
+              spacing: AppSpacing.md,
+              children: [
+                Row(
+                  spacing: AppSpacing.md,
                   children: [
-                    InfoRow('Kamar', type.name),
-                    InfoRow('Check-in', Fmt.dateLong(range.start)),
-                    InfoRow('Check-out', Fmt.dateLong(range.end)),
-                    InfoRow('Durasi', '$_nights malam'),
+                    AppPhoto(cat.photo, size: 56, radius: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(cat.name, style: text.titleLarge),
+                          Text(
+                            '${cat.breedLabel} - ${cat.weightLabel}',
+                            style: text.bodySmall!.copyWith(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-              ),
-            ],
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceAlt,
+                    borderRadius: BorderRadius.circular(AppRadius.input),
+                  ),
+                  child: Column(
+                    children: [
+                      InfoRow('Kamar', type.name),
+                      InfoRow('Check-in', Fmt.dateLong(range.start)),
+                      InfoRow('Check-out', Fmt.dateLong(range.end)),
+                      InfoRow('Durasi', '$_nights malam'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        CostBreakdownCard(type: type, nights: _nights, addons: addons),
-        const SizedBox(height: AppSpacing.lg),
-        BankInfoCard(amount: _total),
-        const SizedBox(height: AppSpacing.lg),
-        if (proof == null) ...[
-          PaymentProofCard(
-            proof: null,
-            status: 'Opsional, bisa diunggah nanti',
-            tone: AppColors.muted,
-            statusIcon: Icons.info_outline,
-            onUpload: () => _upload(context),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          const NoticeBox(
-            message:
-                'Tanpa bukti bayar, kamar ditahan maksimal 24 jam. '
-                'Admin baru bisa menyetujui setelah bukti diunggah.',
-          ),
-        ] else
-          PaymentProofCard(
-            proof: proof,
-            status: 'Siap dikirim',
-            tone: AppColors.success,
-            onUpload: () => _upload(context),
-          ),
-      ],
+          CostBreakdownCard(type: type, nights: _nights, addons: addons),
+          BankInfoCard(amount: _total),
+          if (proof == null)
+            Column(
+              spacing: AppSpacing.md,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                PaymentProofCard(
+                  proof: null,
+                  status: 'Opsional, bisa diunggah nanti',
+                  tone: AppColors.muted,
+                  statusIcon: Icons.info_outline,
+                  onUpload: () => _upload(context),
+                ),
+                const NoticeBox(
+                  message:
+                      'Tanpa bukti bayar, kamar ditahan maksimal 24 jam. '
+                      'Admin baru bisa menyetujui setelah bukti diunggah.',
+                ),
+              ],
+            )
+          else
+            PaymentProofCard(
+              proof: proof,
+              status: 'Siap dikirim',
+              tone: AppColors.success,
+              onUpload: () => _upload(context),
+            ),
+        ],
+      ),
     );
   }
 }

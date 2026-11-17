@@ -21,31 +21,32 @@ class RoomCatalogScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: const SubPageAppBar(title: 'Tipe Kamar'),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.page,
           AppSpacing.sm,
           AppSpacing.page,
           AppSpacing.xl,
         ),
-        children: [
-          Text(
-            'Pilih kamar ternyaman untuk anabul tersayang.',
-            style: text.bodyLarge!.copyWith(color: AppColors.muted),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          for (final t in types) ...[
-            RoomTypeCard(
-              type: t,
-              onTap: () => Navigator.pushNamed(
-                context,
-                AppRoutes.ownerRoomDetail,
-                arguments: t,
-              ),
+        child: Column(
+          spacing: AppSpacing.lg,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Pilih kamar ternyaman untuk anabul tersayang.',
+              style: text.bodyLarge!.copyWith(color: AppColors.muted),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            for (final t in types)
+              RoomTypeCard(
+                type: t,
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.ownerRoomDetail,
+                  arguments: t,
+                ),
+              ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -67,39 +68,43 @@ class RoomTypeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          LayoutBuilder(
-            builder: (_, c) => AppPhoto(
-              type.photo,
-              size: c.maxWidth,
-              height: 160,
-              placeholderIcon: Icons.bed_outlined,
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: LayoutBuilder(
+              builder: (_, c) => AppPhoto(
+                type.photo,
+                size: c.maxWidth,
+                height: 160,
+                placeholderIcon: Icons.bed_outlined,
+              ),
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Expanded(
-                child: Text(
-                  type.name,
-                  style: text.titleLarge!.copyWith(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Expanded(
+                  child: Text(
+                    type.name,
+                    style: text.titleLarge!.copyWith(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              ),
-              Text(
-                Fmt.rupiah(type.price),
-                style: text.labelLarge!.copyWith(
-                  fontSize: 18,
-                  color: AppColors.primary,
+                Text(
+                  Fmt.rupiah(type.price),
+                  style: text.labelLarge!.copyWith(
+                    fontSize: 18,
+                    color: AppColors.primary,
+                  ),
                 ),
-              ),
-              Text(' / malam', style: text.bodySmall),
-            ],
+                Text(' / malam', style: text.bodySmall),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
           Wrap(
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
