@@ -2,13 +2,18 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
+import '../../controllers/auth_controller.dart';
+import '../../core/api_client.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/app_assets.dart';
 import '../../widgets/auth_text_field.dart';
 import '../../widgets/auth_header.dart';
+import '../../widgets/common.dart';
 
 const _resendSeconds = 60;
 
@@ -22,7 +27,11 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
+  final _resetKey = GlobalKey<FormState>();
+  final _code = TextEditingController();
+  final _password = TextEditingController();
   bool _sent = false;
+  bool _busy = false;
   int _secondsLeft = 0;
   Timer? _timer;
 
@@ -30,6 +39,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   void dispose() {
     _timer?.cancel();
     _email.dispose();
+    _code.dispose();
+    _password.dispose();
     super.dispose();
   }
 
@@ -42,16 +53,55 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     });
   }
 
-  void _send() {
-    if (!_formKey.currentState!.validate()) return;
+  Future<bool> _requestCode() async {
+    setState(() => _busy = true);
+    try {
+      await context.read<AuthController>().sendResetCode(_email.text.trim());
+      return true;
+    } on ApiException catch (e) {
+      if (mounted) showSnack(context, e.message);
+      return false;
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
+  Future<void> _send() async {
+    if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
+    if (!await _requestCode() || !mounted) return;
     setState(() => _sent = true);
     _startCountdown();
   }
 
-  void _resend() {
-    _startCountdown();
+  Future<void> _resend() async {
+    if (await _requestCode() && mounted) {
+      showSnack(context, 'Kode baru terkirim');
+      _startCountdown();
+    }
+  }
+
+  Future<void> _reset() async {
+    if (!_resetKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
+    setState(() => _busy = true);
+    try {
+      await context.read<AuthController>().resetPassword(
+        _email.text.trim(),
+        _code.text.trim(),
+        _password.text,
+      );
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Password diperbarui. Silakan masuk.')),
+      );
+    } on ApiException catch (e) {
+      if (mounted) showSnack(context, e.message);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   void _toLogin() {
@@ -158,8 +208,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               overline: 'Lupa kata sandi',
               title: 'Aman, kami bantu',
               body:
-                  'Masukkan email akun Anda. Kami akan mengirim tautan untuk '
-                  'mengatur ulang kata sandi.',
+                  'Masukkan email akun Anda. Kami akan mengirim kode 6 digit '
+                  'untuk mengatur ulang kata sandi.',
             ),
           ],
         ),
@@ -195,14 +245,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       validator: validateEmail,
                     ),
                     FilledButton(
-                      onPressed: _send,
+                      onPressed: _busy ? null : _send,
                       child: const Row(
                         spacing: AppSpacing.sm,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Flexible(
                             child: Text(
-                              'Kirim tautan reset',
+                              'Kirim kode',
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -263,10 +313,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
             const _Heading(
               overline: 'Lupa kata sandi',
-              title: 'Tautan Berhasil Dikirim',
-              body:
-                  'Kami telah mengirimkan instruksi pemulihan ke alamat email '
-                  'Anda.',
+              title: 'Kode Berhasil Dikirim',
+              body: 'Masukkan kode dari email, lalu buat kata sandi baru.',
             ),
           ],
         ),
@@ -292,32 +340,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: Column(
               spacing: AppSpacing.lg,
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: const BoxDecoration(
-                    color: AppColors.surface,
-                    shape: BoxShape.circle,
-                    boxShadow: AppShadows.soft,
-                  ),
-                  child: const Icon(
-                    Icons.check_circle,
-                    size: 28,
-                    color: AppColors.success,
-                  ),
-                ),
-                Column(
-                  spacing: AppSpacing.sm,
-                  children: [
-                    Text('Tautan terkirim', style: text.headlineMedium),
-                    Text(
-                      'Cek kotak masuk email Anda. Jika tidak ada, periksa '
-                      'folder spam.',
-                      textAlign: TextAlign.center,
-                      style: text.bodyLarge,
-                    ),
-                  ],
-                ),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.lg,
@@ -356,28 +378,57 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     spacing: AppSpacing.sm,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      FilledButton(
-                        onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          AppRoutes.login,
-                          (_) => false,
-                        ),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.surface.withValues(
-                            alpha: 0.7,
-                          ),
-                          foregroundColor: AppColors.primary,
-                        ),
-                        child: const Row(
-                          spacing: AppSpacing.sm,
-                          mainAxisAlignment: MainAxisAlignment.center,
+                      Form(
+                        key: _resetKey,
+                        child: Column(
+                          spacing: AppSpacing.lg,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Icon(Icons.arrow_back, size: 20),
-                            Flexible(
-                              child: Text(
-                                'Kembali ke halaman masuk',
-                                overflow: TextOverflow.ellipsis,
+                            TextFormField(
+                              controller: _code,
+                              keyboardType: TextInputType.number,
+                              maxLength: 6,
+                              textAlign: TextAlign.center,
+                              style: text.headlineMedium!.copyWith(
+                                letterSpacing: 8,
                               ),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              decoration: const InputDecoration(
+                                hintText: '000000',
+                                counterText: '',
+                              ),
+                              validator: (v) => (v ?? '').length != 6
+                                  ? 'Masukkan 6 digit kode'
+                                  : null,
+                            ),
+                            AuthTextField(
+                              label: 'Kata sandi baru',
+                              hint: 'Minimal 8 karakter',
+                              icon: Icons.lock_outline,
+                              controller: _password,
+                              obscure: true,
+                              textInputAction: TextInputAction.next,
+                              validator: (v) =>
+                                  validateRequired(v) ??
+                                  (v!.length < 8 ? 'Minimal 8 karakter' : null),
+                            ),
+                            AuthTextField(
+                              label: 'Konfirmasi kata sandi',
+                              hint: 'Ulangi kata sandi baru',
+                              icon: Icons.lock_outline,
+                              obscure: true,
+                              textInputAction: TextInputAction.done,
+                              validator: (v) =>
+                                  validateRequired(v) ??
+                                  (v != _password.text
+                                      ? 'Kata sandi tidak sama'
+                                      : null),
+                            ),
+                            FilledButton(
+                              onPressed: _busy ? null : _reset,
+                              child: const Text('Simpan kata sandi baru'),
                             ),
                           ],
                         ),
@@ -388,7 +439,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         children: [
                           Text('Belum menerima email?', style: caption),
                           TextButton(
-                            onPressed: counting ? null : _resend,
+                            onPressed: counting || _busy ? null : _resend,
                             style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: AppSpacing.xs,

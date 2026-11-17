@@ -77,7 +77,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       final messenger = ScaffoldMessenger.of(context);
       Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
       messenger.showSnackBar(
-        const SnackBar(content: Text('Akun berhasil dibuat. Silakan masuk.')),
+        const SnackBar(
+          content: Text(
+            'Akun dibuat. Jika diminta, verifikasi email dulu sebelum masuk.',
+          ),
+        ),
       );
     } on ApiException catch (e) {
       if (mounted) showSnack(context, e.message);
