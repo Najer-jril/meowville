@@ -7,7 +7,7 @@ import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
-import '../../widgets/session_info_card.dart';
+import '../../widgets/logout_dialog.dart';
 
 class SitterAccountScreen extends StatelessWidget {
   const SitterAccountScreen({super.key, required this.user});
@@ -135,12 +135,6 @@ class SitterAccountScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              if (auth.session case final session? when auth.user != null)
-                SessionInfoCard(
-                  session: session,
-                  user: auth.user!,
-                  remembered: auth.remembered,
-                ),
               AppCard(
                 padding: const EdgeInsets.all(AppSpacing.page),
                 onTap: () => confirmLogout(context),
