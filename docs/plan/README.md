@@ -16,6 +16,8 @@ Rencana kerja dari kondisi sekarang (UI lengkap, data masih dummy di `AdminStore
 | [04-modul-sitter.md](04-modul-sitter.md) | Modul pet sitter (staff): check-in/out dan laporan harian. |
 | [05-flutter-core.md](05-flutter-core.md) | Perubahan inti Flutter: `ApiClient`, model, service, controller, foto, migrasi dari `AdminStore`. |
 | [06-android-playstore.md](06-android-playstore.md) | Manifest, permission, signing, build, dan seluruh isian Play Console. |
+| [07-web-legal.md](07-web-legal.md) | Situs legal `meowville.najer.dev` (privacy, hapus akun, verifikasi email), desain UI, setup SMTP Resend dan Email Routing. |
+| [08-release-signing.md](08-release-signing.md) | Upload keystore, `key.properties`, `build.gradle.kts`, build AAB, verifikasi, Play App Signing. |
 
 ## Temuan yang wajib dibereskan
 
