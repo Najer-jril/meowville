@@ -20,6 +20,7 @@ class AuthController extends ChangeNotifier {
     this._files,
   ) {
     _api.onUnauthorized = refreshNow;
+    _api.onSessionExpired = expire;
   }
 
   final ApiClient _api;
@@ -34,6 +35,9 @@ class AuthController extends ChangeNotifier {
   Timer? _refreshTimer;
   Future<bool>? _refreshing;
 
+  /// dipanggil saat sesi tidak bisa diperpanjang,, diatur di main.dart untuk membersihkan data layar dan kembali ke login
+  VoidCallback? onExpired;
+
   Session? get session => _session;
   AppUser? get user => _user;
   bool get remembered => _remembered;
@@ -46,6 +50,15 @@ class AuthController extends ChangeNotifier {
           ? await _auth.refresh(saved.refreshToken)
           : saved;
       return await _start(session, remember: true);
+    } on ApiException catch (e) {
+      // offline,, simpan sesi supaya bisa dipulihkan saat online lagi.
+      if (e.statusCode == 0) {
+        _session = null;
+        _api.accessToken = null;
+        return null;
+      }
+      await _clear();
+      return null;
     } on Object {
       await _clear();
       return null;
@@ -77,16 +90,16 @@ class AuthController extends ChangeNotifier {
 
   Future<void> updateProfile({
     required String name,
-    required String phone,
     String? photo,
   }) async {
+    final id = _user?.id;
+    if (id == null) throw ApiException(401, 'Sesi berakhir, silakan login ulang');
     final url = isLocalPhoto(photo)
-        ? await _files.upload(Buckets.avatars, _user!.id, photo!)
+        ? await _files.upload(Buckets.avatars, id, photo!)
         : photo;
     _user = await _profiles.update(
-      _user!.id,
+      id,
       name: name,
-      phone: phone,
       photo: url,
     );
     notifyListeners();
@@ -106,11 +119,6 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> deleteAccount() async {
-    try {
-      await _files.deleteOwnFiles(_user!.id);
-    } on Object {
-      // gagal hapus file diabaikan, akun tetap dihapus
-    }
     await _profiles.deleteMe();
     await _clear();
   }
@@ -146,26 +154,51 @@ class AuthController extends ChangeNotifier {
     if (await refreshNow()) {
       notifyListeners();
     } else if (_session != null) {
+      // gagal karena jaringan,, refresh token yang ditolak sudah memanggil expire()
       _refreshTimer = Timer(const Duration(seconds: 30), _refresh);
     }
   }
 
-  Future<bool> refreshNow() => _refreshing ??= () async {
+  /// satu refresh berjalan pada satu waktu; pemanggil lain menunggu hasil yang sama.
+  Future<bool> refreshNow() {
+    final pending = _refreshing;
+    if (pending != null) return pending;
+    final future = _doRefresh();
+    _refreshing = future;
+    future.whenComplete(() {
+      if (identical(_refreshing, future)) _refreshing = null;
+    });
+    return future;
+  }
+
+  Future<bool> _doRefresh() async {
     final current = _session;
     if (current == null) return false;
     try {
       final next = await _auth.refresh(current.refreshToken);
+      // logout atau login ulang terjadi selama refresh,, hasilnya dibuang.
+      if (!identical(_session, current)) return false;
       _session = next;
       _api.accessToken = next.accessToken;
       if (_remembered) await _storage.save(next);
       _scheduleRefresh();
       return true;
+    } on ApiException catch (e) {
+      if (e.statusCode == 400 || e.statusCode == 401) {
+        if (identical(_session, current)) await expire();
+      }
+      return false;
     } on Object {
       return false;
-    } finally {
-      _refreshing = null;
     }
-  }();
+  }
+
+  /// sesi berakhir (refresh token ditolak atau dicabut)
+  Future<void> expire() async {
+    if (_session == null) return;
+    await _clear();
+    onExpired?.call();
+  }
 
   Future<void> _clear() async {
     _refreshTimer?.cancel();
@@ -173,6 +206,7 @@ class AuthController extends ChangeNotifier {
     _user = null;
     _remembered = false;
     _api.accessToken = null;
+    _files.clearCache();
     await _storage.clear();
     notifyListeners();
   }

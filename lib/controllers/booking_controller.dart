@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import '../core/api_client.dart';
+
 import '../data/models.dart';
 import '../services/reservation_service.dart';
 import '../services/storage_service.dart';
@@ -16,6 +18,9 @@ class BookingController extends ChangeNotifier with LoadState {
   final RoomController _rooms;
 
   String? _ownerId;
+
+  /// Aksi setelah logout atau sesi direset ditolak, bukan crash.
+  String get _owner => _ownerId ?? (throw ApiException(401, 'Sesi berakhir, silakan login ulang'));
   List<Reservation> _reservations = [];
   Map<int, int> _remaining = {};
   bool _checkingRemaining = false;
@@ -29,7 +34,7 @@ class BookingController extends ChangeNotifier with LoadState {
 
   Future<void> load([String? ownerId]) => runLoad(() async {
     _ownerId = ownerId ?? _ownerId;
-    _reservations = await _service.fetchMine(_ownerId!);
+    _reservations = await _service.fetchMine(_owner);
   });
 
   Reservation? activeFor(Cat cat) {
@@ -74,7 +79,7 @@ class BookingController extends ChangeNotifier with LoadState {
     String? proof,
   }) async {
     final proofPath = isLocalPhoto(proof)
-        ? await _storage.upload(Buckets.proofs, _ownerId!, proof!)
+        ? await _storage.upload(Buckets.proofs, _owner, proof!)
         : proof;
     final id = await _service.create(
       catId: cat.id,
@@ -86,11 +91,15 @@ class BookingController extends ChangeNotifier with LoadState {
     );
     await load();
     _rooms.refreshAvailability();
-    return _reservations.firstWhere((r) => r.id == id);
+    
+    for (final r in _reservations) {
+      if (r.id == id) return r;
+    }
+    return _service.fetchById(id);
   }
 
   Future<void> uploadProof(Reservation r, String localPath) async {
-    final path = await _storage.upload(Buckets.proofs, _ownerId!, localPath);
+    final path = await _storage.upload(Buckets.proofs, _owner, localPath);
     await _service.uploadProof(r.id, path);
     await load();
   }

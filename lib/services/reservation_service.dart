@@ -15,12 +15,20 @@ class ReservationService {
     '/rest/v1/reservations?select=${Reservation.select}&order=created_at.desc',
   );
 
+  Future<Reservation> fetchById(int id) async {
+    final rows = await _fetch(
+      '/rest/v1/reservations?select=${Reservation.select}&id=eq.$id',
+    );
+    if (rows.isEmpty) throw ApiException(404, 'Reservasi tidak ditemukan');
+    return rows.first;
+  }
+
   Future<List<Reservation>> _fetch(String path) async {
     final rows = await _api.get(path);
     return [for (final row in rows as List) Reservation.fromJson(row)];
   }
 
-  /// Mengembalikan id reservasi baru.
+  /// reeturn id reservasi baru.
   Future<int> create({
     required int catId,
     required int typeId,

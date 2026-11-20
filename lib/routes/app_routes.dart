@@ -41,7 +41,8 @@ import '../screens/splash_screen.dart';
 class AppRoutes {
   AppRoutes._();
 
-  static const splash = '/splash';
+  // '/' supaya Flutter tidak mendorong route '/' (404) di bawah splash.
+  static const splash = '/';
   static const login = '/login';
   static const register = '/register';
   static const forgotPassword = '/forgot-password';

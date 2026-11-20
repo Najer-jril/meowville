@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -21,6 +22,11 @@ class ApiClient {
 
   /// update sesi setelah dapat 401. return true kalau request layak diulang.
   Future<bool> Function()? onUnauthorized;
+
+  /// dipake saat request tetap 401 setelah refresh gagal: sesi sudah tidak berlaku dan user harus login ulang.
+  void Function()? onSessionExpired;
+
+  static const _timeout = Duration(seconds: 20);
 
   Map<String, String> _headers(Map<String, String>? extra) => {
     'apikey': Env.supabaseKey,
@@ -93,7 +99,8 @@ class ApiClient {
       '${Env.supabaseUrl}/storage/v1/object/public/$bucket/$path';
 
   Future<String> signedUrl(String bucket, String path) async {
-    final json = await post('/storage/v1/object/sign/$bucket/$path', {
+    final encoded = path.split('/').map(Uri.encodeComponent).join('/');
+    final json = await post('/storage/v1/object/sign/$bucket/$encoded', {
       'expiresIn': 3600,
     });
     return '${Env.supabaseUrl}/storage/v1${json['signedURL']}';
@@ -101,25 +108,40 @@ class ApiClient {
 
   Future<dynamic> _send(Future<http.Response> Function() request) async {
     try {
-      var res = await request();
-      if (res.statusCode == 401 &&
-          accessToken != null &&
-          await (onUnauthorized?.call() ?? Future.value(false))) {
-        res = await request();
+      var res = await request().timeout(_timeout);
+      if (res.statusCode == 401 && accessToken != null) {
+        if (await (onUnauthorized?.call() ?? Future.value(false))) {
+          res = await request().timeout(_timeout);
+        }
+        if (res.statusCode == 401 && accessToken != null) {
+          onSessionExpired?.call();
+        }
       }
       return _decode(res);
     } on SocketException {
       throw ApiException(0, 'Tidak ada koneksi internet');
+    } on TimeoutException {
+      throw ApiException(0, 'Koneksi lambat. Coba lagi.');
     } on http.ClientException catch (e) {
       if (e.message.contains('Failed host lookup')) {
         throw ApiException(0, 'Tidak ada koneksi internet');
       }
-      rethrow;
+      throw ApiException(0, 'Tidak dapat terhubung ke server');
     }
   }
 
   dynamic _decode(http.Response res) {
-    final body = res.body.isEmpty ? null : jsonDecode(res.body);
+    Object? body;
+    try {
+      body = res.body.isEmpty ? null : jsonDecode(res.body);
+    } on FormatException {
+      throw ApiException(
+        res.statusCode,
+        res.statusCode >= 500
+            ? 'Server sedang bermasalah. Coba lagi beberapa saat.'
+            : 'Respons server tidak valid',
+      );
+    }
     if (res.statusCode >= 300) {
       throw ApiException(res.statusCode, _errorMessage(body, res));
     }

@@ -17,6 +17,9 @@ class RoomController extends ChangeNotifier with LoadState {
   final StorageService _storage;
 
   String? _userId;
+
+  /// Aksi setelah logout atau sesi direset ditolak, bukan crash.
+  String get _user => _userId ?? (throw ApiException(401, 'Sesi berakhir, silakan login ulang'));
   List<RoomType> _types = [];
   List<UnitBlock> _blocks = [];
   final Map<String, DayAvailability> _availability = {};
@@ -41,7 +44,7 @@ class RoomController extends ChangeNotifier with LoadState {
 
   Future<void> save(RoomType draft, {RoomType? existing}) async {
     final photo = isLocalPhoto(draft.photo)
-        ? await _storage.upload(Buckets.rooms, _userId!, draft.photo!)
+        ? await _storage.upload(Buckets.rooms, _user, draft.photo!)
         : draft.photo;
     final type = draft.copyWith(photo: photo);
     if (existing == null) {
