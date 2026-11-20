@@ -1,6 +1,3 @@
--- Hanya untuk project dev. Akun dummy dengan password password123.
--- Jalankan setelah migrations 001 sampai 005.
-
 do $$
 declare
   seed_email text;
@@ -38,11 +35,11 @@ begin
   end loop;
 end $$;
 
-update public.profiles p set name = s.name, phone = s.phone, role = s.role
+update public.profiles p set name = s.name, role = s.role
 from (values
-  ('admin@gmail.com', 'Admin Meowville', '0811-0000-1111', 'admin'),
-  ('nazeril.sitter@gmail.com', 'Nazeril Uzumaki', '0821-5566-7788', 'sitter'),
-  ('nazril.ilham@gmail.com', 'Nazril Ilham', '0812-3456-7890', 'owner'),
-  ('najer.pinkman@gmail.com', 'Najer Pinkman', '0857-1122-3344', 'owner')
-) as s(email, name, phone, role)
+  ('admin@gmail.com', 'Admin Meowville', 'admin'),
+  ('nazeril.sitter@gmail.com', 'Nazeril Uzumaki', 'sitter'),
+  ('nazril.ilham@gmail.com', 'Nazril Ilham', 'owner'),
+  ('najer.pinkman@gmail.com', 'Najer Pinkman', 'owner')
+) as s(email, name, role)
 where p.email = s.email;
