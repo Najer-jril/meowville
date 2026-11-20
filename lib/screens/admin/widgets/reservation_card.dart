@@ -28,6 +28,11 @@ class ReservationCard extends StatelessWidget {
         r.status == ReservationStatus.rejected ||
         r.status == ReservationStatus.cancelled;
 
+    // Dengan font besar, badge pindah ke bawah nama supaya nama tidak
+    // terpotong per huruf di kolom yang sempit.
+    final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
+    final badge = StatusBadge.booking(r.status.key);
+
     return AppCard(
       onTap: onTap,
       child: Column(
@@ -50,7 +55,16 @@ class ReservationCard extends StatelessWidget {
                       style: text.titleLarge!.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    if (largeText)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.xs,
+                        ),
+                        child: badge,
+                      ),
                     for (final line in [
                       r.cat.breedLabel,
                       'Owner: ${r.owner.name}',
@@ -64,10 +78,11 @@ class ReservationCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: AppSpacing.sm),
-                child: StatusBadge.booking(r.status.key),
-              ),
+              if (!largeText)
+                Padding(
+                  padding: const EdgeInsets.only(left: AppSpacing.sm),
+                  child: badge,
+                ),
             ],
           ),
           Text.rich(

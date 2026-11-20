@@ -230,25 +230,6 @@ class _UserCard extends StatelessWidget {
                       style: text.bodySmall!.copyWith(fontSize: 15),
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.xs),
-                      child: Row(
-                        spacing: AppSpacing.sm,
-                        children: [
-                          const Icon(
-                            Icons.call_outlined,
-                            size: 16,
-                            color: AppColors.muted,
-                          ),
-                          Flexible(
-                            child: Text(
-                              user.phone,
-                              style: text.bodySmall!.copyWith(fontSize: 15),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),

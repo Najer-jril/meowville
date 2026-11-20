@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/data.dart';
+import '../../../controllers/room_controller.dart';
 import '../../../data/models.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/format.dart';
 import '../../../widgets/common.dart';
+import '../../../utils/clock.dart';
 
 BadgeStyle _remainingStyle(int remaining) {
   if (remaining == 0) {
@@ -35,14 +36,14 @@ class AvailabilityCalendar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final rooms = context.watch<RoomController>();
     final text = Theme.of(context).textTheme;
     final first = DateTime(month.year, month.month);
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     final lead = first.weekday - 1;
     final cells = lead + daysInMonth;
     final rows = (cells / 7).ceil();
-    final thisMonth = DateTime(store.today.year, store.today.month);
+    final thisMonth = DateTime(Clock.today().year, Clock.today().month);
 
     Widget navButton(IconData icon, String tip, VoidCallback? onTap) =>
         IconButton.filledTonal(
@@ -117,7 +118,7 @@ class AvailabilityCalendar extends StatelessWidget {
                   Expanded(
                     child: _cell(
                       context,
-                      store,
+                      rooms,
                       row * 7 + col - lead + 1,
                       daysInMonth,
                     ),
@@ -142,7 +143,7 @@ class AvailabilityCalendar extends StatelessWidget {
 
   Widget _cell(
     BuildContext context,
-    AdminStore store,
+    RoomController rooms,
     int day,
     int daysInMonth,
   ) {
@@ -154,9 +155,9 @@ class AvailabilityCalendar extends StatelessWidget {
       );
     }
     final date = DateTime(month.year, month.month, day);
-    final past = date.isBefore(store.today);
-    final isToday = date == store.today;
-    final remaining = past ? null : store.availability(type, date).remaining;
+    final past = date.isBefore(Clock.today());
+    final isToday = date == Clock.today();
+    final remaining = past ? null : rooms.availability(type, date).remaining;
     final style = remaining == null ? null : _remainingStyle(remaining);
 
     return InkWell(
@@ -247,7 +248,7 @@ Future<void> showDayDetailSheet(
   RoomType type,
   DateTime day,
 ) {
-  final a = context.read<AdminStore>().availability(type, day);
+  final a = context.read<RoomController>().availability(type, day);
   final style = _remainingStyle(a.remaining);
 
   return showModalBottomSheet<void>(

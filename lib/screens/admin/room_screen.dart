@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/data.dart';
+import '../../controllers/reservation_controller.dart';
+import '../../controllers/room_controller.dart';
+import '../../core/api_client.dart';
 import '../../data/models.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
@@ -10,6 +12,7 @@ import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
 import 'widgets/availability_calendar.dart';
 import 'widgets/block_unit_sheet.dart';
+import '../../utils/clock.dart';
 
 class RoomScreen extends StatefulWidget {
   const RoomScreen({super.key});
@@ -26,25 +29,36 @@ class _RoomScreenState extends State<RoomScreen> {
     final text = Theme.of(context).textTheme;
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.page,
-            AppSpacing.xl,
-            AppSpacing.page,
-            AppSpacing.xl,
-          ),
-          child: Column(
-            spacing: AppSpacing.lg,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('Kamar', style: text.headlineLarge),
-              SegmentedTabs(
-                labels: const ['Tipe Kamar', 'Ketersediaan'],
-                selected: _tab,
-                onChanged: (i) => setState(() => _tab = i),
-              ),
-              if (_tab == 0) const _RoomTypeTab() else const _AvailabilityTab(),
-            ],
+        child: RefreshIndicator(
+          onRefresh: () async {
+            final rooms = context.read<RoomController>();
+            await rooms.load(withBlocks: true);
+            await rooms.refreshAvailability();
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.page,
+              AppSpacing.xl,
+              AppSpacing.page,
+              AppSpacing.xl,
+            ),
+            child: Column(
+              spacing: AppSpacing.lg,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Kamar', style: text.headlineLarge),
+                SegmentedTabs(
+                  labels: const ['Tipe Kamar', 'Ketersediaan'],
+                  selected: _tab,
+                  onChanged: (i) => setState(() => _tab = i),
+                ),
+                if (_tab == 0)
+                  const _RoomTypeTab()
+                else
+                  const _AvailabilityTab(),
+              ],
+            ),
           ),
         ),
       ),
@@ -57,9 +71,19 @@ class _RoomTypeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final rooms = context.watch<RoomController>();
     final text = Theme.of(context).textTheme;
-    final types = store.activeRoomTypes;
+    final types = rooms.active;
+
+    if (rooms.loading && types.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (rooms.error != null && types.isEmpty) {
+      return ErrorState(
+        message: rooms.error!,
+        onRetry: () => rooms.load(withBlocks: true),
+      );
+    }
 
     return Padding(
       padding: types.isEmpty
@@ -101,31 +125,36 @@ class _RoomTypeCard extends StatelessWidget {
 
   final RoomType type;
 
-  Future<void> _delete(BuildContext context) async {
-    final store = context.read<AdminStore>();
-    final count = store.activeReservationCount(type);
-    if (count > 0) {
-      return showInfoDialog(
+  Future<void> _delete(BuildContext context) => runOnce(
+    ('delete-room-type', type.id),
+    () async {
+      final count = context.read<ReservationController>().activeCountFor(type);
+      if (count > 0) {
+        return showInfoDialog(
+          context,
+          title: 'Belum bisa dihapus',
+          message: 'Masih ada $count reservasi aktif untuk tipe ini.',
+        );
+      }
+      final ok = await showConfirmDialog(
         context,
-        title: 'Belum bisa dihapus',
-        message: 'Masih ada $count reservasi aktif untuk tipe ini.',
+        title: 'Hapus tipe ${type.name}?',
+        message:
+            'Tipe ini hilang dari katalog dan tidak bisa dipesan lagi. '
+            'Riwayat reservasi yang sudah ada tidak berubah.',
+        confirmLabel: 'Hapus',
+        destructive: true,
+        icon: Icons.delete_outline,
       );
-    }
-    final ok = await showConfirmDialog(
-      context,
-      title: 'Hapus tipe ${type.name}?',
-      message:
-          'Tipe ini hilang dari katalog dan tidak bisa dipesan lagi. '
-          'Riwayat reservasi yang sudah ada tidak berubah.',
-      confirmLabel: 'Hapus',
-      destructive: true,
-      icon: Icons.delete_outline,
-    );
-    if (ok) {
-      store.setRoomTypeActive(type, false);
-      if (context.mounted) showSnack(context, 'Tipe ${type.name} dihapus');
-    }
-  }
+      if (!ok || !context.mounted) return;
+      try {
+        await context.read<RoomController>().setActive(type, false);
+        if (context.mounted) showSnack(context, 'Tipe ${type.name} dihapus');
+      } on ApiException catch (e) {
+        if (context.mounted) showSnack(context, e.message);
+      }
+    },
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -264,15 +293,30 @@ class _AvailabilityTab extends StatefulWidget {
 }
 
 class _AvailabilityTabState extends State<_AvailabilityTab> {
-  AdminStore get _store => context.read<AdminStore>();
   int _type = 0;
-  late DateTime _month = DateTime(_store.today.year, _store.today.month);
+  late DateTime _month = DateTime(Clock.today().year, Clock.today().month);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMonth(_month);
+  }
+
+  /// termasuk hari dari bulan sebelum dan sesudah yang ikut tampil di grid
+  void _loadMonth(DateTime month) {
+    final first = DateTime(month.year, month.month);
+    final last = DateTime(month.year, month.month + 1, 0);
+    context.read<RoomController>().loadAvailability(
+      first.subtract(const Duration(days: 6)),
+      last.add(const Duration(days: 6)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final rooms = context.watch<RoomController>();
     final text = Theme.of(context).textTheme;
-    final types = store.activeRoomTypes;
+    final types = rooms.active;
     if (types.isEmpty) {
       return const EmptyState(
         icon: Icons.bed_outlined,
@@ -282,7 +326,7 @@ class _AvailabilityTabState extends State<_AvailabilityTab> {
     }
     if (_type >= types.length) _type = 0;
     final type = types[_type];
-    final blocks = store.blocksFor(type);
+    final blocks = rooms.blocksFor(type);
 
     return Padding(
       padding: blocks.isEmpty
@@ -301,7 +345,10 @@ class _AvailabilityTabState extends State<_AvailabilityTab> {
           AvailabilityCalendar(
             type: type,
             month: _month,
-            onMonthChanged: (m) => setState(() => _month = m),
+            onMonthChanged: (m) {
+              setState(() => _month = m);
+              _loadMonth(m);
+            },
             onDayTap: (day) => showDayDetailSheet(context, type, day),
           ),
           Padding(
@@ -395,8 +442,8 @@ class _BlockCard extends StatelessWidget {
           IconButton(
             tooltip: 'Hapus blokir',
             icon: const Icon(Icons.delete_outline, color: AppColors.muted),
-            onPressed: () async {
-              final store = context.read<AdminStore>();
+            onPressed: () => runOnce(('remove-block', block.id), () async {
+              final rooms = context.read<RoomController>();
               final ok = await showConfirmDialog(
                 context,
                 title: 'Hapus blokir?',
@@ -407,11 +454,14 @@ class _BlockCard extends StatelessWidget {
                 destructive: true,
                 icon: Icons.delete_outline,
               );
-              if (ok) {
-                store.removeBlock(block);
+              if (!ok) return;
+              try {
+                await rooms.removeBlock(block);
                 if (context.mounted) showSnack(context, 'Blokir dihapus');
+              } on ApiException catch (e) {
+                if (context.mounted) showSnack(context, e.message);
               }
-            },
+            }),
           ),
         ],
       ),

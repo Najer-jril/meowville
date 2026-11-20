@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/data.dart';
+import '../../controllers/daily_report_controller.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
+import '../../utils/clock.dart';
 
 class ReportHistoryScreen extends StatelessWidget {
   const ReportHistoryScreen({super.key});
@@ -20,62 +21,71 @@ class ReportHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final reports = context.watch<DailyReportController>();
     final text = Theme.of(context).textTheme;
 
     final groups = <DateTime, List<DailyReport>>{};
-    for (final d in store.reportHistory) {
+    for (final d in reports.history) {
       final day = DateTime(d.time.year, d.time.month, d.time.day);
       groups.putIfAbsent(day, () => []).add(d);
     }
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.page,
-            AppSpacing.xl,
-            AppSpacing.page,
-            AppSpacing.xl,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Column(
-                spacing: AppSpacing.xs,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Riwayat', style: text.headlineLarge),
-                  Text(
-                    'Laporan semua pet sitter',
-                    style: text.bodySmall!.copyWith(fontSize: 15),
-                  ),
-                ],
-              ),
-              if (groups.isEmpty)
-                const EmptyState(
-                  icon: Icons.assignment_outlined,
-                  title: 'Belum ada laporan',
-                  message:
-                      'Laporan harian yang dikirim pet sitter akan '
-                      'muncul di sini.',
+        child: RefreshIndicator(
+          onRefresh: () => reports.load(),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.page,
+              AppSpacing.xl,
+              AppSpacing.page,
+              AppSpacing.xl,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Column(
+                  spacing: AppSpacing.xs,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Riwayat', style: text.headlineLarge),
+                    Text(
+                      'Laporan semua pet sitter',
+                      style: text.bodySmall!.copyWith(fontSize: 15),
+                    ),
+                  ],
                 ),
-              for (final e in groups.entries)
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.xl),
-                  child: Column(
-                    spacing: AppSpacing.md,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        _dayLabel(e.key, store.today),
-                        style: text.labelLarge,
-                      ),
-                      for (final d in e.value) _ReportCard(report: d),
-                    ],
+                if (reports.error != null && groups.isEmpty)
+                  ErrorState(
+                    message: reports.error!,
+                    onRetry: () => reports.load(),
+                  )
+                else if (groups.isEmpty)
+                  const EmptyState(
+                    icon: Icons.assignment_outlined,
+                    title: 'Belum ada laporan',
+                    message:
+                        'Laporan harian yang dikirim pet sitter akan '
+                        'muncul di sini.',
                   ),
-                ),
-            ],
+                for (final e in groups.entries)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.xl),
+                    child: Column(
+                      spacing: AppSpacing.md,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          _dayLabel(e.key, Clock.today()),
+                          style: text.labelLarge,
+                        ),
+                        for (final d in e.value) _ReportCard(report: d),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -106,7 +116,7 @@ class _ReportCard extends StatelessWidget {
               children: [
                 Text(cat.name, style: text.titleLarge),
                 Text(
-                  '${report.reporter.firstName} - ${Fmt.time(report.time)}',
+                  '${report.reporterFirstName} - ${Fmt.time(report.time)}',
                   style: text.bodySmall!.copyWith(fontSize: 14),
                 ),
               ],
@@ -180,7 +190,7 @@ Future<void> showReportDetailSheet(BuildContext context, DailyReport report) {
                   ],
                 ),
               ),
-              row('Pelapor', strong(report.reporter.name)),
+              row('Pelapor', strong(report.reporterFullName)),
               row(
                 'Waktu',
                 strong('${Fmt.date(report.time)}, ${Fmt.time(report.time)}'),

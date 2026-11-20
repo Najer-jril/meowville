@@ -3,12 +3,14 @@ import 'package:provider/provider.dart';
 
 import '../../../routes/app_routes.dart';
 
-import '../../../data/data.dart';
+import '../../../controllers/booking_controller.dart';
+import '../../../controllers/pet_controller.dart';
 import '../../../data/models.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/format.dart';
 import '../../../widgets/app_photo.dart';
 import '../../../widgets/common.dart';
+import '../../../utils/clock.dart';
 
 class StepPetDate extends StatelessWidget {
   const StepPetDate({
@@ -25,7 +27,7 @@ class StepPetDate extends StatelessWidget {
   final ValueChanged<Cat> onCatChanged;
 
   Future<void> _pickRange(BuildContext context) async {
-    final today = context.read<AdminStore>().today;
+    final today = Clock.today();
     final picked = await showDateRangePicker(
       context: context,
       firstDate: today,
@@ -49,12 +51,13 @@ class StepPetDate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final booking = context.watch<BookingController>();
     final text = Theme.of(context).textTheme;
     final heading = text.titleLarge!.copyWith(fontWeight: FontWeight.w700);
     final r = range;
 
-    final cats = store.catsOf(store.currentOwner);
+    final pets = context.watch<PetController>();
+    final cats = pets.cats;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
@@ -118,7 +121,14 @@ class StepPetDate extends StatelessWidget {
               ],
             ),
           ),
-          if (cats.isEmpty)
+          if (pets.error != null && cats.isEmpty)
+            AppCard(
+              child: ErrorState(
+                message: pets.error!,
+                onRetry: () => pets.load(),
+              ),
+            )
+          else if (cats.isEmpty)
             AppCard(
               child: EmptyState(
                 icon: Icons.pets,
@@ -152,7 +162,7 @@ class StepPetDate extends StatelessWidget {
                 child: _CatOption(
                   cat: c,
                   selected: c == cat,
-                  clash: r == null ? null : store.clashFor(c, r.start, r.end),
+                  clash: r == null ? null : booking.clashFor(c, r.start, r.end),
                   enabled: r != null,
                   onTap: () => onCatChanged(c),
                 ),

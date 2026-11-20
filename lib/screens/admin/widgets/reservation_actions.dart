@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/data.dart';
+import '../../../controllers/reservation_controller.dart';
+import '../../../core/api_client.dart';
 import '../../../data/models.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/format.dart';
 import '../../../widgets/common.dart';
 
 Future<bool> showApproveSheet(BuildContext context, Reservation r) async {
-  final store = context.read<AdminStore>();
-  final units = store.freeUnits(r.roomType, r.checkIn, r.checkOut, ignore: r);
-  final ok = await showModalBottomSheet<bool>(
+  final units = context.read<ReservationController>().freeUnits(
+    r.roomType,
+    r.checkIn,
+    r.checkOut,
+    ignore: r,
+  );
+  final unit = await showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
     builder: (_) => _ApproveSheet(reservation: r, units: units),
   );
-  if (ok == true && context.mounted) {
-    showSnack(
-      context,
-      'Reservasi ${r.cat.name} dikonfirmasi di unit ${r.unit}',
-    );
+  if (unit != null && context.mounted) {
+    showSnack(context, 'Reservasi ${r.cat.name} dikonfirmasi di unit $unit');
   }
-  return ok ?? false;
+  return unit != null;
 }
 
 class _ApproveSheet extends StatefulWidget {
@@ -36,6 +38,24 @@ class _ApproveSheet extends StatefulWidget {
 
 class _ApproveSheetState extends State<_ApproveSheet> {
   late String? _unit = widget.units.isEmpty ? null : widget.units.first;
+  bool _busy = false;
+
+  /// kalo gagal, sheet tetap terbuka supaya admin bisa pilih unit lain
+  Future<void> _approve() async {
+    final unit = _unit!;
+    setState(() => _busy = true);
+    try {
+      await context.read<ReservationController>().approve(
+        widget.reservation,
+        unit,
+      );
+      if (mounted) Navigator.pop(context, unit);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      showSnack(context, e.message);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,16 +125,11 @@ class _ApproveSheetState extends State<_ApproveSheet> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     FilledButton(
-                      onPressed: _unit == null
-                          ? null
-                          : () {
-                              context.read<AdminStore>().approve(r, _unit!);
-                              Navigator.pop(context, true);
-                            },
+                      onPressed: _unit == null || _busy ? null : _approve,
                       child: const Text('Konfirmasi Reservasi'),
                     ),
                     TextButton(
-                      onPressed: () => Navigator.pop(context, false),
+                      onPressed: () => Navigator.pop(context),
                       style: TextButton.styleFrom(
                         foregroundColor: AppColors.muted,
                       ),
@@ -197,6 +212,7 @@ class _RejectSheet extends StatefulWidget {
 class _RejectSheetState extends State<_RejectSheet> {
   final _formKey = GlobalKey<FormState>();
   final _reason = TextEditingController();
+  bool _busy = false;
 
   @override
   void initState() {
@@ -210,10 +226,20 @@ class _RejectSheetState extends State<_RejectSheet> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    context.read<AdminStore>().reject(widget.reservation, _reason.text.trim());
-    Navigator.pop(context, true);
+    setState(() => _busy = true);
+    try {
+      await context.read<ReservationController>().reject(
+        widget.reservation,
+        _reason.text.trim(),
+      );
+      if (mounted) Navigator.pop(context, true);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      showSnack(context, e.message);
+    }
   }
 
   @override
@@ -270,14 +296,14 @@ class _RejectSheetState extends State<_RejectSheet> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     FilledButton(
-                      onPressed: _submit,
+                      onPressed: _busy ? null : _submit,
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.danger,
                       ),
                       child: const Text('Tolak Reservasi'),
                     ),
                     TextButton(
-                      onPressed: () => Navigator.pop(context, false),
+                      onPressed: () => Navigator.pop(context),
                       style: TextButton.styleFrom(
                         foregroundColor: AppColors.muted,
                       ),

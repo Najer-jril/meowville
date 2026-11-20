@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/data.dart';
+import '../../../controllers/booking_controller.dart';
+import '../../../controllers/room_controller.dart';
 import '../../../data/models.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/format.dart';
@@ -22,7 +23,8 @@ class StepRoom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final rooms = context.watch<RoomController>();
+    final booking = context.watch<BookingController>();
     final text = Theme.of(context).textTheme;
     final nights = range.duration.inDays;
 
@@ -53,11 +55,15 @@ class StepRoom extends StatelessWidget {
               ),
             ],
           ),
-          for (final t in store.activeRoomTypes)
+          if (booking.checkingRemaining)
+            const LinearProgressIndicator(minHeight: 2),
+          for (final t in rooms.active)
             _RoomOption(
               type: t,
               nights: nights,
-              full: store.remainingFor(t, range.start, range.end) < 1,
+              full:
+                  !booking.checkingRemaining &&
+                  (booking.remaining[t.id] ?? 0) < 1,
               selected: t == selected,
               onTap: () => onSelected(t),
             ),

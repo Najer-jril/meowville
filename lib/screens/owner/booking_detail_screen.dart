@@ -3,13 +3,15 @@ import 'package:provider/provider.dart';
 
 import '../../routes/app_routes.dart';
 
-import '../../data/data.dart';
+import '../../controllers/booking_controller.dart';
+import '../../core/api_client.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
 import '../../widgets/payment_proof_card.dart';
+import '../../widgets/support_contact.dart';
 import 'widgets/owner_widgets.dart';
 
 class OwnerBookingDetailScreen extends StatelessWidget {
@@ -17,36 +19,47 @@ class OwnerBookingDetailScreen extends StatelessWidget {
 
   final Reservation reservation;
 
-  Future<void> _upload(BuildContext context) async {
-    final r = reservation;
-    final store = context.read<AdminStore>();
-    final picked = await showUploadProofSheet(
-      context,
-      amount: r.total,
-      current: r.paymentProof,
-    );
-    if (picked == null) return;
-    store.uploadProof(r, picked);
-    if (context.mounted) showSnack(context, 'Bukti bayar terkirim');
-  }
+  Future<void> _upload(BuildContext context, Reservation r) =>
+      runOnce(('proof', r.id), () async {
+        final booking = context.read<BookingController>();
+        final picked = await showUploadProofSheet(
+          context,
+          amount: r.total,
+          current: r.paymentProof,
+        );
+        if (picked == null || picked == r.paymentProof) return;
+        if (context.mounted) showSnack(context, 'Mengunggah bukti bayar...');
+        try {
+          await booking.uploadProof(r, picked);
+          if (context.mounted) showSnack(context, 'Bukti bayar terkirim');
+        } on ApiException catch (e) {
+          if (context.mounted) showSnack(context, e.message);
+        }
+      });
 
-  Future<void> _cancel(BuildContext context) async {
-    final store = context.read<AdminStore>();
-    final ok = await showCancelReservationDialog(context, reservation);
-    if (!ok) return;
-    store.cancel(reservation);
-    if (context.mounted) showSnack(context, 'Reservasi dibatalkan');
-  }
+  Future<void> _cancel(BuildContext context, Reservation r) =>
+      runOnce(('cancel', r.id), () async {
+        final booking = context.read<BookingController>();
+        final ok = await showCancelReservationDialog(context, r);
+        if (!ok) return;
+        try {
+          await booking.cancel(r);
+          if (context.mounted) showSnack(context, 'Reservasi dibatalkan');
+        } on ApiException catch (e) {
+          if (context.mounted) showSnack(context, e.message);
+        }
+      });
 
-  void _contactAdmin(BuildContext context) => showSnack(
-    context,
-    'Membuka WhatsApp admin ${PaymentInfo.adminWhatsApp}...',
-  );
+  void _contactAdmin(BuildContext context, Reservation r) =>
+      showSupportContact(context, subject: 'Reservasi Meowville #${r.id}');
 
   @override
   Widget build(BuildContext context) {
-    context.watch<AdminStore>();
-    final r = reservation;
+    // Status bisa berubah setelah reload, jadi ambil data terbaru lewat id.
+    final r = context.watch<BookingController>().reservations.firstWhere(
+      (x) => x == reservation,
+      orElse: () => reservation,
+    );
     final pending = r.status == ReservationStatus.pending;
 
     return Scaffold(
@@ -72,11 +85,12 @@ class OwnerBookingDetailScreen extends StatelessWidget {
               type: r.roomType,
               nights: r.nights,
               addons: r.addons,
+              roomPrice: r.roomPrice,
             ),
             if (pending) BankInfoCard(amount: r.total),
             PaymentProofCard.forReservation(
               r,
-              onUpload: pending ? () => _upload(context) : null,
+              onUpload: pending ? () => _upload(context, r) : null,
             ),
           ],
         ),
@@ -128,7 +142,7 @@ class OwnerBookingDetailScreen extends StatelessWidget {
     switch (r.status) {
       case ReservationStatus.pending:
         final cancel = OutlinedButton.icon(
-          onPressed: () => _cancel(context),
+          onPressed: () => _cancel(context, r),
           style: dangerOutlinedStyle(),
           icon: const Icon(Icons.close),
           label: const Text('Batalkan'),
@@ -142,7 +156,7 @@ class OwnerBookingDetailScreen extends StatelessWidget {
                     Expanded(child: cancel),
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: () => _upload(context),
+                        onPressed: () => _upload(context, r),
                         icon: const Icon(Icons.upload_file),
                         label: const Text('Unggah Bukti'),
                       ),
@@ -161,9 +175,9 @@ class OwnerBookingDetailScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               OutlinedButton.icon(
-                onPressed: () => _contactAdmin(context),
-                icon: const Icon(Icons.chat_outlined),
-                label: const Text('Hubungi Admin via WhatsApp'),
+                onPressed: () => _contactAdmin(context, r),
+                icon: const Icon(Icons.mail_outline),
+                label: const Text('Hubungi Admin'),
               ),
             ],
           ),

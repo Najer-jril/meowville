@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/data.dart';
+import '../../../controllers/room_controller.dart';
 import '../../../data/models.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/format.dart';
 import '../../../widgets/common.dart';
+import '../../../utils/clock.dart';
 
 Future<void> showBlockUnitSheet(BuildContext context, RoomType type) async {
   final ok = await showModalBottomSheet<bool>(
@@ -26,12 +27,12 @@ class _BlockUnitSheet extends StatefulWidget {
 }
 
 class _BlockUnitSheetState extends State<_BlockUnitSheet> {
-  AdminStore get _store => context.read<AdminStore>();
+  bool _saving = false;
   final _formKey = GlobalKey<FormState>();
   final _reason = TextEditingController();
   late String _unit = widget.type.units.first;
-  late DateTime _start = _store.today;
-  late DateTime _end = _store.today.add(const Duration(days: 1));
+  late DateTime _start = Clock.today();
+  late DateTime _end = Clock.today().add(const Duration(days: 1));
   String? _error;
 
   @override
@@ -50,8 +51,8 @@ class _BlockUnitSheetState extends State<_BlockUnitSheet> {
     final picked = await showDatePicker(
       context: context,
       initialDate: start ? _start : _end,
-      firstDate: start ? _store.today : _start,
-      lastDate: _store.today.add(const Duration(days: 365)),
+      firstDate: start ? Clock.today() : _start,
+      lastDate: Clock.today().add(const Duration(days: 365)),
       helpText: start ? 'Tanggal mulai' : 'Tanggal selesai',
     );
     if (picked == null) return;
@@ -66,17 +67,25 @@ class _BlockUnitSheetState extends State<_BlockUnitSheet> {
     });
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    final error = _store.addBlock(
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    final error = await context.read<RoomController>().addBlock(
       type: widget.type,
       unit: _unit,
       start: _start,
       end: _end,
       reason: _reason.text.trim(),
     );
+    if (!mounted) return;
     if (error != null) {
-      setState(() => _error = error);
+      setState(() {
+        _saving = false;
+        _error = error;
+      });
       return;
     }
     Navigator.pop(context, true);
@@ -246,7 +255,7 @@ class _BlockUnitSheetState extends State<_BlockUnitSheet> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     FilledButton(
-                      onPressed: _submit,
+                      onPressed: _saving ? null : _submit,
                       child: const Text('Simpan Blokir'),
                     ),
                     TextButton(

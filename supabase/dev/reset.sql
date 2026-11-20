@@ -1,0 +1,37 @@
+drop trigger if exists on_auth_user_created on auth.users;
+drop function if exists public.handle_new_user();
+drop function if exists public.create_profile(auth.users);
+
+drop policy if exists "upload to own folder" on storage.objects;
+drop policy if exists "staff upload report photos" on storage.objects;
+drop policy if exists "admin upload room photos" on storage.objects;
+drop policy if exists "read payment proofs" on storage.objects;
+drop policy if exists "list own files" on storage.objects;
+drop policy if exists "delete own files" on storage.objects;
+drop policy if exists "staff read photos" on storage.objects;
+drop policy if exists "owner read report photos" on storage.objects;
+
+drop table if exists
+  public.app_settings, public.daily_reports, public.unit_blocks, public.reservation_addons, public.reservations,
+  public.addons, public.room_types, public.cats, public.profiles
+cascade;
+
+drop function if exists public.my_role, public.guard_profile_update,
+  public.guard_room_type_update, public.room_availability,
+  public.create_reservation, public.cancel_reservation,
+  public.upload_payment_proof, public.approve_reservation,
+  public.reject_reservation, public.check_in_reservation,
+  public.check_out_reservation, public.add_unit_block,
+  public.delete_cat, public.set_user_role, public.delete_my_account,
+  public.require_role, public.today_wib, public.set_reporter_name,
+  public.guard_cat_update, public.valid_proof_path,
+  public.assert_can_delete_account cascade;
+
+delete from auth.users;
+
+do $$
+begin
+  if to_regclass('supabase_migrations.schema_migrations') is not null then
+    delete from supabase_migrations.schema_migrations;
+  end if;
+end $$;

@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/app_links.dart';
+import '../../widgets/support_contact.dart';
 import '../../controllers/auth_controller.dart';
-import '../../data/data.dart';
+import '../../controllers/daily_report_controller.dart';
+import '../../controllers/reservation_controller.dart';
 import '../../data/models.dart';
+import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
-import '../../widgets/session_info_card.dart';
+import '../../widgets/account_dialogs.dart';
 
 class SitterAccountScreen extends StatelessWidget {
   const SitterAccountScreen({super.key, required this.user});
@@ -16,21 +20,38 @@ class SitterAccountScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
     final text = Theme.of(context).textTheme;
-    final auth = context.watch<AuthController>();
-    final account = auth.user ?? user;
+    final account = context.watch<AuthController>().user ?? user;
 
-    final watching = store.staying.length;
-    final myReports = store.reports
-        .where(
-          (d) =>
-              d.reporter == user &&
-              d.time.year == store.today.year &&
-              d.time.month == store.today.month &&
-              d.time.day == store.today.day,
-        )
-        .length;
+    final watching = context.watch<ReservationController>().staying.length;
+    final myReports = context.watch<DailyReportController>().countToday(
+      account,
+    );
+
+    Widget action(
+      IconData icon,
+      String label,
+      VoidCallback onTap, {
+      Color color = AppColors.primaryDeep,
+    }) => AppCard(
+      padding: const EdgeInsets.all(AppSpacing.page),
+      onTap: onTap,
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.lg),
+            child: Icon(icon, color: color),
+          ),
+          Expanded(
+            child: Text(
+              label,
+              style: text.labelLarge!.copyWith(fontSize: 18, color: color),
+            ),
+          ),
+          Icon(Icons.chevron_right, color: color),
+        ],
+      ),
+    );
 
     return Scaffold(
       body: SafeArea(
@@ -70,27 +91,6 @@ class SitterAccountScreen extends StatelessWidget {
                             account.email,
                             style: text.bodySmall!.copyWith(fontSize: 15),
                             overflow: TextOverflow.ellipsis,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: AppSpacing.xs),
-                            child: Row(
-                              spacing: AppSpacing.sm,
-                              children: [
-                                const Icon(
-                                  Icons.call_outlined,
-                                  size: 16,
-                                  color: AppColors.muted,
-                                ),
-                                Flexible(
-                                  child: Text(
-                                    account.phone,
-                                    style: text.bodySmall!.copyWith(
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
                         ],
                       ),
@@ -135,12 +135,26 @@ class SitterAccountScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              if (auth.session case final session? when auth.user != null)
-                SessionInfoCard(
-                  session: session,
-                  user: auth.user!,
-                  remembered: auth.remembered,
+              action(
+                Icons.person_outline,
+                'Edit profil',
+                () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.ownerProfileForm,
+                  arguments: account,
                 ),
+              ),
+              action(
+                Icons.privacy_tip_outlined,
+                'Kebijakan privasi',
+                () => openLink(context, AppLinks.privacy),
+              ),
+              action(
+                Icons.delete_forever_outlined,
+                'Hapus akun',
+                () => confirmDeleteAccount(context),
+                color: AppColors.danger,
+              ),
               AppCard(
                 padding: const EdgeInsets.all(AppSpacing.page),
                 onTap: () => confirmLogout(context),

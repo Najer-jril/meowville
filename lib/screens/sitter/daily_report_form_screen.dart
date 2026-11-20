@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/data.dart';
+import '../../controllers/daily_report_controller.dart';
+import '../../core/api_client.dart';
+import '../../widgets/photo_picker.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
+import '../../utils/clock.dart';
 
 class DailyReportFormScreen extends StatefulWidget {
   const DailyReportFormScreen({
@@ -23,13 +26,13 @@ class DailyReportFormScreen extends StatefulWidget {
 }
 
 class _DailyReportFormScreenState extends State<DailyReportFormScreen> {
-  AdminStore get _store => context.read<AdminStore>();
   final _note = TextEditingController();
   String? _food;
   String? _drink;
   String? _mood;
   String? _photo;
   bool _submitted = false;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -45,27 +48,42 @@ class _DailyReportFormScreenState extends State<DailyReportFormScreen> {
 
   bool get _complete => _food != null && _drink != null && _mood != null;
 
-  void _submit() {
+  Future<void> _pickPhoto() async {
+    final path = await pickPhoto(context);
+    if (path != null && mounted) setState(() => _photo = path);
+  }
+
+  /// Kalau gagal, form tetap terbuka beserta isinya supaya sitter bisa
+  /// coba lagi.
+  Future<void> _submit() async {
     setState(() => _submitted = true);
     if (!_complete) return;
-    _store.addReport(
-      reservation: widget.reservation,
-      reporter: widget.actor,
-      food: _food!,
-      drink: _drink!,
-      mood: _mood!,
-      note: _note.text.trim(),
-      photo: _photo,
-    );
-    Navigator.pop(context);
-    showSnack(context, 'Laporan ${widget.reservation.cat.name} terkirim');
+    setState(() => _saving = true);
+    try {
+      await context.read<DailyReportController>().add(
+        reservation: widget.reservation,
+        reporter: widget.actor,
+        food: _food!,
+        drink: _drink!,
+        mood: _mood!,
+        note: _note.text.trim(),
+        photo: _photo,
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+      showSnack(context, 'Laporan ${widget.reservation.cat.name} terkirim');
+    } on ApiException catch (e) {
+      if (mounted) showSnack(context, e.message);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final r = widget.reservation;
     final text = Theme.of(context).textTheme;
-    final previous = _store.reportToday(r);
+    final previous = context.watch<DailyReportController>().reportToday(r);
     final showErrors = _submitted && !_complete;
 
     return Scaffold(
@@ -105,7 +123,7 @@ class _DailyReportFormScreenState extends State<DailyReportFormScreen> {
                       background: AppColors.warningSoft,
                       message:
                           '${r.cat.name} sudah dilaporkan '
-                          '${previous.reporter.firstName}, '
+                          '${previous.reporterFirstName}, '
                           '${Fmt.time(previous.time)}. Tetap kirim laporan '
                           'baru?',
                     ),
@@ -129,7 +147,7 @@ class _DailyReportFormScreenState extends State<DailyReportFormScreen> {
                       ),
                     ),
                     StatusBadge(
-                      label: Fmt.time(_store.now),
+                      label: Fmt.time(Clock.now()),
                       style: const BadgeStyle(
                         AppColors.muted,
                         AppColors.surfaceAlt,
@@ -185,7 +203,7 @@ class _DailyReportFormScreenState extends State<DailyReportFormScreen> {
                     label: 'Foto',
                     child: _PhotoPicker(
                       photo: _photo,
-                      onPick: () => setState(() => _photo = r.cat.photo),
+                      onPick: _saving ? null : _pickPhoto,
                       onRemove: () => setState(() => _photo = null),
                     ),
                   ),
@@ -197,7 +215,7 @@ class _DailyReportFormScreenState extends State<DailyReportFormScreen> {
       ),
       bottomNavigationBar: BottomActionBar(
         child: FilledButton.icon(
-          onPressed: _submit,
+          onPressed: _saving ? null : _submit,
           icon: const Icon(Icons.send_outlined),
           label: const Text('Kirim Laporan'),
         ),
@@ -383,7 +401,7 @@ class _PhotoPicker extends StatelessWidget {
   });
 
   final String? photo;
-  final VoidCallback onPick;
+  final VoidCallback? onPick;
   final VoidCallback onRemove;
 
   @override

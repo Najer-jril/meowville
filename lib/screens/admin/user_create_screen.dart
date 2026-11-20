@@ -31,7 +31,6 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
   UserController get _users => context.read<UserController>();
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
-  final _phone = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
   UserRole? _role;
@@ -41,14 +40,14 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
   @override
   void initState() {
     super.initState();
-    for (final c in [_name, _phone, _email, _password]) {
+    for (final c in [_name, _email, _password]) {
       c.addListener(() => setState(() {}));
     }
   }
 
   @override
   void dispose() {
-    for (final c in [_name, _phone, _email, _password]) {
+    for (final c in [_name, _email, _password]) {
       c.dispose();
     }
     super.dispose();
@@ -56,7 +55,6 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
 
   bool get _filled =>
       _name.text.trim().isNotEmpty &&
-      _phone.text.trim().isNotEmpty &&
       _email.text.trim().isNotEmpty &&
       _password.text.isNotEmpty &&
       _role != null;
@@ -68,7 +66,6 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
     try {
       await _users.create(
         name: _name.text.trim(),
-        phone: _phone.text.trim(),
         email: _email.text.trim(),
         password: _password.text,
         role: _role!,
@@ -150,20 +147,6 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
                       validator: validateRequired,
                     ),
                     AuthTextField(
-                      label: 'Nomor WhatsApp',
-                      hint: 'misal, 0812-3456-7890',
-                      icon: Icons.call_outlined,
-                      controller: _phone,
-                      keyboardType: TextInputType.phone,
-                      textInputAction: TextInputAction.next,
-                      validator: (v) {
-                        final digits = (v ?? '').replaceAll(RegExp(r'\D'), '');
-                        if (digits.isEmpty) return 'Wajib diisi';
-                        if (digits.length < 10) return 'Nomor minimal 10 digit';
-                        return null;
-                      },
-                    ),
-                    AuthTextField(
                       label: 'Alamat email',
                       hint: 'nama@email.com',
                       icon: Icons.mail_outline,
@@ -243,9 +226,23 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
         ),
       ),
       bottomNavigationBar: BottomActionBar(
-        child: FilledButton(
-          onPressed: _filled && !_loading ? _submit : null,
-          child: const Text('Buat Akun'),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Text(
+                'Jika verifikasi email aktif, akun baru perlu mengklik '
+                'tautan di email sebelum bisa masuk.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+            FilledButton(
+              onPressed: _filled && !_loading ? _submit : null,
+              child: const Text('Buat Akun'),
+            ),
+          ],
         ),
       ),
     );

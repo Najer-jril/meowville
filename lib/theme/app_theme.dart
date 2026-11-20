@@ -73,6 +73,7 @@ class AppSizes {
   static const double artLg = 64;
   static const double calendarCell = 64;
   static const double metricCard = 88;
+  static const double statCard = 124;
   static const double labelCol = 152;
 }
 

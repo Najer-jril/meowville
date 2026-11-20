@@ -20,7 +20,7 @@ class LegalScreen extends StatelessWidget {
       ),
       LegalSection(
         'Data dan kondisi kucing',
-        'Pemilik wajib mengisi data kucing dengan benar dan menitipkan kucing dalam kondisi sehat. Kondisi khusus sebaiknya diinformasikan kepada admin melalui WhatsApp saat check-in.',
+        'Pemilik wajib mengisi data kucing dengan benar dan menitipkan kucing dalam kondisi sehat. Kondisi khusus sebaiknya diinformasikan kepada admin melalui email sebelum check-in.',
       ),
       LegalSection(
         'Reservasi dan pembayaran',
@@ -40,7 +40,7 @@ class LegalScreen extends StatelessWidget {
       ),
       LegalSection(
         'Pembatalan dan pengembalian dana',
-        'Reservasi berstatus Menunggu dapat dibatalkan langsung di aplikasi. Reservasi yang sudah dikonfirmasi dibatalkan melalui admin lewat WhatsApp. Pengembalian dana diproses admin secara manual.',
+        'Reservasi berstatus Menunggu dapat dibatalkan langsung di aplikasi. Reservasi yang sudah dikonfirmasi dibatalkan melalui admin (menu Hubungi Admin di detail reservasi). Pengembalian dana diproses admin secara manual.',
       ),
     ],
   );

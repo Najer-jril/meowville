@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../data/data.dart';
+import '../controllers/session_loader.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
 
@@ -42,7 +41,8 @@ import '../screens/splash_screen.dart';
 class AppRoutes {
   AppRoutes._();
 
-  static const splash = '/splash';
+  // '/' supaya Flutter tidak mendorong route '/' (404) di bawah splash.
+  static const splash = '/';
   static const login = '/login';
   static const register = '/register';
   static const forgotPassword = '/forgot-password';
@@ -81,9 +81,9 @@ class AppRoutes {
     UserRole.owner => ownerHome,
   };
 
-  /// Opens the logged-in user's home and clears the auth screens behind it.
+  /// open halaman utama user yang login dan menghapus layar auth di belakangnya.
   static void enterHome(BuildContext context, AppUser user) {
-    context.read<AdminStore>().bindAccount(user.email);
+    loadSessionData(context, user);
     Navigator.pushNamedAndRemoveUntil(
       context,
       homeFor(user.role),

@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../routes/app_routes.dart';
 
-import '../../data/data.dart';
+import '../../controllers/booking_controller.dart';
+import '../../controllers/pet_controller.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
@@ -15,87 +16,106 @@ class PetListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final pets = context.watch<PetController>();
     final text = Theme.of(context).textTheme;
 
     void add() => Navigator.pushNamed(context, AppRoutes.ownerPetForm);
 
-    final cats = store.catsOf(store.currentOwner);
+    final cats = pets.cats;
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.page,
-            AppSpacing.xl,
-            AppSpacing.page,
-            AppSpacing.xl,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: Text('Kucing', style: text.headlineLarge),
-              ),
-              if (cats.isEmpty)
-                AppCard(
-                  child: EmptyState(
-                    icon: Icons.pets,
-                    title: 'Belum ada kucing',
-                    message:
-                        'Tambahkan profil kucing untuk mulai memesan '
-                        'kamar.',
-                    action: FilledButton.icon(
-                      onPressed: add,
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(0, 48),
-                      ),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Tambah Kucing'),
-                    ),
-                  ),
-                )
-              else ...[
+        child: RefreshIndicator(
+          onRefresh: () => Future.wait([
+            pets.load(),
+            context.read<BookingController>().load(),
+          ]),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.page,
+              AppSpacing.xl,
+              AppSpacing.page,
+              AppSpacing.xl,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
                 Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${cats.length} kucing',
-                          style: text.bodySmall!.copyWith(fontSize: 15),
-                        ),
-                      ),
-                      FilledButton.icon(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: Text('Kucing', style: text.headlineLarge),
+                ),
+                if (pets.loading && cats.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(AppSpacing.xl),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (pets.error != null && cats.isEmpty)
+                  AppCard(
+                    child: ErrorState(
+                      message: pets.error!,
+                      onRetry: () => pets.load(),
+                    ),
+                  )
+                else if (cats.isEmpty)
+                  AppCard(
+                    child: EmptyState(
+                      icon: Icons.pets,
+                      title: 'Belum ada kucing',
+                      message:
+                          'Tambahkan profil kucing untuk mulai memesan '
+                          'kamar.',
+                      action: FilledButton.icon(
                         onPressed: add,
                         style: FilledButton.styleFrom(
                           minimumSize: const Size(0, 48),
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
                         ),
                         icon: const Icon(Icons.add),
-                        label: const Text('Tambah'),
+                        label: const Text('Tambah Kucing'),
                       ),
+                    ),
+                  )
+                else ...[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${cats.length} kucing',
+                            style: text.bodySmall!.copyWith(fontSize: 15),
+                          ),
+                        ),
+                        FilledButton.icon(
+                          onPressed: add,
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(0, 48),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                          ),
+                          icon: const Icon(Icons.add),
+                          label: const Text('Tambah'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    spacing: AppSpacing.md,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (final c in cats)
+                        _CatCard(
+                          cat: c,
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.ownerPetDetail,
+                            arguments: c,
+                          ),
+                        ),
                     ],
                   ),
-                ),
-                Column(
-                  spacing: AppSpacing.md,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (final c in cats)
-                      _CatCard(
-                        cat: c,
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          AppRoutes.ownerPetDetail,
-                          arguments: c,
-                        ),
-                      ),
-                  ],
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -104,7 +124,7 @@ class PetListScreen extends StatelessWidget {
 }
 
 Widget? catStayBadge(BuildContext context, Cat cat) {
-  final r = context.watch<AdminStore>().activeReservationOf(cat);
+  final r = context.watch<BookingController>().activeFor(cat);
   if (r == null) return null;
   if (r.status == ReservationStatus.checkedIn) {
     return StatusBadge.booking('checked_in');

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/data.dart';
+import '../../controllers/auth_controller.dart';
 import '../../theme/app_theme.dart';
 import 'report_history_screen.dart';
 import 'account_screen.dart';
@@ -17,12 +17,9 @@ class SitterShell extends StatefulWidget {
 }
 
 class _SitterShellState extends State<SitterShell> {
-  AdminStore get _store => context.read<AdminStore>();
   int _index = 0;
 
-  late final _actor = widget.asAdmin
-      ? _store.currentAdmin
-      : _store.currentSitter;
+  late final _actor = context.read<AuthController>().user!;
 
   late final _pages = [
     SitterTodayScreen(actor: _actor),

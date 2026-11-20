@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
-import '../../data/data.dart';
+import '../../controllers/addon_controller.dart';
+import '../../core/api_client.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common.dart';
@@ -40,16 +41,30 @@ class _AddonFormScreenState extends State<AddonFormScreen> {
     super.dispose();
   }
 
-  void _save() {
+  bool _saving = false;
+
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    context.read<AdminStore>().saveAddon(
-      existing: widget.existing,
-      name: _name.text.trim(),
-      description: _desc.text.trim(),
-      price: int.parse(_price.text),
-    );
-    Navigator.pop(context);
-    showSnack(context, _isEdit ? 'Layanan disimpan' : 'Layanan ditambahkan');
+    setState(() => _saving = true);
+    try {
+      await context.read<AddonController>().save(
+        Addon(
+          id: widget.existing?.id ?? 0,
+          name: _name.text.trim(),
+          description: _desc.text.trim(),
+          price: int.parse(_price.text),
+          active: widget.existing?.active ?? true,
+        ),
+        existing: widget.existing,
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+      showSnack(context, _isEdit ? 'Layanan disimpan' : 'Layanan ditambahkan');
+    } on ApiException catch (e) {
+      if (mounted) showSnack(context, e.message);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
@@ -168,7 +183,10 @@ class _AddonFormScreenState extends State<AddonFormScreen> {
         ),
       ),
       bottomNavigationBar: BottomActionBar(
-        child: FilledButton(onPressed: _save, child: const Text('Simpan')),
+        child: FilledButton(
+          onPressed: _saving ? null : _save,
+          child: const Text('Simpan'),
+        ),
       ),
     );
   }

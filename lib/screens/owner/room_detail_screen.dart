@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../routes/app_routes.dart';
 
-import '../../data/data.dart';
+import '../../controllers/room_controller.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
@@ -17,7 +17,10 @@ class RoomDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<AdminStore>();
+    final type = context.watch<RoomController>().types.firstWhere(
+      (t) => t == this.type,
+      orElse: () => this.type,
+    );
     final text = Theme.of(context).textTheme;
     final heading = text.titleLarge!.copyWith(fontWeight: FontWeight.w700);
 

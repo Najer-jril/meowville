@@ -32,7 +32,7 @@ class PolicyScreen extends StatelessWidget {
       ),
       LegalSection(
         'Kondisi darurat',
-        'Jika kucing tampak sakit atau lesu berkepanjangan, tim kami menghubungi pemilik melalui WhatsApp secepatnya.',
+        'Jika kucing tampak sakit atau lesu berkepanjangan, tim kami menghubungi pemilik melalui email secepatnya.',
       ),
       LegalSection(
         'Privasi',
@@ -40,7 +40,7 @@ class PolicyScreen extends StatelessWidget {
       ),
       LegalSection(
         'Komunikasi',
-        'Pemilik dapat menghubungi admin melalui WhatsApp untuk pertanyaan, perubahan, atau kekhawatiran selama masa penitipan.',
+        'Pemilik dapat menghubungi admin melalui email (menu Hubungi Admin) untuk pertanyaan, perubahan, atau kekhawatiran selama masa penitipan.',
       ),
     ],
   );

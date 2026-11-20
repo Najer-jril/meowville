@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/app_links.dart';
+import '../../widgets/support_contact.dart';
 import '../../controllers/auth_controller.dart';
-import '../../data/data.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
-import '../../widgets/session_info_card.dart';
+import '../../widgets/account_dialogs.dart';
 
 class OwnerAccountScreen extends StatelessWidget {
   const OwnerAccountScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
     final text = Theme.of(context).textTheme;
-    final auth = context.watch<AuthController>();
-    final user = auth.user ?? store.currentOwner;
+    final user = context.watch<AuthController>().user;
+    // Bisa null sesaat saat logout, sebelum halaman diganti.
+    if (user == null) return const SizedBox.shrink();
 
     return Scaffold(
       body: SafeArea(
@@ -61,10 +62,6 @@ class OwnerAccountScreen extends StatelessWidget {
                             style: text.bodySmall!.copyWith(fontSize: 12),
                             overflow: TextOverflow.ellipsis,
                           ),
-                          Text(
-                            user.phone,
-                            style: text.bodySmall!.copyWith(fontSize: 12),
-                          ),
                         ],
                       ),
                     ),
@@ -104,15 +101,47 @@ class OwnerAccountScreen extends StatelessWidget {
                       onTap: () =>
                           Navigator.pushNamed(context, AppRoutes.legal),
                     ),
+                    const Divider(
+                      indent: AppSpacing.page,
+                      endIndent: AppSpacing.page,
+                    ),
+                    _MenuTile(
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'Kebijakan privasi',
+                      onTap: () => openLink(context, AppLinks.privacy),
+                    ),
+                    const Divider(
+                      indent: AppSpacing.page,
+                      endIndent: AppSpacing.page,
+                    ),
+                    _MenuTile(
+                      icon: Icons.mail_outline,
+                      title: 'Hubungi tim Meowville',
+                      onTap: () => showSupportContact(context),
+                    ),
                   ],
                 ),
               ),
-              if (auth.session case final session? when auth.user != null)
-                SessionInfoCard(
-                  session: session,
-                  user: auth.user!,
-                  remembered: auth.remembered,
+              AppCard(
+                padding: const EdgeInsets.all(AppSpacing.page),
+                onTap: () => confirmDeleteAccount(context),
+                child: Row(
+                  spacing: AppSpacing.lg,
+                  children: [
+                    const Icon(
+                      Icons.delete_forever_outlined,
+                      color: AppColors.danger,
+                    ),
+                    Text(
+                      'Hapus akun',
+                      style: text.labelLarge!.copyWith(
+                        fontSize: 18,
+                        color: AppColors.danger,
+                      ),
+                    ),
+                  ],
                 ),
+              ),
               AppCard(
                 padding: const EdgeInsets.all(AppSpacing.page),
                 onTap: () => confirmLogout(context),

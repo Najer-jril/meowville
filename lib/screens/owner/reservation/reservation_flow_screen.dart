@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../../../routes/app_routes.dart';
 
-import '../../../data/data.dart';
+import '../../../controllers/booking_controller.dart';
+import '../../../controllers/room_controller.dart';
+import '../../../core/api_client.dart';
 import '../../../data/models.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/format.dart';
@@ -35,7 +37,7 @@ class _ReservationFlowScreenState extends State<ReservationFlowScreen> {
     'Ringkasan Reservasi',
   ];
 
-  AdminStore get _store => context.read<AdminStore>();
+  BookingController get _booking => context.read<BookingController>();
   int _step = 0;
   DateTimeRange? _range;
   late Cat? _cat = widget.preselectedCat;
@@ -58,49 +60,79 @@ class _ReservationFlowScreenState extends State<ReservationFlowScreen> {
     }
   }
 
-  void _next() {
-    if (_step == 0 && _type != null) {
-      final left = _store.remainingFor(_type!, _range!.start, _range!.end);
-      if (left < 1) _type = null;
+  Future<void> _next() async {
+    if (_step == 0) {
+      setState(() => _step++);
+      try {
+        await _booking.loadRemaining(_range!.start, _range!.end);
+      } on ApiException catch (e) {
+        if (mounted) showSnack(context, e.message);
+        return;
+      }
+      if (!mounted) return;
+      if (_type != null && (_booking.remaining[_type!.id] ?? 0) < 1) {
+        setState(() => _type = null);
+      }
+      return;
     }
     setState(() => _step++);
+  }
+
+  Future<void> _showFull(RoomType type) async {
+    await showInfoDialog(
+      context,
+      icon: Icons.error_outline,
+      title: 'Kamar baru saja penuh',
+      message:
+          'Tipe ${type.name} tidak tersedia lagi di tanggal ini. '
+          'Silakan pilih tipe atau tanggal lain.',
+      buttonLabel: 'Pilih Ulang',
+    );
+    if (!mounted) return;
+    setState(() {
+      _type = null;
+      _step = 1;
+    });
   }
 
   Future<void> _submit() async {
     final range = _range!;
     final type = _type!;
     final cat = _cat!;
-    if (_store.remainingFor(type, range.start, range.end) < 1) {
-      await showInfoDialog(
-        context,
-        icon: Icons.error_outline,
-        title: 'Kamar baru saja penuh',
-        message:
-            'Tipe ${type.name} tidak tersedia lagi di tanggal ini. '
-            'Silakan pilih tipe atau tanggal lain.',
-        buttonLabel: 'Pilih Ulang',
-      );
-      setState(() {
-        _type = null;
-        _step = 1;
-      });
-      return;
-    }
     setState(() => _submitting = true);
-    final r = _store.createReservation(
-      cat: cat,
-      type: type,
-      checkIn: range.start,
-      checkOut: range.end,
-      addons: _addons.toList(),
-      paymentProof: _proof,
-    );
-    if (!mounted) return;
-    Navigator.pushReplacementNamed(
-      context,
-      AppRoutes.ownerReservationSuccess,
-      arguments: r,
-    );
+    try {
+      await _booking.loadRemaining(range.start, range.end);
+      if ((_booking.remaining[type.id] ?? 0) < 1) {
+        if (mounted) await _showFull(type);
+        return;
+      }
+      final r = await _booking.create(
+        cat: cat,
+        type: type,
+        checkIn: range.start,
+        checkOut: range.end,
+        addons: _addons,
+        proof: _proof,
+      );
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.ownerReservationSuccess,
+        arguments: r,
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      if (e.message == 'Kamar penuh di tanggal yang dipilih') {
+        await _showFull(type);
+      } else if (e.message == 'Tipe kamar tidak tersedia') {
+        context.read<RoomController>().load();
+        await _showFull(type);
+      } else {
+        showSnack(context, e.message);
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -111,7 +143,8 @@ class _ReservationFlowScreenState extends State<ReservationFlowScreen> {
         cat: _cat,
         onRangeChanged: (r) => setState(() {
           _range = r;
-          if (_cat != null && _store.clashFor(_cat!, r.start, r.end) != null) {
+          if (_cat != null &&
+              _booking.clashFor(_cat!, r.start, r.end) != null) {
             _cat = null;
           }
         }),

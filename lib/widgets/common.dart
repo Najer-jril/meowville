@@ -59,20 +59,24 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Tinggi minimal, bukan tetap, supaya teks tidak terpotong di font besar.
     return Container(
-      height: 28,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      alignment: Alignment.center,
+      constraints: const BoxConstraints(minHeight: 28),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: style.bg,
         borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: style.fg,
+      child: Center(
+        widthFactor: 1,
+        heightFactor: 1,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: style.fg,
+          ),
         ),
       ),
     );
@@ -291,6 +295,26 @@ class EmptyState extends StatelessWidget {
   }
 }
 
+/// Tampil saat list gagal dimuat dan tidak ada data cache.
+class ErrorState extends StatelessWidget {
+  const ErrorState({super.key, required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => EmptyState(
+    icon: Icons.cloud_off_outlined,
+    title: 'Gagal memuat data',
+    message: message,
+    action: OutlinedButton.icon(
+      onPressed: onRetry,
+      icon: const Icon(Icons.refresh),
+      label: const Text('Coba lagi'),
+    ),
+  );
+}
+
 class FieldLabel extends StatelessWidget {
   const FieldLabel(
     this.label, {
@@ -332,8 +356,8 @@ class FieldLabel extends StatelessWidget {
   }
 }
 
-/// Wraps a [FieldLabel] and its input control as a single column block so form
-/// columns can use uniform `spacing:` without inflating label-to-field gaps.
+/// Membungkus [FieldLabel] dan input-nya dalam satu kolom, supaya form
+/// bisa pakai `spacing:` yang seragam tanpa memperlebar jarak label ke field.
 class LabeledField extends StatelessWidget {
   const LabeledField({
     super.key,
@@ -704,5 +728,18 @@ class IconBubble extends StatelessWidget {
       ),
       child: Icon(icon, color: color, size: size * 0.5),
     );
+  }
+}
+
+final _runningActions = <Object>{};
+
+/// Mencegah aksi yang sama dijalankan dua kali (tap ganda) sampai aksi
+/// pertama selesai, termasuk selama dialog konfirmasinya masih terbuka.
+Future<void> runOnce(Object key, Future<void> Function() action) async {
+  if (!_runningActions.add(key)) return;
+  try {
+    await action();
+  } finally {
+    _runningActions.remove(key);
   }
 }

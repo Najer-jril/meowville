@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/app_links.dart';
+import '../../widgets/support_contact.dart';
 import '../../controllers/auth_controller.dart';
-import '../../data/data.dart';
+import '../../controllers/daily_report_controller.dart';
+import '../../controllers/reservation_controller.dart';
 import '../../data/models.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
-import '../../widgets/session_info_card.dart';
+import '../../widgets/account_dialogs.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -16,8 +19,10 @@ class MoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final auth = context.watch<AuthController>();
-    final admin = auth.user ?? context.read<AdminStore>().currentAdmin;
+    final admin = context.watch<AuthController>().user;
+    
+    // bisa null sesaat saat logout, sebelum halaman diganti
+    if (admin == null) return const SizedBox.shrink();
 
     void push(String route, [Object? args]) =>
         Navigator.pushNamed(context, route, arguments: args);
@@ -87,6 +92,12 @@ class MoreScreen extends StatelessWidget {
                       title: 'Laporan Pethotel',
                       onTap: () => push(AppRoutes.adminReport),
                     ),
+                    const _Divider(),
+                    _MenuTile(
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'Kebijakan Privasi',
+                      onTap: () => openLink(context, AppLinks.privacy),
+                    ),
                   ],
                 ),
               ),
@@ -106,12 +117,6 @@ class MoreScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              if (auth.session case final session? when auth.user != null)
-                SessionInfoCard(
-                  session: session,
-                  user: auth.user!,
-                  remembered: auth.remembered,
-                ),
               AppCard(
                 padding: EdgeInsets.zero,
                 onTap: () => confirmLogout(context),
@@ -148,13 +153,14 @@ class _SitterTaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final reservations = context.watch<ReservationController>();
+    final reports = context.watch<DailyReportController>();
     final text = Theme.of(context).textTheme;
 
-    final checkIns = store.awaitingCheckIn.length;
-    final checkOuts = store.dueCheckOut.length;
-    final unreported = store.staying
-        .where((r) => store.reportToday(r) == null)
+    final checkIns = reservations.awaitingCheckIn.length;
+    final checkOuts = reservations.dueCheckOut.length;
+    final unreported = reservations.staying
+        .where((r) => reports.reportToday(r) == null)
         .length;
 
     return AppCard(

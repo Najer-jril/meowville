@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/data.dart';
+import '../../controllers/daily_report_controller.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
@@ -16,78 +16,90 @@ class PetReportScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final daily = context.watch<DailyReportController>();
     final text = Theme.of(context).textTheme;
     final r = reservation;
 
-    final reports = store.reportHistory
-        .where((d) => d.reservation == r)
-        .toList();
+    final reports = daily.forReservation(r);
 
     return Scaffold(
       appBar: const SubPageAppBar(title: 'Laporan Harian'),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.page,
-          AppSpacing.sm,
-          AppSpacing.page,
-          AppSpacing.xl,
-        ),
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-            child: AppCard(
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: AppSpacing.md),
-                    child: AppPhoto(r.cat.photo, size: 56, radius: 14),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: AppSpacing.sm),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(r.cat.name, style: text.titleLarge),
-                          Text(
-                            [
-                              ?r.unit,
-                              Fmt.range(r.checkIn, r.checkOut),
-                            ].join(' - '),
-                            style: text.bodySmall!.copyWith(fontSize: 14),
-                          ),
-                        ],
+      body: RefreshIndicator(
+        onRefresh: () => daily.load(),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.page,
+            AppSpacing.sm,
+            AppSpacing.page,
+            AppSpacing.xl,
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+              child: AppCard(
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.md),
+                      child: AppPhoto(r.cat.photo, size: 56, radius: 14),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: AppSpacing.sm),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(r.cat.name, style: text.titleLarge),
+                            Text(
+                              [
+                                ?r.unit,
+                                Fmt.range(r.checkIn, r.checkOut),
+                              ].join(' - '),
+                              style: text.bodySmall!.copyWith(fontSize: 14),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerRight,
-                      child: ownerStatusBadge(r),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: ownerStatusBadge(r),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          if (reports.isEmpty)
-            AppCard(
-              child: EmptyState(
-                icon: Icons.assignment_outlined,
-                title: 'Belum ada laporan',
-                message: r.status == ReservationStatus.checkedIn
-                    ? 'Laporan harian dari pet sitter akan muncul di '
-                          'sini selama kucing menginap.'
-                    : 'Tidak ada laporan untuk masa inap ini.',
-              ),
-            )
-          else ...[
-            for (var i = 0; i < reports.length; i++)
-              _TimelineItem(report: reports[i], last: i == reports.length - 1),
+            if (daily.error != null && reports.isEmpty)
+              AppCard(
+                child: ErrorState(
+                  message: daily.error!,
+                  onRetry: () => daily.load(),
+                ),
+              )
+            else if (reports.isEmpty)
+              AppCard(
+                child: EmptyState(
+                  icon: Icons.assignment_outlined,
+                  title: 'Belum ada laporan',
+                  message: r.status == ReservationStatus.checkedIn
+                      ? 'Laporan harian dari pet sitter akan muncul di '
+                            'sini selama kucing menginap.'
+                      : 'Tidak ada laporan untuk masa inap ini.',
+                ),
+              )
+            else ...[
+              for (var i = 0; i < reports.length; i++)
+                _TimelineItem(
+                  report: reports[i],
+                  last: i == reports.length - 1,
+                ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -155,7 +167,8 @@ class _TimelineItem extends StatelessWidget {
                                   ),
                                 ),
                                 TextSpan(
-                                  text: '  dari ${d.reporter.firstName}',
+                                  text:
+                                      '  dari ${d.reporterFirstName}',
                                   style: text.bodySmall,
                                 ),
                               ],

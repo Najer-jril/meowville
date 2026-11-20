@@ -42,17 +42,13 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (mounted) AppRoutes.enterHome(context, user);
     } on ApiException catch (e) {
-      if (mounted) showSnack(context, _loginError(e));
+      if (mounted) showSnack(context, e.message);
     } on Object {
       if (mounted) showSnack(context, 'Tidak dapat terhubung ke server');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
-
-  String _loginError(ApiException e) => e.message == 'Invalid login credentials'
-      ? 'Email atau kata sandi salah'
-      : e.message;
 
   @override
   Widget build(BuildContext context) {

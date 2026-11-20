@@ -1,7 +1,30 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-import '../theme/app_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import '../routes/app_routes.dart';
+import '../services/storage_service.dart';
+import '../theme/app_theme.dart';
+import 'common.dart';
+
+/// Foto yang dipilih di perangkat ini dan belum di-upload.
+bool isLocalPhoto(String? p) => p != null && p.startsWith('/');
+
+/// Path objek di bucket privat (bukti bayar, foto profil, foto kucing, foto
+/// laporan). Perlu signed URL dulu sebelum bisa ditampilkan.
+bool isPrivatePhoto(String? p) =>
+    p != null &&
+    !p.startsWith('http') &&
+    !p.startsWith('/') &&
+    !p.startsWith('assets/');
+
+/// Menentukan jenis string foto: URL, file lokal, atau asset bawaan.
+ImageProvider photoProvider(String path) {
+  if (path.startsWith('http')) return NetworkImage(path);
+  if (path.startsWith('/')) return FileImage(File(path));
+  return AssetImage(path);
+}
 
 class AppPhoto extends StatelessWidget {
   const AppPhoto(
@@ -39,12 +62,11 @@ class AppPhoto extends StatelessWidget {
       borderRadius: BorderRadius.circular(radius),
       child: path == null
           ? placeholder
-          : Image.asset(
-              path!,
+          : StoredImage(
+              path: path!,
               width: size,
               height: h,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => placeholder,
+              fallback: placeholder,
             ),
     );
   }
@@ -84,26 +106,103 @@ class UserAvatar extends StatelessWidget {
     if (photo == null) return letter;
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
-      child: Image.asset(
-        photo!,
+      child: StoredImage(
+        path: photo!,
         width: size,
         height: size,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => letter,
+        fallback: letter,
       ),
     );
   }
 }
 
+/// gambar dari URL, file lokal, asset, atau path privat (lewat signed URL). [fallback] tampil selama URL dimuat dan saat gambar gagal.
+class StoredImage extends StatefulWidget {
+  const StoredImage({
+    super.key,
+    required this.path,
+    required this.width,
+    required this.height,
+    required this.fallback,
+  });
+
+  final String path;
+  final double width;
+  final double height;
+  final Widget fallback;
+
+  @override
+  State<StoredImage> createState() => _StoredImageState();
+}
+
+class _StoredImageState extends State<StoredImage> {
+  String? _url;
+  Future<String>? _pending;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolve();
+  }
+
+  @override
+  void didUpdateWidget(StoredImage old) {
+    super.didUpdateWidget(old);
+    if (old.path != widget.path) _resolve();
+  }
+
+  void _resolve() {
+    _url = null;
+    _pending = null;
+    if (!isPrivatePhoto(widget.path)) {
+      _url = widget.path;
+      return;
+    }
+    final storage = context.read<StorageService>();
+    _url = storage.cachedUrl(widget.path);
+    if (_url == null) _pending = storage.resolve(widget.path);
+  }
+
+  Widget _image(String url) => Image(
+    image: photoProvider(url),
+    width: widget.width,
+    height: widget.height,
+    fit: BoxFit.cover,
+    errorBuilder: (_, _, _) => widget.fallback,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final url = _url;
+    if (url != null) return _image(url);
+    return FutureBuilder<String>(
+      future: _pending,
+      builder: (_, snap) =>
+          snap.hasData ? _image(snap.data!) : widget.fallback,
+    );
+  }
+}
+
+/// Membuka foto layar penuh. Path privat diubah ke signed URL dulu.
 Future<void> showPhotoViewer(
   BuildContext context,
   String path, {
   String title = 'Bukti bayar',
-}) {
-  return Navigator.pushNamed(
+}) async {
+  var url = path;
+  if (isPrivatePhoto(path)) {
+    try {
+      url = await context.read<StorageService>().resolve(path);
+    } on Object {
+      if (context.mounted) showSnack(context, 'Foto gagal dimuat');
+      return;
+    }
+  }
+  if (!context.mounted) return;
+  await Navigator.pushNamed(
     context,
     AppRoutes.photoPreview,
-    arguments: {'path': path, 'title': title},
+    arguments: {'path': url, 'title': title},
   );
 }
 
@@ -128,8 +227,8 @@ class PhotoViewerScreen extends StatelessWidget {
       body: Center(
         child: InteractiveViewer(
           maxScale: 4,
-          child: Image.asset(
-            path,
+          child: Image(
+            image: photoProvider(path),
             fit: BoxFit.contain,
             errorBuilder: (_, _, _) => const Column(
               spacing: AppSpacing.md,

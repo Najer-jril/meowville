@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../routes/app_routes.dart';
 
-import '../../data/data.dart';
+import '../../controllers/booking_controller.dart';
 import '../../data/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common.dart';
@@ -34,107 +34,126 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AdminStore>();
+    final booking = context.watch<BookingController>();
     final text = Theme.of(context).textTheme;
 
-    final all = store.reservationsOf(store.currentOwner);
+    final all = booking.reservations;
     final items = all.where(_matches).toList();
 
     return Scaffold(
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.page,
-                AppSpacing.xl,
-                AppSpacing.page,
-                AppSpacing.md,
-              ),
-              sliver: SliverToBoxAdapter(
-                child: Column(
-                  spacing: AppSpacing.md,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Booking', style: text.headlineLarge),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${all.length} reservasi',
-                            style: text.bodySmall!.copyWith(fontSize: 15),
-                          ),
-                        ),
-                        FilledButton.icon(
-                          onPressed: _book,
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size(0, 48),
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                          ),
-                          icon: const Icon(Icons.add),
-                          label: const Text('Pesan Kamar'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            if (all.isNotEmpty)
-              SliverToBoxAdapter(
-                child: FilterChipRow(
-                  labels: _filters,
-                  selected: _filter,
-                  onSelected: (i) => setState(() => _filter = i),
-                ),
-              ),
-            if (items.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: EmptyState(
-                  icon: Icons.event_note_outlined,
-                  title: all.isEmpty
-                      ? 'Belum ada reservasi'
-                      : 'Tidak ada reservasi',
-                  message: all.isEmpty
-                      ? 'Reservasi kamu akan muncul di sini.'
-                      : 'Belum ada reservasi di kategori ini.',
-                  action: all.isEmpty
-                      ? FilledButton.icon(
-                          onPressed: _book,
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size(0, 48),
-                          ),
-                          icon: const Icon(Icons.add_circle_outline),
-                          label: const Text('Pesan Kamar'),
-                        )
-                      : null,
-                ),
-              )
-            else
+        child: RefreshIndicator(
+          onRefresh: () => booking.load(),
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.page,
-                  AppSpacing.md,
-                  AppSpacing.page,
                   AppSpacing.xl,
+                  AppSpacing.page,
+                  AppSpacing.md,
                 ),
-                sliver: SliverList.separated(
-                  itemCount: items.length,
-                  separatorBuilder: (_, _) => const Padding(
-                    padding: EdgeInsets.only(top: AppSpacing.lg),
-                  ),
-                  itemBuilder: (context, i) => OwnerBookingCard(
-                    reservation: items[i],
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      AppRoutes.ownerBookingDetail,
-                      arguments: items[i],
-                    ),
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    spacing: AppSpacing.md,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Booking', style: text.headlineLarge),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${all.length} reservasi',
+                              style: text.bodySmall!.copyWith(fontSize: 15),
+                            ),
+                          ),
+                          FilledButton.icon(
+                            onPressed: _book,
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size(0, 48),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
+                            ),
+                            icon: const Icon(Icons.add),
+                            label: const Text('Pesan Kamar'),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
-          ],
+              if (all.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: FilterChipRow(
+                    labels: _filters,
+                    selected: _filter,
+                    onSelected: (i) => setState(() => _filter = i),
+                  ),
+                ),
+              if (booking.loading && all.isEmpty)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (booking.error != null && all.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: ErrorState(
+                    message: booking.error!,
+                    onRetry: () => booking.load(),
+                  ),
+                )
+              else if (items.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: EmptyState(
+                    icon: Icons.event_note_outlined,
+                    title: all.isEmpty
+                        ? 'Belum ada reservasi'
+                        : 'Tidak ada reservasi',
+                    message: all.isEmpty
+                        ? 'Reservasi kamu akan muncul di sini.'
+                        : 'Belum ada reservasi di kategori ini.',
+                    action: all.isEmpty
+                        ? FilledButton.icon(
+                            onPressed: _book,
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size(0, 48),
+                            ),
+                            icon: const Icon(Icons.add_circle_outline),
+                            label: const Text('Pesan Kamar'),
+                          )
+                        : null,
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.page,
+                    AppSpacing.md,
+                    AppSpacing.page,
+                    AppSpacing.xl,
+                  ),
+                  sliver: SliverList.separated(
+                    itemCount: items.length,
+                    separatorBuilder: (_, _) => const Padding(
+                      padding: EdgeInsets.only(top: AppSpacing.lg),
+                    ),
+                    itemBuilder: (context, i) => OwnerBookingCard(
+                      reservation: items[i],
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.ownerBookingDetail,
+                        arguments: items[i],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
