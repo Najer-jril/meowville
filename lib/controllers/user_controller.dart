@@ -25,7 +25,6 @@ class UserController extends ChangeNotifier with LoadState {
   /// register akun baru. Server selalu membuat akun sebagai owner, jadi role staf diatur belakangan oleh admin lewat RPC.
   Future<void> create({
     required String name,
-    required String phone,
     required String email,
     required String password,
     required UserRole role,
@@ -34,7 +33,6 @@ class UserController extends ChangeNotifier with LoadState {
       email: email,
       password: password,
       name: name,
-      phone: phone,
     );
     if (role != UserRole.owner) {
       await _profiles.setRole(id, role);

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/app_links.dart';
+import '../../widgets/support_contact.dart';
 import '../../controllers/auth_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
@@ -60,10 +62,6 @@ class OwnerAccountScreen extends StatelessWidget {
                             style: text.bodySmall!.copyWith(fontSize: 12),
                             overflow: TextOverflow.ellipsis,
                           ),
-                          Text(
-                            user.phone,
-                            style: text.bodySmall!.copyWith(fontSize: 12),
-                          ),
                         ],
                       ),
                     ),
@@ -102,6 +100,24 @@ class OwnerAccountScreen extends StatelessWidget {
                       title: 'Ketentuan layanan',
                       onTap: () =>
                           Navigator.pushNamed(context, AppRoutes.legal),
+                    ),
+                    const Divider(
+                      indent: AppSpacing.page,
+                      endIndent: AppSpacing.page,
+                    ),
+                    _MenuTile(
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'Kebijakan privasi',
+                      onTap: () => openLink(context, AppLinks.privacy),
+                    ),
+                    const Divider(
+                      indent: AppSpacing.page,
+                      endIndent: AppSpacing.page,
+                    ),
+                    _MenuTile(
+                      icon: Icons.mail_outline,
+                      title: 'Hubungi tim Meowville',
+                      onTap: () => showSupportContact(context),
                     ),
                   ],
                 ),

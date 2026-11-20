@@ -22,14 +22,12 @@ class ProfileFormScreen extends StatefulWidget {
 class _ProfileFormScreenState extends State<ProfileFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.user.name);
-  late final _phone = TextEditingController(text: widget.user.phone);
   late String? _photo = widget.user.photo;
   bool _saving = false;
 
   @override
   void dispose() {
     _name.dispose();
-    _phone.dispose();
     super.dispose();
   }
 
@@ -44,7 +42,6 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
     try {
       await context.read<AuthController>().updateProfile(
         name: _name.text.trim(),
-        phone: _phone.text.trim(),
         photo: _photo,
       );
       if (!mounted) return;
@@ -101,21 +98,8 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
                     hint: 'misal, Najer Pinkman',
                     icon: Icons.person_outline,
                     controller: _name,
-                    textInputAction: TextInputAction.next,
+                    textInputAction: TextInputAction.done,
                     validator: validateRequired,
-                  ),
-                  AuthTextField(
-                    label: 'Nomor WhatsApp',
-                    hint: 'misal, 0812-3456-7890',
-                    icon: Icons.call_outlined,
-                    controller: _phone,
-                    keyboardType: TextInputType.phone,
-                    validator: (v) {
-                      final digits = (v ?? '').replaceAll(RegExp(r'\D'), '');
-                      if (digits.isEmpty) return 'Wajib diisi';
-                      if (digits.length < 10) return 'Nomor minimal 10 digit';
-                      return null;
-                    },
                   ),
                 ],
               ),

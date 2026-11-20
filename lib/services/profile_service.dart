@@ -22,12 +22,10 @@ class ProfileService {
   Future<AppUser> update(
     String id, {
     required String name,
-    required String phone,
     String? photo,
   }) async {
     final rows = await _api.patch('/rest/v1/profiles?id=eq.$id', {
       'name': name,
-      'phone': phone,
       'photo': photo,
     }) as List;
     return AppUser.fromJson(rows.first);
@@ -36,5 +34,5 @@ class ProfileService {
   Future<void> setRole(String id, UserRole role) =>
       _api.rpc('set_user_role', {'p_user': id, 'p_role': role.key});
 
-  Future<void> deleteMe() => _api.rpc('delete_my_account');
+  Future<void> deleteMe() => _api.post('/functions/v1/delete-account');
 }

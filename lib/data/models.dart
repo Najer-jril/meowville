@@ -24,7 +24,6 @@ class AppUser {
     required this.id,
     required this.name,
     required this.email,
-    required this.phone,
     required this.role,
     required this.joinedAt,
     this.photo,
@@ -35,7 +34,6 @@ class AppUser {
     id: json['id'] as String,
     name: json['name'] as String,
     email: json['email'] as String,
-    phone: json['phone'] as String? ?? '',
     role: UserRole.values.byName(json['role'] as String),
     joinedAt: DateTime.parse(json['joined_at'] as String).toLocal(),
     photo: json['photo'] as String?,
@@ -44,7 +42,6 @@ class AppUser {
   final String id;
   final String name;
   final String email;
-  final String phone;
   final UserRole role;
   final DateTime joinedAt;
   final String? photo;
@@ -414,6 +411,7 @@ class DailyReport {
     required this.mood,
     this.note = '',
     this.photo,
+    this.reporterName = '',
   });
 
   static const select =
@@ -433,6 +431,7 @@ class DailyReport {
     mood: json['mood'] as String,
     note: json['note'] as String? ?? '',
     photo: json['photo'] as String?,
+    reporterName: json['reporter_name'] as String? ?? '',
   );
 
   static const foodOptions = ['Habis', 'Sedikit', 'Gamau makan'];
@@ -442,8 +441,16 @@ class DailyReport {
   final int id;
   final Reservation reservation;
 
-  /// null kalau akun staf yang membuat laporan sudah dihapus
+  /// null untuk owner (tidak boleh membaca profil staf) dan kalau akun staf
+  /// sudah dihapus. Nama pelapor tetap ada di [reporterName].
   final AppUser? reporter;
+  final String reporterName;
+
+  String get reporterFullName =>
+      reporter?.name ?? (reporterName.isEmpty ? 'Staff' : reporterName);
+  String get reporterFirstName =>
+      reporter?.firstName ??
+      (reporterName.isEmpty ? 'staff' : reporterName.split(' ').first);
   final DateTime time;
   final String food;
   final String drink;
@@ -480,4 +487,39 @@ class ReportData {
   final double avgNights;
 
   bool get isEmpty => bookings == 0;
+}
+
+/// Baris tunggal tabel public.app_settings. Diubah admin lewat Supabase
+/// Dashboard, jadi data bank dan kontak bisa diganti tanpa rilis ulang.
+class AppSettings {
+  const AppSettings({
+    required this.demoMode,
+    required this.bankName,
+    required this.bankAccount,
+    required this.bankHolder,
+    required this.supportEmail,
+  });
+
+  /// Dipakai sebelum data dari server termuat atau saat offline.
+  static const fallback = AppSettings(
+    demoMode: true,
+    bankName: 'Bank Demo',
+    bankAccount: '0000 0000 00',
+    bankHolder: 'Meowville Demo',
+    supportEmail: 'meowville@najer.dev',
+  );
+
+  factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
+    demoMode: json['demo_mode'] as bool,
+    bankName: json['bank_name'] as String,
+    bankAccount: json['bank_account'] as String,
+    bankHolder: json['bank_holder'] as String,
+    supportEmail: json['support_email'] as String,
+  );
+
+  final bool demoMode;
+  final String bankName;
+  final String bankAccount;
+  final String bankHolder;
+  final String supportEmail;
 }

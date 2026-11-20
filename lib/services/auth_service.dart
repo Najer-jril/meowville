@@ -21,24 +21,23 @@ class AuthService {
     return Session.fromAuthJson(json as Map<String, dynamic>);
   }
 
-  /// Mengembalikan id user baru. Server selalu membuat profil owner.
+  /// return id user baru. Server selalu membuat profil owner
   Future<String> signUp({
     required String email,
     required String password,
     required String name,
-    required String phone,
   }) async {
     final json = await _api.post('/auth/v1/signup', {
       'email': email,
       'password': password,
-      'data': {'name': name, 'phone': phone},
+      'data': {'name': name},
     });
-    // Kalau "Confirm email" aktif, response-nya berupa user itu sendiri.
+    // if "Confirm email" aktif, response-nya berupa user itu sendiri
     final user = (json as Map<String, dynamic>)['user'] ?? json;
     return (user as Map<String, dynamic>)['id'] as String;
   }
 
-  /// Mengirim kode pemulihan 6 digit ke email.
+  /// send kode pemulihan 6 digit ke email
   Future<void> recover(String email) =>
       _api.post('/auth/v1/recover', {'email': email});
 
@@ -51,7 +50,7 @@ class AuthService {
     return Session.fromAuthJson(json as Map<String, dynamic>);
   }
 
-  /// Butuh access token dari [verifyRecovery] atau sesi biasa.
+  /// perlu access token dari [verifyRecovery] atau sesi biasa
   Future<void> updatePassword(String password) =>
       _api.put('/auth/v1/user', {'password': password});
 

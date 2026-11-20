@@ -3,6 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 
+import '../../widgets/support_contact.dart';
+import '../../core/app_links.dart';
 import '../../controllers/user_controller.dart';
 import '../../core/api_client.dart';
 import '../../data/models.dart';
@@ -23,7 +25,6 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
-  final _phone = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _confirm = TextEditingController();
@@ -40,13 +41,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     ..onTap = () => Navigator.pushNamed(context, AppRoutes.legal);
   late final _policyTap = TapGestureRecognizer()
     ..onTap = () => Navigator.pushNamed(context, AppRoutes.policy);
+  late final _privacyTap = TapGestureRecognizer()
+    ..onTap = () => openLink(context, AppLinks.privacy);
 
   @override
   void dispose() {
     _legalTap.dispose();
     _policyTap.dispose();
+    _privacyTap.dispose();
     _name.dispose();
-    _phone.dispose();
     _email.dispose();
     _password.dispose();
     _confirm.dispose();
@@ -68,7 +71,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     try {
       await context.read<UserController>().create(
         name: _name.text.trim(),
-        phone: _phone.text.trim(),
         email: _email.text.trim(),
         password: _password.text,
         role: UserRole.owner,
@@ -202,15 +204,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     textInputAction: TextInputAction.next,
                     validator: validateRequired,
                   ),
-                  AuthTextField(
-                    label: 'Nomor WhatsApp',
-                    hint: 'misal, 0812-3456-7890',
-                    icon: Icons.chat_bubble_outline,
-                    controller: _phone,
-                    keyboardType: TextInputType.phone,
-                    textInputAction: TextInputAction.next,
-                    validator: validateRequired,
-                  ),
                 ],
               ),
               Column(
@@ -264,6 +257,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 onChanged: (v) => setState(() => _agreed = v),
                 legalTap: _legalTap,
                 policyTap: _policyTap,
+                privacyTap: _privacyTap,
               ),
               FilledButton(
                 onPressed: _agreed && !_loading ? _submit : null,
@@ -371,12 +365,14 @@ class _AgreementCheck extends StatelessWidget {
     required this.onChanged,
     required this.legalTap,
     required this.policyTap,
+    required this.privacyTap,
   });
 
   final bool value;
   final ValueChanged<bool> onChanged;
   final GestureRecognizer legalTap;
   final GestureRecognizer policyTap;
+  final GestureRecognizer privacyTap;
 
   @override
   Widget build(BuildContext context) {
@@ -435,11 +431,17 @@ class _AgreementCheck extends StatelessWidget {
                     style: link,
                     recognizer: legalTap,
                   ),
-                  const TextSpan(text: ' & '),
+                  const TextSpan(text: ', '),
                   TextSpan(
                     text: 'Kebijakan Meowville',
                     style: link,
                     recognizer: policyTap,
+                  ),
+                  const TextSpan(text: ', dan '),
+                  TextSpan(
+                    text: 'Kebijakan Privasi',
+                    style: link,
+                    recognizer: privacyTap,
                   ),
                 ],
               ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/app_links.dart';
+import '../../widgets/support_contact.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/daily_report_controller.dart';
 import '../../controllers/reservation_controller.dart';
@@ -90,27 +92,6 @@ class SitterAccountScreen extends StatelessWidget {
                             style: text.bodySmall!.copyWith(fontSize: 15),
                             overflow: TextOverflow.ellipsis,
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: AppSpacing.xs),
-                            child: Row(
-                              spacing: AppSpacing.sm,
-                              children: [
-                                const Icon(
-                                  Icons.call_outlined,
-                                  size: 16,
-                                  color: AppColors.muted,
-                                ),
-                                Flexible(
-                                  child: Text(
-                                    account.phone,
-                                    style: text.bodySmall!.copyWith(
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -162,6 +143,11 @@ class SitterAccountScreen extends StatelessWidget {
                   AppRoutes.ownerProfileForm,
                   arguments: account,
                 ),
+              ),
+              action(
+                Icons.privacy_tip_outlined,
+                'Kebijakan privasi',
+                () => openLink(context, AppLinks.privacy),
               ),
               action(
                 Icons.delete_forever_outlined,
