@@ -111,7 +111,15 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                   onSelected: (i) => setState(() => _filter = i),
                 ),
               ),
-              if (items.isEmpty)
+              if (reservations.error != null && items.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: ErrorState(
+                    message: reservations.error!,
+                    onRetry: () => reservations.load(),
+                  ),
+                )
+              else if (items.isEmpty)
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: EmptyState(

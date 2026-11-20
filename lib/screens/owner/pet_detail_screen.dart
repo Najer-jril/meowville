@@ -17,37 +17,38 @@ class PetDetailScreen extends StatelessWidget {
 
   final Cat cat;
 
-  Future<void> _delete(BuildContext context, Cat cat) async {
-    if (context.read<BookingController>().activeFor(cat) != null) {
-      return showInfoDialog(
-        context,
-        title: 'Belum bisa dihapus',
-        message:
-            '${cat.name} masih punya reservasi aktif. Selesaikan atau '
-            'batalkan reservasinya terlebih dahulu.',
-      );
-    }
-    final ok = await showConfirmDialog(
-      context,
-      title: 'Hapus ${cat.name}?',
-      message:
-          'Profil ${cat.name} akan dihapus dari daftar. Riwayat reservasi '
-          'tetap tersimpan.',
-      confirmLabel: 'Hapus',
-      destructive: true,
-      icon: Icons.delete_outline,
-    );
-    if (!ok || !context.mounted) return;
-    try {
-      await context.read<PetController>().delete(cat);
-    } on ApiException catch (e) {
-      if (context.mounted) showSnack(context, e.message);
-      return;
-    }
-    if (!context.mounted) return;
-    Navigator.pop(context);
-    showSnack(context, '${cat.name} dihapus');
-  }
+  Future<void> _delete(BuildContext context, Cat cat) =>
+      runOnce(('delete-cat', cat.id), () async {
+        if (context.read<BookingController>().activeFor(cat) != null) {
+          return showInfoDialog(
+            context,
+            title: 'Belum bisa dihapus',
+            message:
+                '${cat.name} masih punya reservasi aktif. Selesaikan atau '
+                'batalkan reservasinya terlebih dahulu.',
+          );
+        }
+        final ok = await showConfirmDialog(
+          context,
+          title: 'Hapus ${cat.name}?',
+          message:
+              'Profil ${cat.name} akan dihapus dari daftar. Riwayat reservasi '
+              'tetap tersimpan.',
+          confirmLabel: 'Hapus',
+          destructive: true,
+          icon: Icons.delete_outline,
+        );
+        if (!ok || !context.mounted) return;
+        try {
+          await context.read<PetController>().delete(cat);
+        } on ApiException catch (e) {
+          if (context.mounted) showSnack(context, e.message);
+          return;
+        }
+        if (!context.mounted) return;
+        Navigator.pop(context);
+        showSnack(context, '${cat.name} dihapus');
+      });
 
   @override
   Widget build(BuildContext context) {

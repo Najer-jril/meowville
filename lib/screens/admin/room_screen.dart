@@ -125,33 +125,36 @@ class _RoomTypeCard extends StatelessWidget {
 
   final RoomType type;
 
-  Future<void> _delete(BuildContext context) async {
-    final count = context.read<ReservationController>().activeCountFor(type);
-    if (count > 0) {
-      return showInfoDialog(
+  Future<void> _delete(BuildContext context) => runOnce(
+    ('delete-room-type', type.id),
+    () async {
+      final count = context.read<ReservationController>().activeCountFor(type);
+      if (count > 0) {
+        return showInfoDialog(
+          context,
+          title: 'Belum bisa dihapus',
+          message: 'Masih ada $count reservasi aktif untuk tipe ini.',
+        );
+      }
+      final ok = await showConfirmDialog(
         context,
-        title: 'Belum bisa dihapus',
-        message: 'Masih ada $count reservasi aktif untuk tipe ini.',
+        title: 'Hapus tipe ${type.name}?',
+        message:
+            'Tipe ini hilang dari katalog dan tidak bisa dipesan lagi. '
+            'Riwayat reservasi yang sudah ada tidak berubah.',
+        confirmLabel: 'Hapus',
+        destructive: true,
+        icon: Icons.delete_outline,
       );
-    }
-    final ok = await showConfirmDialog(
-      context,
-      title: 'Hapus tipe ${type.name}?',
-      message:
-          'Tipe ini hilang dari katalog dan tidak bisa dipesan lagi. '
-          'Riwayat reservasi yang sudah ada tidak berubah.',
-      confirmLabel: 'Hapus',
-      destructive: true,
-      icon: Icons.delete_outline,
-    );
-    if (!ok || !context.mounted) return;
-    try {
-      await context.read<RoomController>().setActive(type, false);
-      if (context.mounted) showSnack(context, 'Tipe ${type.name} dihapus');
-    } on ApiException catch (e) {
-      if (context.mounted) showSnack(context, e.message);
-    }
-  }
+      if (!ok || !context.mounted) return;
+      try {
+        await context.read<RoomController>().setActive(type, false);
+        if (context.mounted) showSnack(context, 'Tipe ${type.name} dihapus');
+      } on ApiException catch (e) {
+        if (context.mounted) showSnack(context, e.message);
+      }
+    },
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -439,7 +442,7 @@ class _BlockCard extends StatelessWidget {
           IconButton(
             tooltip: 'Hapus blokir',
             icon: const Icon(Icons.delete_outline, color: AppColors.muted),
-            onPressed: () async {
+            onPressed: () => runOnce(('remove-block', block.id), () async {
               final rooms = context.read<RoomController>();
               final ok = await showConfirmDialog(
                 context,
@@ -458,7 +461,7 @@ class _BlockCard extends StatelessWidget {
               } on ApiException catch (e) {
                 if (context.mounted) showSnack(context, e.message);
               }
-            },
+            }),
           ),
         ],
       ),

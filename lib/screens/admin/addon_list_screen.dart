@@ -86,32 +86,33 @@ class _AddonCard extends StatelessWidget {
 
   final Addon addon;
 
-  Future<void> _toggle(BuildContext context) async {
-    final addons = context.read<AddonController>();
-    Future<void> set(bool active, String done) async {
-      try {
-        await addons.setActive(addon, active);
-        if (context.mounted) showSnack(context, done);
-      } on ApiException catch (e) {
-        if (context.mounted) showSnack(context, e.message);
-      }
-    }
+  Future<void> _toggle(BuildContext context) =>
+      runOnce(('toggle-addon', addon.id), () async {
+        final addons = context.read<AddonController>();
+        Future<void> set(bool active, String done) async {
+          try {
+            await addons.setActive(addon, active);
+            if (context.mounted) showSnack(context, done);
+          } on ApiException catch (e) {
+            if (context.mounted) showSnack(context, e.message);
+          }
+        }
 
-    if (!addon.active) {
-      return set(true, '${addon.name} diaktifkan');
-    }
-    final ok = await showConfirmDialog(
-      context,
-      title: 'Nonaktifkan layanan?',
-      message:
-          'Layanan tidak muncul lagi saat pemesanan. Reservasi yang '
-          'sudah ada tidak berubah.',
-      confirmLabel: 'Nonaktifkan',
-      destructive: true,
-      icon: Icons.warning_amber_rounded,
-    );
-    if (ok) await set(false, '${addon.name} dinonaktifkan');
-  }
+        if (!addon.active) {
+          return set(true, '${addon.name} diaktifkan');
+        }
+        final ok = await showConfirmDialog(
+          context,
+          title: 'Nonaktifkan layanan?',
+          message:
+              'Layanan tidak muncul lagi saat pemesanan. Reservasi yang '
+              'sudah ada tidak berubah.',
+          confirmLabel: 'Nonaktifkan',
+          destructive: true,
+          icon: Icons.warning_amber_rounded,
+        );
+        if (ok) await set(false, '${addon.name} dinonaktifkan');
+      });
 
   @override
   Widget build(BuildContext context) {

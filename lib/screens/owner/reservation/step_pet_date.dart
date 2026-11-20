@@ -56,7 +56,8 @@ class StepPetDate extends StatelessWidget {
     final heading = text.titleLarge!.copyWith(fontWeight: FontWeight.w700);
     final r = range;
 
-    final cats = context.watch<PetController>().cats;
+    final pets = context.watch<PetController>();
+    final cats = pets.cats;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
@@ -120,7 +121,14 @@ class StepPetDate extends StatelessWidget {
               ],
             ),
           ),
-          if (cats.isEmpty)
+          if (pets.error != null && cats.isEmpty)
+            AppCard(
+              child: ErrorState(
+                message: pets.error!,
+                onRetry: () => pets.load(),
+              ),
+            )
+          else if (cats.isEmpty)
             AppCard(
               child: EmptyState(
                 icon: Icons.pets,

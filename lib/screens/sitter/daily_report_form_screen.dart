@@ -123,7 +123,7 @@ class _DailyReportFormScreenState extends State<DailyReportFormScreen> {
                       background: AppColors.warningSoft,
                       message:
                           '${r.cat.name} sudah dilaporkan '
-                          '${previous.reporter?.firstName ?? 'staff'}, '
+                          '${previous.reporterFirstName}, '
                           '${Fmt.time(previous.time)}. Tetap kirim laporan '
                           'baru?',
                     ),

@@ -79,7 +79,12 @@ class _ReportScreenState extends State<ReportScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (data.isEmpty)
+                    if (reservations.error != null && data.isEmpty)
+                      ErrorState(
+                        message: reservations.error!,
+                        onRetry: () => reservations.load(),
+                      )
+                    else if (data.isEmpty)
                       EmptyState(
                         icon: Icons.insert_chart_outlined,
                         title: 'Belum ada data',
@@ -189,7 +194,7 @@ class _Metric extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return AppCard(
       child: ConstrainedBox(
-        constraints: const BoxConstraints.tightFor(height: AppSizes.metricCard),
+        constraints: const BoxConstraints(minHeight: AppSizes.metricCard),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,

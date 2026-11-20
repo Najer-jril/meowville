@@ -56,7 +56,12 @@ class ReportHistoryScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (groups.isEmpty)
+                if (reports.error != null && groups.isEmpty)
+                  ErrorState(
+                    message: reports.error!,
+                    onRetry: () => reports.load(),
+                  )
+                else if (groups.isEmpty)
                   const EmptyState(
                     icon: Icons.assignment_outlined,
                     title: 'Belum ada laporan',
@@ -111,7 +116,7 @@ class _ReportCard extends StatelessWidget {
               children: [
                 Text(cat.name, style: text.titleLarge),
                 Text(
-                  '${report.reporter?.firstName ?? 'staff'} - ${Fmt.time(report.time)}',
+                  '${report.reporterFirstName} - ${Fmt.time(report.time)}',
                   style: text.bodySmall!.copyWith(fontSize: 14),
                 ),
               ],
@@ -185,7 +190,7 @@ Future<void> showReportDetailSheet(BuildContext context, DailyReport report) {
                   ],
                 ),
               ),
-              row('Pelapor', strong(report.reporter?.name ?? 'Staff')),
+              row('Pelapor', strong(report.reporterFullName)),
               row(
                 'Waktu',
                 strong('${Fmt.date(report.time)}, ${Fmt.time(report.time)}'),

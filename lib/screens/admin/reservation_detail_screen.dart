@@ -94,7 +94,7 @@ class ReservationDetailScreen extends StatelessWidget {
       case ReservationStatus.confirmed:
         return BottomActionBar(
           child: OutlinedButton(
-            onPressed: () async {
+            onPressed: () => runOnce(('admin-cancel', r.id), () async {
               final reservations = context.read<ReservationController>();
               final ok = await showConfirmDialog(
                 context,
@@ -114,7 +114,7 @@ class ReservationDetailScreen extends StatelessWidget {
               } on ApiException catch (e) {
                 if (context.mounted) showSnack(context, e.message);
               }
-            },
+            }),
             style: dangerOutlinedStyle(),
             child: const Text('Batalkan Reservasi'),
           ),
@@ -176,7 +176,7 @@ class _OwnerCard extends StatelessWidget {
             padding: const EdgeInsets.only(top: AppSpacing.xs),
             child: Text(r.owner.name, style: text.titleLarge),
           ),
-          Text(r.owner.phone, style: text.bodySmall!.copyWith(fontSize: 15)),
+          Text(r.owner.email, style: text.bodySmall!.copyWith(fontSize: 15)),
         ],
       ),
     );

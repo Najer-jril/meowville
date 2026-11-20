@@ -183,7 +183,7 @@ class ReportBadge extends StatelessWidget {
     }
     return StatusBadge(
       label:
-          'Dilaporkan ${report.reporter?.firstName ?? 'staff'}, ${Fmt.time(report.time)}',
+          'Dilaporkan ${report.reporterFirstName}, ${Fmt.time(report.time)}',
       style: const BadgeStyle(AppColors.success, AppColors.successSoft),
     );
   }

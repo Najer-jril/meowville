@@ -83,6 +83,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: _tab == 0
                         ? _overview(context)
+                        : reservations.error != null && pending.isEmpty
+                        ? [
+                            ErrorState(
+                              message: reservations.error!,
+                              onRetry: () => reservations.load(),
+                            ),
+                          ]
                         : _needsResponse(context, pending),
                   ),
                 ),
@@ -115,13 +122,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final freeTotal = free.values.fold(0, (s, v) => s + v);
 
     return [
-      GridView.count(
-        crossAxisCount: 2,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        mainAxisSpacing: AppSpacing.md,
-        crossAxisSpacing: AppSpacing.md,
-        childAspectRatio: 1.15,
+      // Baris berisi dua kartu yang tingginya mengikuti isi, supaya teks
+      // tidak terpotong saat ukuran font sistem diperbesar.
+      _StatGrid(
         children: [
           _StatCard(
             label: 'Check in hari Ini',
@@ -213,6 +216,34 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 }
 
+class _StatGrid extends StatelessWidget {
+  const _StatGrid({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    spacing: AppSpacing.md,
+    children: [
+      for (var i = 0; i < children.length; i += 2)
+        IntrinsicHeight(
+          child: Row(
+            spacing: AppSpacing.md,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: children[i]),
+              Expanded(
+                child: i + 1 < children.length
+                    ? children[i + 1]
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+    ],
+  );
+}
+
 class _StatCard extends StatelessWidget {
   const _StatCard({required this.label, required this.value, this.note});
 
@@ -224,30 +255,36 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            spacing: AppSpacing.xs,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(label, style: text.bodySmall!.copyWith(fontSize: 14)),
-              Text(
-                value,
-                style: text.headlineMedium!.copyWith(fontSize: 28, height: 1.1),
-              ),
-            ],
-          ),
-          if (note != null && note!.isNotEmpty)
-            Text(
-              note!,
-              style: text.bodySmall!.copyWith(color: AppColors.text),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: AppSizes.statCard),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              spacing: AppSpacing.xs,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(label, style: text.bodySmall!.copyWith(fontSize: 14)),
+                Text(
+                  value,
+                  style: text.headlineMedium!.copyWith(
+                    fontSize: 28,
+                    height: 1.1,
+                  ),
+                ),
+              ],
             ),
-        ],
+            if (note != null && note!.isNotEmpty)
+              Text(
+                note!,
+                style: text.bodySmall!.copyWith(color: AppColors.text),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+          ],
+        ),
       ),
     );
   }

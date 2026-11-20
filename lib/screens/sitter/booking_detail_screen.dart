@@ -27,73 +27,77 @@ class SitterBookingDetailScreen extends StatelessWidget {
     arguments: {'reservation': reservation, 'actor': actor},
   );
 
-  Future<void> _checkIn(BuildContext context, Reservation r) async {
-    final ok = await showModalBottomSheet<bool>(
-      context: context,
-      builder: (ctx) => _ConfirmSheet(
-        title: 'Check-in ${r.cat.name}?',
-        message:
-            'Status menjadi Lagi Nginap. Pastikan kucing sudah '
-            'diterima dan kondisinya baik.',
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Check-in'),
-          ),
-        ],
-      ),
-    );
-    if (ok != true || !context.mounted) return;
-    try {
-      await context.read<ReservationController>().checkIn(r);
-      if (context.mounted) {
-        showSnack(context, '${r.cat.name} sudah check-in di unit ${r.unit}');
-      }
-    } on ApiException catch (e) {
-      if (context.mounted) showSnack(context, e.message);
-    }
-  }
-
-  Future<void> _checkOut(BuildContext context, Reservation r) async {
-    final reported =
-        context.read<DailyReportController>().reportToday(r) != null;
-    final choice = await showModalBottomSheet<String>(
-      context: context,
-      builder: (ctx) => _ConfirmSheet(
-        title: 'Check-out ${r.cat.name}?',
-        warning: reported ? null : 'Belum ada laporan hari ini.',
-        message: 'Reservasi akan ditandai selesai.',
-        actions: [
-          if (!reported)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: OutlinedButton(
-                onPressed: () => Navigator.pop(ctx, 'report'),
-                child: const Text('Isi Laporan Dulu'),
-              ),
+  Future<void> _checkIn(BuildContext context, Reservation r) => runOnce(
+    ('check-in', r.id),
+    () async {
+      final ok = await showModalBottomSheet<bool>(
+        context: context,
+        builder: (ctx) => _ConfirmSheet(
+          title: 'Check-in ${r.cat.name}?',
+          message:
+              'Status menjadi Lagi Nginap. Pastikan kucing sudah '
+              'diterima dan kondisinya baik.',
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Check-in'),
             ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, 'checkout'),
-            child: Text(reported ? 'Check-out' : 'Tetap Check-out'),
-          ),
-        ],
-      ),
-    );
-    if (!context.mounted) return;
-    if (choice == 'report') {
-      _openReport(context);
-    } else if (choice == 'checkout') {
+          ],
+        ),
+      );
+      if (ok != true || !context.mounted) return;
       try {
-        await context.read<ReservationController>().checkOut(r);
+        await context.read<ReservationController>().checkIn(r);
+        if (context.mounted) {
+          showSnack(context, '${r.cat.name} sudah check-in di unit ${r.unit}');
+        }
       } on ApiException catch (e) {
         if (context.mounted) showSnack(context, e.message);
-        return;
       }
-      if (!context.mounted) return;
-      Navigator.pop(context);
-      showSnack(context, '${r.cat.name} sudah check-out');
-    }
-  }
+    },
+  );
+
+  Future<void> _checkOut(BuildContext context, Reservation r) =>
+      runOnce(('check-out', r.id), () async {
+        final reported =
+            context.read<DailyReportController>().reportToday(r) != null;
+        final choice = await showModalBottomSheet<String>(
+          context: context,
+          builder: (ctx) => _ConfirmSheet(
+            title: 'Check-out ${r.cat.name}?',
+            warning: reported ? null : 'Belum ada laporan hari ini.',
+            message: 'Reservasi akan ditandai selesai.',
+            actions: [
+              if (!reported)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(ctx, 'report'),
+                    child: const Text('Isi Laporan Dulu'),
+                  ),
+                ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, 'checkout'),
+                child: Text(reported ? 'Check-out' : 'Tetap Check-out'),
+              ),
+            ],
+          ),
+        );
+        if (!context.mounted) return;
+        if (choice == 'report') {
+          _openReport(context);
+        } else if (choice == 'checkout') {
+          try {
+            await context.read<ReservationController>().checkOut(r);
+          } on ApiException catch (e) {
+            if (context.mounted) showSnack(context, e.message);
+            return;
+          }
+          if (!context.mounted) return;
+          Navigator.pop(context);
+          showSnack(context, '${r.cat.name} sudah check-out');
+        }
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -298,7 +302,7 @@ class _ReportStatus extends StatelessWidget {
             Expanded(
               child: Text(
                 done
-                    ? 'Dilaporkan ${report!.reporter?.firstName ?? 'staff'}, '
+                    ? 'Dilaporkan ${report!.reporterFirstName}, '
                           '${Fmt.time(report!.time)} - ${report!.mood}'
                     : 'Belum dilaporkan hari ini',
                 style: text.bodyMedium!.copyWith(color: fg),
@@ -340,8 +344,9 @@ class _OwnerCard extends StatelessWidget {
                 ),
                 Text(owner.name, style: text.titleLarge),
                 Text(
-                  owner.phone,
+                  owner.email,
                   style: text.bodySmall!.copyWith(fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

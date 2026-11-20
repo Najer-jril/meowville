@@ -73,7 +73,14 @@ class PetReportScreen extends StatelessWidget {
                 ),
               ),
             ),
-            if (reports.isEmpty)
+            if (daily.error != null && reports.isEmpty)
+              AppCard(
+                child: ErrorState(
+                  message: daily.error!,
+                  onRetry: () => daily.load(),
+                ),
+              )
+            else if (reports.isEmpty)
               AppCard(
                 child: EmptyState(
                   icon: Icons.assignment_outlined,
@@ -161,7 +168,7 @@ class _TimelineItem extends StatelessWidget {
                                 ),
                                 TextSpan(
                                   text:
-                                      '  dari ${d.reporter?.firstName ?? 'staff'}',
+                                      '  dari ${d.reporterFirstName}',
                                   style: text.bodySmall,
                                 ),
                               ],

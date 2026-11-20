@@ -11,6 +11,7 @@ import '../../utils/format.dart';
 import '../../widgets/app_photo.dart';
 import '../../widgets/common.dart';
 import '../../widgets/payment_proof_card.dart';
+import '../../widgets/support_contact.dart';
 import 'widgets/owner_widgets.dart';
 
 class OwnerBookingDetailScreen extends StatelessWidget {
@@ -18,39 +19,39 @@ class OwnerBookingDetailScreen extends StatelessWidget {
 
   final Reservation reservation;
 
-  Future<void> _upload(BuildContext context, Reservation r) async {
-    final booking = context.read<BookingController>();
-    final picked = await showUploadProofSheet(
-      context,
-      amount: r.total,
-      current: r.paymentProof,
-    );
-    if (picked == null || picked == r.paymentProof) return;
-    if (context.mounted) showSnack(context, 'Mengunggah bukti bayar...');
-    try {
-      await booking.uploadProof(r, picked);
-      if (context.mounted) showSnack(context, 'Bukti bayar terkirim');
-    } on ApiException catch (e) {
-      if (context.mounted) showSnack(context, e.message);
-    }
-  }
+  Future<void> _upload(BuildContext context, Reservation r) =>
+      runOnce(('proof', r.id), () async {
+        final booking = context.read<BookingController>();
+        final picked = await showUploadProofSheet(
+          context,
+          amount: r.total,
+          current: r.paymentProof,
+        );
+        if (picked == null || picked == r.paymentProof) return;
+        if (context.mounted) showSnack(context, 'Mengunggah bukti bayar...');
+        try {
+          await booking.uploadProof(r, picked);
+          if (context.mounted) showSnack(context, 'Bukti bayar terkirim');
+        } on ApiException catch (e) {
+          if (context.mounted) showSnack(context, e.message);
+        }
+      });
 
-  Future<void> _cancel(BuildContext context, Reservation r) async {
-    final booking = context.read<BookingController>();
-    final ok = await showCancelReservationDialog(context, r);
-    if (!ok) return;
-    try {
-      await booking.cancel(r);
-      if (context.mounted) showSnack(context, 'Reservasi dibatalkan');
-    } on ApiException catch (e) {
-      if (context.mounted) showSnack(context, e.message);
-    }
-  }
+  Future<void> _cancel(BuildContext context, Reservation r) =>
+      runOnce(('cancel', r.id), () async {
+        final booking = context.read<BookingController>();
+        final ok = await showCancelReservationDialog(context, r);
+        if (!ok) return;
+        try {
+          await booking.cancel(r);
+          if (context.mounted) showSnack(context, 'Reservasi dibatalkan');
+        } on ApiException catch (e) {
+          if (context.mounted) showSnack(context, e.message);
+        }
+      });
 
-  void _contactAdmin(BuildContext context) => showSnack(
-    context,
-    'Membuka WhatsApp admin ${PaymentInfo.adminWhatsApp}...',
-  );
+  void _contactAdmin(BuildContext context, Reservation r) =>
+      showSupportContact(context, subject: 'Reservasi Meowville #${r.id}');
 
   @override
   Widget build(BuildContext context) {
@@ -174,9 +175,9 @@ class OwnerBookingDetailScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               OutlinedButton.icon(
-                onPressed: () => _contactAdmin(context),
-                icon: const Icon(Icons.chat_outlined),
-                label: const Text('Hubungi Admin via WhatsApp'),
+                onPressed: () => _contactAdmin(context, r),
+                icon: const Icon(Icons.mail_outline),
+                label: const Text('Hubungi Admin'),
               ),
             ],
           ),

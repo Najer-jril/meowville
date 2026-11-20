@@ -73,7 +73,17 @@ class OwnerHomeScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (staying.isEmpty && nearest == null)
+                if (booking.error != null && staying.isEmpty && nearest == null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.xl),
+                    child: AppCard(
+                      child: ErrorState(
+                        message: booking.error!,
+                        onRetry: () => booking.load(),
+                      ),
+                    ),
+                  )
+                else if (staying.isEmpty && nearest == null)
                   const Padding(
                     padding: EdgeInsets.only(top: AppSpacing.xl),
                     child: AppCard(

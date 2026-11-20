@@ -59,20 +59,24 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Tinggi minimal, bukan tetap, supaya teks tidak terpotong di font besar.
     return Container(
-      height: 28,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      alignment: Alignment.center,
+      constraints: const BoxConstraints(minHeight: 28),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: style.bg,
         borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: style.fg,
+      child: Center(
+        widthFactor: 1,
+        heightFactor: 1,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: style.fg,
+          ),
         ),
       ),
     );
@@ -724,5 +728,18 @@ class IconBubble extends StatelessWidget {
       ),
       child: Icon(icon, color: color, size: size * 0.5),
     );
+  }
+}
+
+final _runningActions = <Object>{};
+
+/// Mencegah aksi yang sama dijalankan dua kali (tap ganda) sampai aksi
+/// pertama selesai, termasuk selama dialog konfirmasinya masih terbuka.
+Future<void> runOnce(Object key, Future<void> Function() action) async {
+  if (!_runningActions.add(key)) return;
+  try {
+    await action();
+  } finally {
+    _runningActions.remove(key);
   }
 }

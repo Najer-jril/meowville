@@ -5,6 +5,7 @@ import '../../../controllers/addon_controller.dart';
 import '../../../data/models.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/format.dart';
+import '../../../widgets/common.dart';
 
 class StepAddon extends StatelessWidget {
   const StepAddon({super.key, required this.selected, required this.onToggle});
@@ -15,7 +16,8 @@ class StepAddon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final addons = context.watch<AddonController>().active;
+    final controller = context.watch<AddonController>();
+    final addons = controller.active;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
@@ -34,6 +36,11 @@ class StepAddon extends StatelessWidget {
               style: text.bodyMedium!.copyWith(color: AppColors.muted),
             ),
           ),
+          if (controller.error != null && addons.isEmpty)
+            ErrorState(
+              message: controller.error!,
+              onRetry: () => controller.load(),
+            ),
           Column(
             spacing: AppSpacing.md,
             crossAxisAlignment: CrossAxisAlignment.stretch,
