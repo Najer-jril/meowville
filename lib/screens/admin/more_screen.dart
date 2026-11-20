@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/app_links.dart';
+import '../../widgets/support_contact.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/daily_report_controller.dart';
 import '../../controllers/reservation_controller.dart';
@@ -89,6 +91,12 @@ class MoreScreen extends StatelessWidget {
                       icon: Icons.bar_chart,
                       title: 'Laporan Pethotel',
                       onTap: () => push(AppRoutes.adminReport),
+                    ),
+                    const _Divider(),
+                    _MenuTile(
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'Kebijakan Privasi',
+                      onTap: () => openLink(context, AppLinks.privacy),
                     ),
                   ],
                 ),

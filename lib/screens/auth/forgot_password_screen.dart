@@ -14,6 +14,7 @@ import '../../theme/app_assets.dart';
 import '../../widgets/auth_text_field.dart';
 import '../../widgets/auth_header.dart';
 import '../../widgets/common.dart';
+import '../../widgets/support_contact.dart';
 
 const _resendSeconds = 60;
 
@@ -471,7 +472,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           children: [
             Text('Butuh bantuan?', style: caption),
             TextButton(
-              onPressed: () {},
+              onPressed: () =>
+                  showSupportContact(context, subject: 'Bantuan akun Meowville'),
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
               ),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
 import '../../../controllers/booking_controller.dart';
+import '../../../controllers/settings_controller.dart';
 import '../../../data/models.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/clock.dart';
@@ -10,14 +11,7 @@ import '../../../utils/format.dart';
 import '../../../widgets/app_photo.dart';
 import '../../../widgets/common.dart';
 import '../../../widgets/photo_picker.dart';
-
-abstract final class PaymentInfo {
-  static const bank = 'BKA';
-  static const bankName = 'Bank Kucing Asia';
-  static const account = '1123 10 59';
-  static const holder = 'Meowville Pethotel';
-  static const adminWhatsApp = '0811-0000-1111';
-}
+import '../../../widgets/support_contact.dart';
 
 StatusBadge ownerStatusBadge(Reservation r) {
   if (r.status == ReservationStatus.pending) {
@@ -138,10 +132,15 @@ class BankInfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final pay = context.watch<SettingsController>().settings;
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Padding(
+            padding: EdgeInsets.only(bottom: AppSpacing.md),
+            child: DemoNotice(),
+          ),
           Row(
             spacing: AppSpacing.sm,
             children: [
@@ -188,15 +187,15 @@ class BankInfoCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(PaymentInfo.bankName, style: text.bodySmall),
+                      Text(pay.bankName, style: text.bodySmall),
                       Text(
-                        PaymentInfo.account,
+                        pay.bankAccount,
                         style: text.titleLarge!.copyWith(
                           fontSize: 20,
                           letterSpacing: 1,
                         ),
                       ),
-                      Text('a.n. ${PaymentInfo.holder}', style: text.bodySmall),
+                      Text('a.n. ${pay.bankHolder}', style: text.bodySmall),
                     ],
                   ),
                 ),
@@ -204,7 +203,7 @@ class BankInfoCard extends StatelessWidget {
                   onPressed: () {
                     Clipboard.setData(
                       ClipboardData(
-                        text: PaymentInfo.account.replaceAll(' ', ''),
+                        text: pay.bankAccount.replaceAll(' ', ''),
                       ),
                     );
                     showSnack(context, 'Nomor rekening disalin');
